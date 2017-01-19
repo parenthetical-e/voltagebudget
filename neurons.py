@@ -11,12 +11,12 @@ def lif(time,
         w_sigma,
         bias,
         bias_sigma,
-        f,  # TODO add osc a current injection
+        f,
         a=1e-3,
         Nb=1000,
         r_e=40,
         r_i=40,
-        w_e=4e-9,  # TODO use paco2 number to set w_e/i
+        w_e=4e-9,
         w_i=16e-9,
         tau_e=5e-3,
         tau_i=10e-3,
@@ -106,7 +106,7 @@ def lif(time,
     # Stim
     P_stim = SpikeGeneratorGroup(k, ns, ts * second)
     C_stim = Synapses(P_stim, P_e, model='w : 1', on_pre='g_in += w')
-    C_stim.connect()  # TODO check this is right
+    C_stim.connect()
     C_stim.w = 'w_in + (j * w_sigma * randn())'
 
     # -----------------------------------------------------------------
