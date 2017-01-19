@@ -28,11 +28,15 @@ def lif(time,
     # User params
 
     w_in = w_in * siemens
+    w_sigma = w_sigma * siemens
+
     w_e = w_e * siemens
     w_i = w_i * siemens
     g_l = g_l * siemens
 
     w_in = w_in / g_l
+    w_sigma = w_sigma / g_l
+
     w_e = w_e / g_l
     w_i = w_i / g_l
     g_l = g_l / g_l
@@ -84,10 +88,11 @@ def lif(time,
         method='rk2')
 
     P_e.v = Ereset
+
     if np.allclose(bias_sigma, 0.0):
         Is = bias
     else:
-        Is = np.random.normal(bias, bias_sigma)
+        Is = np.random.normal(bias, bias_sigma, len(P_e))
     P_e.I = Is * volt
 
     # Set up the 'network'
@@ -100,12 +105,9 @@ def lif(time,
 
     # Stim
     P_stim = SpikeGeneratorGroup(k, ns, ts * second)
-    C_stim = Synapses(
-        P_stim,
-        P_e,
-        model='w : volt',
-        on_pre='g_in +=  (w_in + (w_sigma * randn()))')
+    C_stim = Synapses(P_stim, P_e, model='w : 1', on_pre='g_in += w')
     C_stim.connect()  # TODO check this is right
+    C_stim.w = 'w_in + (j * w_sigma * randn())'
 
     # -----------------------------------------------------------------
     # Run, and extract results
