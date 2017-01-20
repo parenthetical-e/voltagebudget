@@ -209,7 +209,6 @@ def adex(time,
 
     P_e.v = El
     P_e.w = a * (P_e.v - El)
-    # P_e.Er = linspace(-48.3 * mV, -47.7 * mV, N)  # bifurcation parameter
     P_e.Er = (-Ereset + (Er_sigma * np.random.normal(0, 1, len(P_e)))) * volt
     P_e.I = bias * amp
 
