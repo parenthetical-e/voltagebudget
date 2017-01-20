@@ -137,7 +137,7 @@ def adex(time,
          time_step=0.01e-3,
          sigma_scale=20.0,
          report='text'):
-    """Create LIF 'computing' neurons"""
+    """Create AdEx 'computing' neurons"""
     defaultclock.dt = time_step * second
 
     C = 281 * pF
