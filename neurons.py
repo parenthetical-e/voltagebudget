@@ -7,8 +7,8 @@ def lif(time,
         k,
         ns,
         ts,
-        w_in,
-        bias,
+        w_in=0.3e-9,
+        bias=5e-3,
         f=0,
         A=1e-3,
         r_b=40,
@@ -128,13 +128,14 @@ def adex(time,
          k,
          ns,
          ts,
+         Ereset=48e-3,
          w_in=0.3e-9,
          bias=5e-5,
          f=0,
          A=1e-3,
          r_b=40,
          time_step=0.01e-3,
-         sigma_scale=10.0,
+         sigma_scale=20.0,
          report='text'):
     """Create LIF 'computing' neurons"""
     defaultclock.dt = time_step * second
@@ -144,6 +145,11 @@ def adex(time,
 
     w_in = w_in * siemens
     # w_in = w_in / g_l
+
+    if np.allclose(sigma_scale, 0.0):
+        Er_sigma = 0.0
+    else:
+        Er_sigma = Ereset / sigma_scale
 
     # noise
     w_e = 4e-9 * siemens
@@ -204,7 +210,7 @@ def adex(time,
     P_e.v = El
     P_e.w = a * (P_e.v - El)
     # P_e.Er = linspace(-48.3 * mV, -47.7 * mV, N)  # bifurcation parameter
-    P_e.Er = np.random.normal(-48, 2, N) * mV
+    P_e.Er = (-Ereset + (Er_sigma * np.random.normal(0, 1, len(P_e)))) * volt
     P_e.I = bias * amp
 
     # Set up the 'network'
