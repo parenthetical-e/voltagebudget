@@ -4,7 +4,6 @@ from brian2 import *
 
 def lif(time,
         N,
-        k,
         ns,
         ts,
         w_in=0.3e-9,
@@ -97,7 +96,7 @@ def lif(time,
     C_bi.connect('i == j')
 
     # Stim
-    P_stim = SpikeGeneratorGroup(k, ns, ts * second)
+    P_stim = SpikeGeneratorGroup(np.max(ns) + 1, ns, ts * second)
     C_stim = Synapses(P_stim, P_e, model='w : 1', on_pre='g_in += w')
     C_stim.connect()
     C_stim.w = 'clip(w_in + (j * w_sigma * randn()), 0.0, 1e6)'
@@ -125,7 +124,6 @@ def lif(time,
 
 def adex(time,
          N,
-         k,
          ns,
          ts,
          Ereset=48e-3,
@@ -223,7 +221,7 @@ def adex(time,
     C_bi.connect('i == j')
 
     # Stim
-    P_stim = SpikeGeneratorGroup(k, ns, ts * second)
+    P_stim = SpikeGeneratorGroup(np.max(ns) + 1, ns, ts * second)
     C_stim = Synapses(P_stim, P_e, on_pre='g_in += w_in')
     C_stim.connect()
 
@@ -240,7 +238,8 @@ def adex(time,
 
     # And the voltages
     vm = traces_e.v_
-    v_comp = (traces_e.g_in_ * (float(Ee) - vm) + traces_e.I_)
+    v_comp = (traces_e.g_in_ *
+              (float(Ee) - vm) + traces_e.I_)  # TODO adj this for 'w'
     v_osc = traces_e.I_osc
     v_free = vm - float(Et)
     vs = dict(vm=vm, comp=v_comp, osc=v_osc, free=v_free)
