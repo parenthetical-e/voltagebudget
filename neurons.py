@@ -129,8 +129,8 @@ def adex(time,
          ns,
          ts,
          Ereset=48e-3,
-         w_in=0.3e-9,
-         bias=5e-5,
+         w_in=0.8e-9,
+         bias=0.5e-9,
          f=0,
          A=1e-3,
          r_b=40,
@@ -148,8 +148,10 @@ def adex(time,
 
     if np.allclose(sigma_scale, 0.0):
         Er_sigma = 0.0
+        bias_sigma = 0.0
     else:
         Er_sigma = Ereset / sigma_scale
+        bias_sigma = bias / sigma_scale
 
     # noise
     w_e = 4e-9 * siemens
@@ -170,7 +172,6 @@ def adex(time,
     tau_w = 40 * ms
     a = 4 * nS
     b = 0.08 * nA
-    I = .8 * nA
     Ecut = Et + 5 * delta_t  # practical threshold condition
 
     # background synapses
@@ -210,7 +211,9 @@ def adex(time,
     P_e.v = El
     P_e.w = a * (P_e.v - El)
     P_e.Er = (-Ereset + (Er_sigma * np.random.normal(0, 1, len(P_e)))) * volt
-    P_e.I = bias * amp
+
+    Is = bias + (bias_sigma * np.random.normal(0, 1, len(P_e)))
+    P_e.I = Is * amp
 
     # Set up the 'network'
     # Noise
