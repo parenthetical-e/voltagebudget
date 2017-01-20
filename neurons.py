@@ -2,6 +2,57 @@ import numpy as np
 from brian2 import *
 
 
+def create_problem(nrn,
+                   t_stim,
+                   N,
+                   ns,
+                   ts,
+                   f,
+                   w_in=0.1e-9,
+                   bias=5e-3,
+                   pad=10e-3,
+                   Nz=100):
+    time = np.max(ts) + pad
+
+    def problem(A):
+        A = A[0]
+
+        # Create Y, then Z
+        ns_y, ts_y, _ = nrn(time,
+                            N,
+                            ns,
+                            ts,
+                            w_in=w_in,
+                            bias=bias,
+                            f=f,
+                            A=A,
+                            report=None)
+
+        _, ts_z, _ = lif(time,
+                         Nz,
+                         ns_y,
+                         ts_y,
+                         w_in=0.1e-9,
+                         bias=10e-6,
+                         r_b=0,
+                         sigma_scale=10,
+                         f=0,
+                         A=0,
+                         report=None)
+
+        # Est communication
+        m = np.logical_or(t_stim <= ts_z, ts_z <= (t_stim + pad))
+        C = 0
+        if ts_z[m].size > 0:
+            C = ts_z[m].size / float(Nz)
+
+        # Return losses (with C in mimization form)
+        print(A, -C)
+        return A, -C
+
+    return problem
+
+
 def lif(time,
         N,
         ns,
