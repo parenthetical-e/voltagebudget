@@ -11,7 +11,7 @@ def lif(time,
         f=0,
         A=1e-3,
         r_b=40,
-        time_step=1e-4,
+        time_step=1e-5,
         sigma_scale=10.0,
         report='text'):
     """Create LIF 'computing' neurons"""
@@ -132,7 +132,7 @@ def adex(time,
          f=0,
          A=1e-3,
          r_b=40,
-         time_step=0.01e-3,
+         time_step=1e-5,
          sigma_scale=20.0,
          report='text'):
     """Create AdEx 'computing' neurons"""
