@@ -142,7 +142,6 @@ def adex(time,
     g_l = 30 * nS
 
     w_in = w_in * siemens
-    # w_in = w_in / g_l
 
     if np.allclose(sigma_scale, 0.0):
         Er_sigma = 0.0
@@ -154,10 +153,6 @@ def adex(time,
     # noise
     w_e = 4e-9 * siemens
     w_i = 16e-9 * siemens
-
-    # w_e = w_e / g_l
-    # w_i = w_i / g_l
-    # g_l = g_l / g_l
 
     # osc injection
     f *= Hz
