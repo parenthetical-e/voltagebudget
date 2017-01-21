@@ -1,6 +1,7 @@
 # %matplotlib inline
 # import matplotlib.pyplot as plt
 # import numpy as np
+import csv
 
 import numpy as np
 
@@ -88,7 +89,14 @@ problem.types[:] = Real(0.0, Amax)
 
 problem.function = sim
 algorithm = NSGAII(problem)
-algorithm.run(1000)
+algorithm.run(10)
 
-As = [s.objectives[0] for s in algorithm.result]
-Cs = [s.objectives[1] for s in algorithm.result]
+results = dict(
+    As=[s.objectives[0] for s in algorithm.result],
+    Cs=[s.objectives[1] for s in algorithm.result])
+
+keys = sorted(results.keys())
+with open("test.csv", "wb") as f:
+    writer = csv.writer(f, delimiter=",")
+    writer.writerow(keys)
+    writer.writerows(zip(*[results[key] for key in keys]))
