@@ -1,9 +1,26 @@
+"""Usage: opt.py NAME N 
+        (--lif | --adex)
+        [-a A]
+
+Optimize input weight and bias
+
+    Arguments:
+        NAME    results name (.hdf5)
+        N       number of interations
+
+    Options:
+        -h --help               show this screen
+        -a A                    maximum oscillation size [default: 30e-3]
+"""
+
 # %matplotlib inline
 # import matplotlib.pyplot as plt
-# import numpy as np
+from __future__ import division
+
 import csv
 
 import numpy as np
+from docopt import docopt
 
 from fakespikes import util as fsutil
 from platypus.algorithms import NSGAII
@@ -63,40 +80,53 @@ def create_problem(nrn,
 
     return problem
 
-# ---------------------------------------------------------------------
-t = 0.3
 
-k = 20
-t_stim = 0.1
+if __name__ == "__main__":
+    args = docopt(__doc__, version='alpha')
 
-dt = 1e-4
-w = 1e-4
-a = 10000
-ns, ts = k_spikes(t_stim, k, w, a=a, dt=dt, seed=None)
-print(len(ts))
+    name = args["NAME"]
+    N = int(args["N"])
 
-times = fsutil.create_times(t, dt)
+    Amax = float(args["-a"])
+    if args["--lif"]:
+        nrn = lif
+    elif args["--adex"]:
+        nrn = adex
+    else:
+        raise ValueError("opt.py requires neuron type --lif or --adex")
 
-# ---------------------------------------------------------------------
-f = 50
-nrn = lif
-sim = create_problem(nrn, t_stim, k, ns, ts, f)
+    # ---------------------------------------------------------------------
+    t = 0.3
 
-# ---------------------------------------------------------------------
-Amax = 30e-3
-problem = Problem(1, 2)
-problem.types[:] = Real(0.0, Amax)
+    k = 20
+    t_stim = 0.1
 
-problem.function = sim
-algorithm = NSGAII(problem)
-algorithm.run(10)
+    dt = 1e-4
+    w = 1e-4
+    a = 10000
+    ns, ts = k_spikes(t_stim, k, w, a=a, dt=dt, seed=None)
+    print(len(ts))
 
-results = dict(
-    As=[s.objectives[0] for s in algorithm.result],
-    Cs=[s.objectives[1] for s in algorithm.result])
+    times = fsutil.create_times(t, dt)
 
-keys = sorted(results.keys())
-with open("test.csv", "wb") as f:
-    writer = csv.writer(f, delimiter=",")
-    writer.writerow(keys)
-    writer.writerows(zip(*[results[key] for key in keys]))
+    # ---------------------------------------------------------------------
+    f = 50
+    sim = create_problem(nrn, t_stim, k, ns, ts, f)
+
+    # ---------------------------------------------------------------------
+    problem = Problem(1, 2)
+    problem.types[:] = Real(0.0, Amax)
+
+    problem.function = sim
+    algorithm = NSGAII(problem)
+    algorithm.run(N)
+
+    results = dict(
+        As=[s.objectives[0] for s in algorithm.result],
+        Cs=[s.objectives[1] for s in algorithm.result])
+
+    keys = sorted(results.keys())
+    with open("{}.csv".format(name), "wb") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(keys)
+        writer.writerows(zip(*[results[key] for key in keys]))
