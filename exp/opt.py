@@ -104,7 +104,7 @@ if __name__ == "__main__":
     dt = 1e-4
     w = 1e-4
     a = 10000
-    ns, ts = k_spikes(t_stim, k, w, a=a, dt=dt, seed=None)
+    ns, ts = k_spikes(t_stim, k, w, a=a, dt=dt, seed=42)
     print(len(ts))
 
     times = fsutil.create_times(t, dt)
