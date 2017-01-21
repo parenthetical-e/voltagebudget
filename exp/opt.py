@@ -83,17 +83,9 @@ def create_problem(nrn,
 
 if __name__ == "__main__":
     args = docopt(__doc__, version='alpha')
-
     name = args["NAME"]
     N = int(args["N"])
-
     Amax = float(args["-a"])
-    if args["--lif"]:
-        nrn = lif
-    elif args["--adex"]:
-        nrn = adex
-    else:
-        raise ValueError("opt.py requires neuron type --lif or --adex")
 
     # ---------------------------------------------------------------------
     t = 0.3
@@ -111,7 +103,16 @@ if __name__ == "__main__":
 
     # ---------------------------------------------------------------------
     f = 50
-    sim = create_problem(nrn, t_stim, k, ns, ts, f)
+    if args["--lif"]:
+        w_in = 0.2e-9
+        bias = 5e-3
+        sim = create_problem(lif, t_stim, k, ns, ts, f, w_in=w_in, bias=bias)
+    elif args["--adex"]:
+        w_in = 0.6e-9
+        bias = 5e-10
+        sim = create_problem(adex, t_stim, k, ns, ts, f, w_in=w_in, bias=bias)
+    else:
+        raise ValueError("opt.py requires neuron type --lif or --adex")
 
     # ---------------------------------------------------------------------
     problem = Problem(1, 2)
