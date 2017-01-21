@@ -2,7 +2,7 @@
         (--lif | --adex)
         [-a A]
 
-Optimize input weight and bias
+Minimize A and maximisze C.
 
     Arguments:
         NAME    results name (.hdf5)
