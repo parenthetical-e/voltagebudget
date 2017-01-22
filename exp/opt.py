@@ -56,6 +56,10 @@ def create_problem(nrn,
                             A=A,
                             report=None)
 
+        # If Y didn't spike, C=0
+        if ns_y.shape[0] == 0:
+            return A, 0.0
+
         _, ts_z, _ = lif(time,
                          Nz,
                          ns_y,

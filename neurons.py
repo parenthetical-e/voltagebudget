@@ -15,6 +15,10 @@ def lif(time,
         sigma_scale=10.0,
         report='text'):
     """Create LIF 'computing' neurons"""
+
+    if ns.shape[0] == 0:
+        return np.array([]), np.array([]), dict()
+
     # -----------------------------------------------------------------
     g_l = 10e-9 * siemens
 
@@ -136,6 +140,9 @@ def adex(time,
          sigma_scale=20.0,
          report='text'):
     """Create AdEx 'computing' neurons"""
+    if ns.shape[0] == 0:
+        return np.array([]), np.array([]), dict()
+
     defaultclock.dt = time_step * second
 
     C = 281 * pF
