@@ -130,6 +130,8 @@ def adex(time,
          N,
          ns,
          ts,
+         a=(-1.0e-9, 1.0e-9),
+         b=(10e-12, 60.0e-12),
          Ereset=48e-3,
          w_in=0.8e-9,
          bias=0.5e-9,
@@ -170,8 +172,6 @@ def adex(time,
     Et = -50.4 * mV
     delta_t = 2 * mV
     tau_w = 40 * ms
-    a = 4 * nS
-    b = 0.08 * nA
     Ecut = Et + 5 * delta_t  # practical threshold condition
 
     # background synapses
@@ -198,6 +198,8 @@ def adex(time,
     dg_i/dt = -g_i / tau_gaba : siemens
     I_osc = A * sin(t * f * 2 * pi) : amp
     Er : volt
+    a: siemens
+    b: amp
     I : amp
     """
 
@@ -209,7 +211,9 @@ def adex(time,
         method='euler')
 
     P_e.v = El
-    P_e.w = a * (P_e.v - El)
+    P_e.a = np.random.uniform(a[0], a[1], N) * siemens
+    P_e.b = np.random.uniform(b[0], b[1], N) * amp
+    P_e.w = P_e.a * (P_e.v - El)
     P_e.Er = (-Ereset + (Er_sigma * np.random.normal(0, 1, len(P_e)))) * volt
 
     Is = bias + (bias_sigma * np.random.normal(0, 1, len(P_e)))
