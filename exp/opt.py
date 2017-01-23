@@ -54,6 +54,7 @@ def create_problem(nrn,
                             bias=bias,
                             f=f,
                             A=A,
+                            r_b=0,
                             report=None)
 
         # If Y didn't spike, C=0
