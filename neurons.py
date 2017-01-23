@@ -139,7 +139,7 @@ def adex(time,
          A=1e-3,
          r_b=40,
          time_step=1e-5,
-         sigma_scale=20.0,
+         sigma_scale=30.0,
          report='text'):
     """Create AdEx 'computing' neurons"""
     if ns.shape[0] == 0:
