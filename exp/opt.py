@@ -110,7 +110,7 @@ if __name__ == "__main__":
         bias = 5e-3
         sim = create_problem(lif, t_stim, k, ns, ts, f, w_in=w_in, bias=bias)
     elif args["--adex"]:
-        w_in = 0.6e-9
+        w_in = 0.5e-9
         bias = 5e-10
         sim = create_problem(adex, t_stim, k, ns, ts, f, w_in=w_in, bias=bias)
     else:
