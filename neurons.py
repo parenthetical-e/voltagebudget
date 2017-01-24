@@ -93,7 +93,7 @@ def lif(time,
         threshold='v > Et',
         reset='v = Er',
         refractory=2 * ms,
-        method='rk2')
+        method='euler')
 
     P_e.v = Er
 
