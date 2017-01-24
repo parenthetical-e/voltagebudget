@@ -130,7 +130,7 @@ if __name__ == "__main__":
     results = dict(
         As=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
-        ws=[s.variables[1] for s in algorithm.result])
+        ws=[s.objectives[1] for s in algorithm.result])
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as f:
