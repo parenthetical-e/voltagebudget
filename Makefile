@@ -1,8 +1,8 @@
-lif_10000:
+lif1_10000:
 	-rm data/lif1_10000.csv
 	python exp/opt1.py data/lif1_10000 10000 -a 30e-3 --lif 
 
-adex_10000:
+adex1_10000:
 	-rm data/adex1_10000.csv
 	python exp/opt1.py data/adex1_10000 10000 -a 10e-10 --adex
 
