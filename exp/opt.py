@@ -30,16 +30,7 @@ from voltagebudget.neurons import adex, lif
 from voltagebudget.util import k_spikes
 
 
-def create_problem(nrn,
-                   t_stim,
-                   N,
-                   ns,
-                   ts,
-                   f,
-                   w_in=0.1e-9,
-                   bias=5e-3,
-                   pad=10e-3,
-                   Nz=100):
+def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100, **params):
     time = np.max(ts) + pad
 
     def problem(A):
@@ -50,30 +41,31 @@ def create_problem(nrn,
                             N,
                             ns,
                             ts,
-                            w_in=w_in,
-                            bias=bias,
                             f=f,
                             A=A,
                             r_b=0,
-                            report=None)
+                            report=None,
+                            **params)
 
         # If Y didn't spike, C=0
         if ns_y.shape[0] == 0:
-            return A, 0.0
+            print("Null Y.")
+            return A, -0.0
 
         _, ts_z, _ = lif(time,
                          Nz,
                          ns_y,
                          ts_y,
-                         w_in=0.1e-9,
-                         bias=10e-6,
+                         w_in=(0.1e-9, 0.1e-9 / 10),
+                         bias=(10e-6, 10e-6 / 10),
                          r_b=0,
-                         sigma_scale=10,
                          f=0,
                          A=0,
                          report=None)
 
         # Est communication
+        # import ipdb
+        # ipdb.set_trace()
         m = np.logical_or(t_stim <= ts_z, ts_z <= (t_stim + pad))
         C = 0
         if ts_z[m].size > 0:
@@ -107,15 +99,20 @@ if __name__ == "__main__":
     # ---------------------------------------------------------------------
     f = 50
     if args["--lif"]:
-        w_in = 0.2e-9
-        bias = 5e-3
-        sim = create_problem(lif, t_stim, k, ns, ts, f, w_in=w_in, bias=bias)
+        nrn = lif
+        params = dict(w_in=(0.2e-9, 0.2e-9 / 10), bias=(5e-3, 5e-3 / 10))
     elif args["--adex"]:
-        w_in = 0.5e-9
-        bias = 5e-10
-        sim = create_problem(adex, t_stim, k, ns, ts, f, w_in=w_in, bias=bias)
+        nrn = adex
+        params = dict(
+            w_in=0.5e-9,
+            bias=(5e-10, 5e-10 / 20),
+            a=(-1.0e-9, 1.0e-9),
+            b=(10e-12, 60.0e-12),
+            Ereset=(-48e-3, -55e-3))
     else:
         raise ValueError("opt.py requires neuron type --lif or --adex")
+
+    sim = create_problem(nrn, t_stim, k, ns, ts, f, **params)
 
     # ---------------------------------------------------------------------
     problem = Problem(1, 2)

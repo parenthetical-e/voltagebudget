@@ -12,12 +12,25 @@ def lif(time,
         A=1e-3,
         r_b=40,
         time_step=1e-5,
-        sigma_scale=10.0,
         report='text'):
     """Create LIF 'computing' neurons"""
 
     if ns.shape[0] == 0:
         return np.array([]), np.array([]), dict()
+
+    try:
+        if len(w_in) == 2:
+            w_sigma = w_in[1]
+            w_in = w_in[0]
+    except TypeError:
+        w_sigma = 0.0
+
+    try:
+        if len(bias) == 2:
+            bias_sigma = bias[1]
+            bias = bias[0]
+    except TypeError:
+        bias_sigma = 0.0
 
     # -----------------------------------------------------------------
     g_l = 10e-9 * siemens
@@ -26,19 +39,17 @@ def lif(time,
     w_in = w_in * siemens
     w_in = w_in / g_l
 
-    if np.allclose(sigma_scale, 0.0):
-        w_sigma = 0.0
-        bias_sigma = 0.0
-    else:
-        w_sigma = w_in / sigma_scale
-        bias_sigma = bias / sigma_scale
+    w_sigma = w_sigma * siemens
+    w_sigma = w_sigma / g_l
 
     # noise
     w_e = 4e-9 * siemens
-    w_i = 16e-9 * siemens
-
     w_e = w_e / g_l
+
+    w_i = 16e-9 * siemens
     w_i = w_i / g_l
+
+    # leak
     g_l = g_l / g_l
 
     # osc injection
@@ -55,9 +66,6 @@ def lif(time,
     tau_m = 10 * ms
     tau_ampa = 5e-3 * second
     tau_gaba = 10e-3 * second
-
-    time_step *= second
-    defaultclock.dt = time_step
 
     # -----------------------------------------------------------------
     # E/I noise
@@ -110,6 +118,7 @@ def lif(time,
     spikes_e = SpikeMonitor(P_e)
     traces_e = StateMonitor(P_e, ['v', 'g_in', 'I_osc', 'I'], record=True)
 
+    defaultclock.dt = time_step * second
     run(time * second, report=report)
 
     # Extract spikes
@@ -132,32 +141,39 @@ def adex(time,
          ts,
          a=(-1.0e-9, 1.0e-9),
          b=(10e-12, 60.0e-12),
-         Ereset=48e-3,
+         Ereset=-48e-3,
          w_in=0.8e-9,
          bias=0.5e-9,
          f=0,
          A=1e-3,
          r_b=40,
          time_step=1e-5,
-         sigma_scale=30.0,
          report='text'):
     """Create AdEx 'computing' neurons"""
     if ns.shape[0] == 0:
         return np.array([]), np.array([]), dict()
 
-    defaultclock.dt = time_step * second
+    try:
+        if len(w_in) == 2:
+            w_sigma = w_in[1]
+            w_in = w_in[0]
+    except TypeError:
+        w_sigma = 0.0
 
+    try:
+        if len(bias) == 2:
+            bias_sigma = bias[1]
+            bias = bias[0]
+    except TypeError:
+        bias_sigma = 0.0
+
+    # -----------------------------------------------------------------
     C = 281 * pF
     g_l = 30 * nS
 
+    # comp
     w_in = w_in * siemens
-
-    if np.allclose(sigma_scale, 0.0):
-        Er_sigma = 0.0
-        bias_sigma = 0.0
-    else:
-        Er_sigma = Ereset / sigma_scale
-        bias_sigma = bias / sigma_scale
+    w_sigma = w_sigma * siemens
 
     # noise
     w_e = 4e-9 * siemens
@@ -211,11 +227,24 @@ def adex(time,
         method='euler')
 
     P_e.v = El
-    P_e.a = np.random.uniform(a[0], a[1], N) * siemens
-    P_e.b = np.random.uniform(b[0], b[1], N) * amp
-    P_e.w = P_e.a * (P_e.v - El)
-    P_e.Er = (-Ereset + (Er_sigma * np.random.normal(0, 1, len(P_e)))) * volt
 
+    # Set random (?) recovery physics?
+    try:
+        P_e.a = np.random.uniform(a[0], a[1], N) * siemens
+    except TypeError:
+        P_e.a = a * siemens
+    try:
+        P_e.b = np.random.uniform(b[0], b[1], N) * amp
+    except TypeError:
+        P_e.b = b * amp
+    try:
+        P_e.Er = np.random.uniform(Ereset[0], Ereset[1], N) * volt
+    except TypeError:
+        P_e.Er = Ereset * volt
+
+    P_e.w = P_e.a * (P_e.v - El)
+
+    # Random bias?
     Is = bias + (bias_sigma * np.random.normal(0, 1, len(P_e)))
     P_e.I = Is * amp
 
@@ -236,6 +265,7 @@ def adex(time,
     spikes_e = SpikeMonitor(P_e)
     traces_e = StateMonitor(P_e, ['v', 'g_in', 'I_osc', 'I'], record=True)
 
+    defaultclock.dt = time_step * second
     run(time * second, report=report)
 
     # Extract spikes
