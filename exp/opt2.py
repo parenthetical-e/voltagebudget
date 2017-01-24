@@ -1,8 +1,10 @@
 """Usage: opt2.py NAME N 
         (--lif | --adex)
-        [-a A] [-w W] [-b B]
+        [-a A] [-w W]
 
-Minimize A and maximisze C.
+Minimize A while searching w_in, to maximize C. 
+
+Noisy bias enforces uniqeness.
 
     Arguments:
         NAME    results name (.hdf5)
@@ -12,7 +14,6 @@ Minimize A and maximisze C.
         -h --help               show this screen
         -a A                    maximum oscillation size [default: 30e-3]
         -w W                    maximum `w_in` size [default: 0.2e-9]
-        -b B                    maximum `bias` size [default: 5e-3]
 """
 
 # %matplotlib inline
@@ -32,13 +33,12 @@ from voltagebudget.neurons import adex, lif
 from voltagebudget.util import k_spikes
 
 
-def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100):
+def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100, **params):
     time = np.max(ts) + pad
 
     def problem(vars):
         A = vars[0]
         w_in = vars[1]
-        bias = vars[2]
 
         # Create Y, then Z
         ns_y, ts_y, _ = nrn(time,
@@ -46,27 +46,27 @@ def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100):
                             ns,
                             ts,
                             w_in=w_in,
-                            bias=bias,
                             f=f,
                             A=A,
                             r_b=0.0,
-                            sigma_scale=0.0,
-                            report=None)
+                            report=None,
+                            **params)
 
         # If Y didn't spike, C=0
         if ns_y.shape[0] == 0:
+            print("Null Y.")
             return A, 0.0
 
         _, ts_z, _ = lif(time,
                          Nz,
                          ns_y,
                          ts_y,
-                         w_in=0.1e-9,
-                         bias=10e-6,
+                         w_in=(0.1e-9, 0.1e-9 / 10),
+                         bias=(10e-6, 10e-6 / 10),
                          r_b=0,
-                         sigma_scale=10,
                          f=0,
                          A=0,
+                         refractory=t_stim + pad,
                          report=None)
 
         # Est communication
@@ -76,7 +76,7 @@ def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100):
             C = ts_z[m].size / float(Nz)
 
         # Return losses (with C in mimization form)
-        print(A, -C)
+        print(A, w_in, -C)
         return A, -C
 
     return problem
@@ -89,7 +89,6 @@ if __name__ == "__main__":
 
     Amax = float(args["-a"])
     win_max = float(args["-w"])
-    bias_max = float(args["-b"])
 
     # ---------------------------------------------------------------------
     t = 0.3
@@ -104,18 +103,25 @@ if __name__ == "__main__":
     times = fsutil.create_times(t, dt)
 
     # ---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     f = 50
     if args["--lif"]:
-        sim = create_problem(lif, t_stim, k, ns, ts, f)
+        nrn = lif
+        params = dict(bias=(5e-3, 5e-3 / 10))
     elif args["--adex"]:
-        sim = create_problem(adex, t_stim, k, ns, ts, f)
+        nrn = adex
+        params = dict(
+            bias=(5e-10, 5e-10 / 20),
+            a=(-1.0e-9, 1.0e-9),
+            b=(10e-12, 60.0e-12),
+            Ereset=(-48e-3, -55e-3))
     else:
-        raise ValueError("opt2.py requires neuron type --lif or --adex")
+        raise ValueError("opt.py requires neuron type --lif or --adex")
 
+    sim = create_problem(nrn, t_stim, k, ns, ts, f=f, **params)
     # ---------------------------------------------------------------------
-    problem = Problem(3, 2)
-    problem.types[:] = [Real(0.0, Amax), Real(0.0, win_max), Real(0.0,
-                                                                  bias_max)]
+    problem = Problem(2, 2)
+    problem.types[:] = [Real(0.0, Amax), Real(0.0, win_max)]
 
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -124,8 +130,7 @@ if __name__ == "__main__":
     results = dict(
         As=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
-        ws=[s.variables[1] for s in algorithm.result],
-        bs=[s.variables[2] for s in algorithm.result])
+        ws=[s.variables[1] for s in algorithm.result])
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as f:

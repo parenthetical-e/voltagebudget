@@ -61,6 +61,7 @@ def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100, **params):
                          r_b=0,
                          f=0,
                          A=0,
+                         refractory=t_stim + pad,
                          report=None)
 
         # Est communication
@@ -104,7 +105,7 @@ if __name__ == "__main__":
     elif args["--adex"]:
         nrn = adex
         params = dict(
-            w_in=0.5e-9,
+            w_in=0.3e-9,
             bias=(5e-10, 5e-10 / 20),
             a=(-1.0e-9, 1.0e-9),
             b=(10e-12, 60.0e-12),
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     else:
         raise ValueError("opt.py requires neuron type --lif or --adex")
 
-    sim = create_problem(nrn, t_stim, k, ns, ts, f, **params)
+    sim = create_problem(nrn, t_stim, k, ns, ts, f=f, **params)
 
     # ---------------------------------------------------------------------
     problem = Problem(1, 2)
