@@ -16,6 +16,8 @@ def lif(time,
         report='text'):
     """Create LIF 'computing' neurons"""
 
+    prefs.codegen.target = 'numpy'
+
     if ns.shape[0] == 0:
         return np.array([]), np.array([]), dict()
 
@@ -151,6 +153,9 @@ def adex(time,
          time_step=1e-5,
          report='text'):
     """Create AdEx 'computing' neurons"""
+
+    prefs.codegen.target = 'numpy'
+
     if ns.shape[0] == 0:
         return np.array([]), np.array([]), dict()
 
