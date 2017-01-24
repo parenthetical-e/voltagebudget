@@ -1,4 +1,4 @@
-"""Usage: opt.py NAME N 
+"""Usage: opt1.py NAME N 
         (--lif | --adex)
         [-a A]
 
