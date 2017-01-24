@@ -13,3 +13,11 @@ lif2_10000:
 adex2_10000:
 	-rm data/adex2_10000.csv
 	python exp/opt2.py data/adex2_10000 10000 -a 30e-3 -w 0.6e-9  --adex
+
+lif3_10000:
+	-rm data/lif3_10000.csv
+	python exp/opt3.py data/lif3_10000 10000 -w 0.9e-9  --lif
+
+adex3_10000:
+	-rm data/adex3_10000.csv
+	python exp/opt3.py data/adex3_10000 10000 -w 0.9e-9  --adex
