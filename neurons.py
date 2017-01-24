@@ -12,6 +12,7 @@ def lif(time,
         A=1e-3,
         r_b=40,
         time_step=1e-5,
+        refractory=2e-3,
         report='text'):
     """Create LIF 'computing' neurons"""
 
@@ -92,7 +93,7 @@ def lif(time,
         lif,
         threshold='v > Et',
         reset='v = Er',
-        refractory=2 * ms,
+        refractory=refractory * second,
         method='euler')
 
     P_e.v = Er
