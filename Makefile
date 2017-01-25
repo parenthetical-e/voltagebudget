@@ -21,3 +21,12 @@ lif3_10000:
 adex3_10000:
 	-rm data/adex3_10000.csv
 	python exp/opt3.py data/adex3_10000 10000 -w 0.9e-9  --adex
+
+# Min A, min sigma_Y
+lif4_10000:
+	-rm data/lif4_10000.csv
+	python exp/opt4.py data/lif4_10000 10000 -a 30e-3 --lif 
+
+adex4_10000:
+	-rm data/adex4_10000.csv
+	python exp/opt4.py data/adex4_10000 10000 -a 10e-10 --adex
