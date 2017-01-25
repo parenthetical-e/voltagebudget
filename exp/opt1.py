@@ -37,32 +37,34 @@ def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100, **params):
         A = A[0]
 
         # Create Y, then Z
-        ns_y, ts_y, _ = nrn(time,
-                            N,
-                            ns,
-                            ts,
-                            f=f,
-                            A=A,
-                            r_b=0,
-                            report=None,
-                            **params)
+        ns_y, ts_y = nrn(time,
+                         N,
+                         ns,
+                         ts,
+                         f=f,
+                         A=A,
+                         r_b=0,
+                         budget=False,
+                         report=None,
+                         **params)
 
         # If Y didn't spike, C=0
         if ns_y.shape[0] == 0:
             print("Null Y.")
             return A, -0.0
 
-        _, ts_z, _ = lif(time,
-                         Nz,
-                         ns_y,
-                         ts_y,
-                         w_in=(0.1e-9, 0.1e-9 / 10),
-                         bias=(10e-6, 10e-6 / 10),
-                         r_b=0,
-                         f=0,
-                         A=0,
-                         refractory=t_stim + pad,
-                         report=None)
+        _, ts_z = lif(time,
+                      Nz,
+                      ns_y,
+                      ts_y,
+                      w_in=(0.1e-9, 0.1e-9 / 10),
+                      bias=(10e-6, 10e-6 / 10),
+                      r_b=0,
+                      f=0,
+                      A=0,
+                      refractory=t_stim + pad,
+                      budget=False,
+                      report=None)
 
         # Est communication
         # import ipdb
