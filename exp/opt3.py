@@ -39,33 +39,35 @@ def create_problem(nrn, t_stim, N, ns, ts, pad=10e-3, Nz=100, **params):
         w_in = vars[0]
 
         # Create Y, then Z
-        ns_y, ts_y, _ = nrn(time,
-                            N,
-                            ns,
-                            ts,
-                            w_in=w_in,
-                            f=0.0,
-                            A=0.0,
-                            r_b=0.0,
-                            report=None,
-                            **params)
+        ns_y, ts_y = nrn(time,
+                         N,
+                         ns,
+                         ts,
+                         w_in=w_in,
+                         f=0.0,
+                         A=0.0,
+                         r_b=0.0,
+                         report=None,
+                         budget=False,
+                         **params)
 
         # If Y didn't spike, C=0
         if ns_y.shape[0] == 0:
             print("Null Y.")
             return w_in, 0.0
 
-        _, ts_z, _ = lif(time,
-                         Nz,
-                         ns_y,
-                         ts_y,
-                         w_in=(0.1e-9, 0.1e-9 / 10),
-                         bias=(10e-6, 10e-6 / 10),
-                         r_b=0,
-                         f=0,
-                         A=0,
-                         refractory=t_stim + pad,
-                         report=None)
+        _, ts_z = lif(time,
+                      Nz,
+                      ns_y,
+                      ts_y,
+                      w_in=(0.1e-9, 0.1e-9 / 10),
+                      bias=(10e-6, 10e-6 / 10),
+                      r_b=0,
+                      f=0,
+                      A=0,
+                      refractory=t_stim + pad,
+                      budget=False,
+                      report=None)
 
         # Est communication
         m = np.logical_or(t_stim <= ts_z, ts_z <= (t_stim + pad))
