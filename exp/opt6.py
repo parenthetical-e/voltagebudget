@@ -132,7 +132,7 @@ if __name__ == "__main__":
     results = dict(
         y_sigmas=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
-        As=[s.objectives[0] for s in algorithm.result])
+        As=[s.objectives[2] for s in algorithm.result])
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as f:
