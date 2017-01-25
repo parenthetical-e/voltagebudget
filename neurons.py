@@ -13,9 +13,11 @@ def lif(time,
         r_b=40,
         time_step=1e-5,
         refractory=2e-3,
+        budget=True,
         report='text'):
     """Create LIF 'computing' neurons"""
 
+    defaultclock.dt = time_step * second
     prefs.codegen.target = 'numpy'
 
     if ns.shape[0] == 0:
@@ -117,25 +119,41 @@ def lif(time,
     C_stim.w = 'clip(w_in + (j * w_sigma * randn()), 0.0, 1e6)'
 
     # -----------------------------------------------------------------
-    # Run, and extract results
+    # Deinfe variable
     spikes_e = SpikeMonitor(P_e)
-    traces_e = StateMonitor(P_e, ['v', 'g_in', 'I_osc', 'I'], record=True)
+    traces_e = StateMonitor(P_e, ['v'], record=True)
 
-    defaultclock.dt = time_step * second
-    run(time * second, report=report)
+    # Define basic net
+    net = Network(P_be, P_bi, P_e, C_be, C_bi, traces_e)
+    net.store('no_stim')
+
+    # If budgets are desired, run the net without
+    # any stimululation. (This strictly speaking isn't
+    # necessary, but I can't get Brian to express the needed
+    # diff eq to get the osc budget term in one pass.)
+    if budget:
+        from copy import deepcopy
+        net.run(time * second, report=report)
+        v_osc = deepcopy(traces_e.v_)
+
+    net.restore('no_stim')
+    net.add([P_stim, C_stim, spikes_e])
+    net.run(time * second, report=report)
 
     # Extract spikes
     ns_e = spikes_e.i_
     ts_e = spikes_e.t_
+    result = [ns_e, ts_e]
 
-    # And the voltages
-    vm = traces_e.v_
-    v_comp = (traces_e.g_in_ * (float(Ee) - vm) + traces_e.I_)
-    v_osc = traces_e.I_osc
-    v_free = vm - float(Et)
-    vs = dict(vm=vm, comp=v_comp, osc=v_osc, free=v_free)
+    if budget:
+        vm = traces_e.v_
+        v_comp = (vm - v_osc) + np.mean(v_osc)
+        v_free = vm - float(Et)
+        vs = dict(vm=vm, comp=v_comp, osc=v_osc, free=v_free)
 
-    return ns_e, ts_e, vs
+        result.append(vs)
+
+    return result
 
 
 def adex(time,
@@ -151,6 +169,7 @@ def adex(time,
          A=1e-3,
          r_b=40,
          time_step=1e-5,
+         budget=True,
          report='text'):
     """Create AdEx 'computing' neurons"""
 
@@ -267,23 +286,38 @@ def adex(time,
     C_stim.connect()
 
     # -----------------------------------------------------------------
-    # Run, and extract results
+    # Deinfe variable
     spikes_e = SpikeMonitor(P_e)
-    traces_e = StateMonitor(P_e, ['v', 'g_in', 'I_osc', 'I'], record=True)
+    traces_e = StateMonitor(P_e, ['v'], record=True)
 
-    defaultclock.dt = time_step * second
-    run(time * second, report=report)
+    # Define basic net
+    net = Network(P_be, P_bi, P_e, C_be, C_bi, traces_e)
+    net.store('no_stim')
+
+    # If budgets are desired, run the net without
+    # any stimululation. (This strictly speaking isn't
+    # necessary, but I can't get Brian to express the needed
+    # diff eq to get the osc budget term in one pass.)
+    if budget:
+        from copy import deepcopy
+        net.run(time * second, report=report)
+        v_osc = deepcopy(traces_e.v_)
+
+    net.restore('no_stim')
+    net.add([P_stim, C_stim, spikes_e])
+    net.run(time * second, report=report)
 
     # Extract spikes
     ns_e = spikes_e.i_
     ts_e = spikes_e.t_
+    result = [ns_e, ts_e]
 
-    # And the voltages
-    vm = traces_e.v_
-    v_comp = (traces_e.g_in_ *
-              (float(Ee) - vm) + traces_e.I_)  # TODO adj this for 'w'
-    v_osc = traces_e.I_osc
-    v_free = vm - float(Et)
-    vs = dict(vm=vm, comp=v_comp, osc=v_osc, free=v_free)
+    if budget:
+        vm = traces_e.v_
+        v_comp = (vm - v_osc) + np.mean(v_osc)
+        v_free = vm - float(Et)
+        vs = dict(vm=vm, comp=v_comp, osc=v_osc, free=v_free)
 
-    return ns_e, ts_e, vs
+        result.append(vs)
+
+    return result
