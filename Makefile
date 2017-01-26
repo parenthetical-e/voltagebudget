@@ -44,7 +44,6 @@ adex5_10000:
 
 # opt 6:
 # max C, max sigma_Y, max A
-# max C, max sigma_Y, 
 lif6_10000:
 	-rm data/lif6_10000.csv
 	python exp/opt6.py data/lif6_10000 10000 -a 30e-3 --lif 
