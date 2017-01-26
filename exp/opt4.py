@@ -32,7 +32,7 @@ from voltagebudget.neurons import adex, lif
 from voltagebudget.util import k_spikes
 
 
-def create_problem(nrn, t_stim, N, ns, ts, f, pad=10e-3, Nz=100, **params):
+def create_problem(nrn, t_stim, N, ns, ts, f, pad=20e-3, Nz=100, **params):
     time = np.max(ts) + pad
 
     def problem(A):
