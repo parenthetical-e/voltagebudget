@@ -59,7 +59,7 @@ def create_problem(nrn, t_stim, N, ns, ts, f, pad=20e-3, Nz=100, **params):
         y_sigma = np.std(ts_y[m])
 
         print(A, y_sigma)
-        return A, y_sigma
+        return -A, -y_sigma
 
     return problem
 
