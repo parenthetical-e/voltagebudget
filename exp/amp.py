@@ -31,9 +31,16 @@ from voltagebudget.neurons import adex, lif
 from voltagebudget.util import k_spikes
 
 
-def create_simulation(nrn, t_stim, N, ns, ts, f, pad=20e-3, Nz=100, **params):
-    time = np.max(ts) + pad
-
+def create_simulation(nrn,
+                      time,
+                      t_stim,
+                      N,
+                      ns,
+                      ts,
+                      f,
+                      pad=20e-3,
+                      Nz=100,
+                      **params):
     def simulation(A):
         # Create Y, then Z
         ns_y, ts_y, vs_y = nrn(time,
@@ -109,7 +116,7 @@ if __name__ == "__main__":
     # ---------------------------------------------------------------------
     if args["--lif"]:
         nrn = lif
-        params = dict(w_in=(w_y, w_y / 2), bias=(5e-3, 5e-3 / 5))
+        params = dict(w_in=(w_y, w_y / 2), bias=(5e-3, 5e-3 / 5), f=f)
     elif args["--adex"]:
         nrn = adex
         params = dict(
@@ -117,11 +124,12 @@ if __name__ == "__main__":
             bias=(4e-10, 5e-10 / 20),
             a=(-1.0e-9, 1.0e-9),
             b=(10e-12, 60.0e-12),
-            Ereset=(-48e-3, -55e-3))
+            Ereset=(-48e-3, -55e-3),
+            f=f)
     else:
         raise ValueError("opt.py requires neuron type --lif or --adex")
 
-    sim = create_simulation(nrn, t_stim, k, ns, ts, f=f, **params)
+    sim = create_simulation(nrn, t, t_stim, k, ns, ts, **params)
 
     As = np.linspace(0.0, Amax, n_grid)
     results = [sim(A) for A in As]
@@ -132,8 +140,67 @@ if __name__ == "__main__":
 
     results = dict(As=As, Cs=Cs, sigma_ys=sigma_ys)
 
-    # TODO extract budgets from vs_y
-    # TODO Add budgets to scores
+    # Pick 10 random neurons to save
+    dt_sim = 1e-4
+    times = fsutil.create_times(t, dt_sim)
+
+    keep = range(1, N + 1)
+    np.random.shuffle(keep)
+    keep = keep[:10]
+    keep = [0, 1] + keep
+
+    free = []
+    osc = []
+    comp = []
+    vm = []
+    At = []
+    timest = []
+    for A, v in zip(As, vs):
+        f = v["free"]
+        o = v["osc"]
+        c = v["comp"]
+        m = v["vm"]
+        a = np.repeat(A, f.shape[1]).tolist()
+
+        free.append(f)
+        osc.append(o)
+        comp.append(c)
+        vm.append(m)
+        At.extend(a)
+
+        timest.extend(times)
+
+    free = np.hstack(free)
+    free = np.vstack([At, timest, free])
+    np.savetxt(
+        '{}_free.csv'.format(name),
+        free[keep, :].T,
+        delimiter=",",
+        header="A,time," + ",".join([str(i) for i in range(len(keep))]))
+
+    osc = np.hstack(osc)
+    osc = np.vstack([At, timest, osc])
+    np.savetxt(
+        '{}_osc.csv'.format(name),
+        osc[keep, :].T,
+        delimiter=",",
+        header="A,time," + ",".join([str(i) for i in range(len(keep))]))
+
+    comp = np.hstack(comp)
+    comp = np.vstack([At, timest, comp])
+    np.savetxt(
+        '{}_comp.csv'.format(name),
+        comp[keep, :].T,
+        delimiter=",",
+        header="A,time," + ",".join([str(i) for i in range(len(keep))]))
+
+    vm = np.hstack(vm)
+    vm = np.vstack([At, timest, vm])
+    np.savetxt(
+        '{}_vm.csv'.format(name),
+        vm[keep, :].T,
+        delimiter=",",
+        header="A,time," + ",".join([str(i) for i in range(len(keep))]))
 
     # Write
     keys = sorted(results.keys())
