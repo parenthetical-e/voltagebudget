@@ -57,11 +57,11 @@ adex6_10000:
 # max C, max sigma_comp
 lif7_10000:
 	-rm data/lif7_10000.csv
-	python exp/opt7.py data/lif7_10000 10 -a 5e-3 --lif 
+	python exp/opt7.py data/lif7_10000 10000 -a 5e-3 --lif 
 
 adex7_10000:
 	-rm data/adex7_10000.csv
-	python exp/opt7.py data/adex7_10000 10 -a 5e-10 --adex
+	python exp/opt7.py data/adex7_10000 10000 -a 5e-10 --adex
 
 
 
