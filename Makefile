@@ -51,3 +51,9 @@ lif6_10000:
 adex6_10000:
 	-rm data/adex6_10000.csv
 	python exp/opt6.py data/adex6_10000 10000 -a 10e-10 --adex
+
+
+# ----------------------------------------------------------------
+amp1:
+	-rm data/amp1_100.csv 
+	python exp/amp.py data/amp1_100 -n 100 -f 50 -a 30e-3 --lif
