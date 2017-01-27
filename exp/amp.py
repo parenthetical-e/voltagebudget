@@ -1,4 +1,4 @@
-"""Usage: amp1.py NAME 
+"""Usage: amp.py NAME 
         (--lif | --adex)
         [-a A] [-f F] [-n N]
         [--n_grid NGRID]
