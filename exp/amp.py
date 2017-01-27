@@ -109,12 +109,12 @@ if __name__ == "__main__":
     # ---------------------------------------------------------------------
     if args["--lif"]:
         nrn = lif
-        params = dict(w_in=(0.2e-9, 0.2e-9 / 2), bias=(5e-3, 5e-3 / 5))
+        params = dict(w_in=(w_y, w_y / 2), bias=(5e-3, 5e-3 / 5))
     elif args["--adex"]:
         nrn = adex
         params = dict(
-            w_in=0.3e-9,
-            bias=(5e-10, 5e-10 / 5),
+            w_in=w_y, # 0.6e-9
+            bias=(4e-10, 5e-10 / 20),
             a=(-1.0e-9, 1.0e-9),
             b=(10e-12, 60.0e-12),
             Ereset=(-48e-3, -55e-3))
