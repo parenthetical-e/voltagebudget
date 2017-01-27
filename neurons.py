@@ -117,7 +117,6 @@ def lif(time,
     C_stim = Synapses(P_stim, P_e, model='w : 1', on_pre='g_in += w')
     C_stim.connect()
     C_stim.w = 'clip(w_in + ((j+1)/(j+1) * w_sigma * randn()), 0.0, 1e6)'
-    print(C_stim.w)
 
     # -----------------------------------------------------------------
     # Deinfe variable
