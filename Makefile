@@ -62,3 +62,10 @@ amp1:
 amp2:
 	-rm data/amp2.csv 
 	python exp/amp.py data/amp2 -n 100 -w 0.3e-9 -f 50 -a 50e-3 --lif
+
+# Restriced the A range; large values were leading to double (non stim)
+# spikes
+# Increase `w_in` a bit
+amp3:
+	-rm data/amp3.csv 
+	python exp/amp.py data/amp2 -n 100 -w 0.3e-9 -f 50 -a 5e-3 --lif
