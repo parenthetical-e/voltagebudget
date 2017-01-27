@@ -11,7 +11,7 @@ def lif(time,
         f=0,
         A=1e-3,
         r_b=40,
-        time_step=1e-5,
+        time_step=1e-4,
         refractory=2e-3,
         budget=True,
         report='text'):
@@ -168,11 +168,12 @@ def adex(time,
          f=0,
          A=1e-3,
          r_b=40,
-         time_step=1e-5,
+         time_step=1e-4,
          budget=True,
          report='text'):
     """Create AdEx 'computing' neurons"""
 
+    defaultclock.dt = time_step * second
     prefs.codegen.target = 'numpy'
 
     if ns.shape[0] == 0:
