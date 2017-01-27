@@ -105,7 +105,7 @@ if __name__ == "__main__":
     # ---------------------------------------------------------------------
     if args["--lif"]:
         nrn = lif
-        params = dict(bias=(5e-3, 5e-3 / 10))
+        params = dict(bias=(5e-3, 5e-3 / 5))
     elif args["--adex"]:
         nrn = adex
         params = dict(
