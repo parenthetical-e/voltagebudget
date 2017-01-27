@@ -69,3 +69,7 @@ amp2:
 amp3:
 	-rm data/amp3.csv 
 	python exp/amp.py data/amp3 -n 100 -w 0.3e-9 -f 50 -a 5e-3 --lif
+
+amp4:
+	-rm data/amp4.csv 
+	python exp/amp.py data/amp4 -n 100 -w 0.6e-9 -f 50 -a 5e-10 --adex
