@@ -55,7 +55,7 @@ adex6_10000:
 
 # ----------------------------------------------------------------
 amp1:
-	-rm data/amp2.csv 
+	-rm data/amp1.csv 
 	python exp/amp.py data/amp1 -n 100 -f 50 -a 50e-3 --lif
 
 # Increase `w_in` a bit
