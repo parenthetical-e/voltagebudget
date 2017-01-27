@@ -55,5 +55,9 @@ adex6_10000:
 
 # ----------------------------------------------------------------
 amp1:
-	-rm data/amp1_100.csv 
+	-rm data/amp2.csv 
 	python exp/amp.py data/amp1_100 -n 100 -f 50 -a 50e-3 --lif
+
+amp2:
+	-rm data/amp2.csv 
+	python exp/amp.py data/amp2 -n 100 -w 0.3e-9 -f 50 -a 50e-3 --lif
