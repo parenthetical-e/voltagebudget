@@ -1,6 +1,6 @@
 """Usage: amp.py NAME 
         (--lif | --adex)
-        [-a A] [-f F] [-n N]
+        [-w W] [-a A] [-f F] [-n N]
         [--n_grid NGRID]
 
 Explore oscillation amplitude's effect on communication and computation.
@@ -10,6 +10,7 @@ Explore oscillation amplitude's effect on communication and computation.
 
     Options:
         -h --help               show this screen
+        -w W                    average input weight [default: 0.2e-9]
         -a A                    maximum oscillation size (amp) [default: 30e-3]
         -f F                    oscillation frequency (Hz) [default: 50]
         -n N                    number of Y neurons [default: 100]
@@ -90,6 +91,8 @@ if __name__ == "__main__":
     Amax = float(args["-a"])
     n_grid = int(args["--n_grid"])
     f = float(args["-f"])
+
+    w_y = float(args["-w"])
 
     # ---------------------------------------------------------------------
     t = 0.3
