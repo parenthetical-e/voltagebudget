@@ -68,4 +68,4 @@ amp2:
 # Increase `w_in` a bit
 amp3:
 	-rm data/amp3.csv 
-	python exp/amp.py data/amp2 -n 100 -w 0.3e-9 -f 50 -a 5e-3 --lif
+	python exp/amp.py data/amp3 -n 100 -w 0.3e-9 -f 50 -a 5e-3 --lif
