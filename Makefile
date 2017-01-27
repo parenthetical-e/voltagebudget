@@ -61,7 +61,7 @@ lif7_10000:
 
 adex7_10000:
 	-rm data/adex7_10000.csv
-	python exp/opt6.py data/adex7_10000 10 -a 5e-10 --adex
+	python exp/opt7.py data/adex7_10000 10 -a 5e-10 --adex
 
 
 
