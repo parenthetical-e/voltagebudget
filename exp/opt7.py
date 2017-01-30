@@ -69,7 +69,7 @@ def create_problem(nrn,
                       r_b=0,
                       f=0,
                       A=0,
-                      refractory=t_stim + pad,
+                      refractory=time,
                       budget=False,
                       report=None)
 
