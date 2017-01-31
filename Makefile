@@ -95,3 +95,12 @@ amp3:
 amp4:
 	-rm data/amp4.csv 
 	python exp/amp.py data/amp4 -n 100 -w 0.6e-9 -f 50 -a 5e-10 --adex
+
+# Denser sampling
+amp5:
+	-rm data/amp5.csv 
+	python exp/amp.py data/amp5 -n 100 -w 0.2e-9 -f 50 -a 20e-3 --lif --n_grid 50
+
+amp6:
+	-rm data/amp6.csv 
+	python exp/amp.py data/amp6 -n 100 -w 0.6e-9 -f 50 -a 10e-10 --adex --n_grid 50
