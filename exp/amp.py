@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     keep = range(1, N + 1)
     np.random.shuffle(keep)
-    keep = keep[:10]
+    keep = keep[:20]
     keep = [0, 1] + keep
 
     free = []
