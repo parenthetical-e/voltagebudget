@@ -1,18 +1,22 @@
+# ---------------------------------------------------------------------
+# Spiking oscillations
+# ---------------------------------------------------------------------
+
 lif1_10000:
 	-rm data/lif1_10000.csv
-	python exp/opt1.py data/lif1_10000 10000 -a 5e-3 --lif 
+	python exp/opt1.py data/lif1_10000 10000 -a 30e-3 --lif 
 
 adex1_10000:
 	-rm data/adex1_10000.csv
-	python exp/opt1.py data/adex1_10000 10000 -a 5e-10 --adex
+	python exp/opt1.py data/adex1_10000 10000 -a 10e-10 --adex
 
 lif2_10000:
 	-rm data/lif2_10000.csv
-	python exp/opt2.py data/lif2_10000 10000 -a 5e-3 -w 0.6e-9  --lif
+	python exp/opt2.py data/lif2_10000 10000 -a 30e-3 -w 0.6e-9  --lif
 
 adex2_10000:
 	-rm data/adex2_10000.csv
-	python exp/opt2.py data/adex2_10000 10000 -a 5e-10 -w 0.6e-9  --adex
+	python exp/opt2.py data/adex2_10000 10000 -a 10e-10 -w 0.6e-9  --adex
 
 lif3_10000:
 	-rm data/lif3_10000.csv
@@ -25,11 +29,15 @@ adex3_10000:
 # Min A, min sigma_Y
 lif4_10000:
 	-rm data/lif4_10000.csv
-	python exp/opt4.py data/lif4_10000 10000 -a 5e-3 --lif 
+	python exp/opt4.py data/lif4_10000 10000 -a 30e-3 --lif 
 
 adex4_10000:
 	-rm data/adex4_10000.csv
-	python exp/opt4.py data/adex4_10000 10000 -a 5e-10 --adex
+	python exp/opt4.py data/adex4_10000 10000 -a 10e-10 --adex
+
+# ---------------------------------------------------------------------
+# Subthreshold oscillations
+# ---------------------------------------------------------------------
 
 # Make sigma_in a parameter, and run
 # opt 5:
@@ -73,6 +81,23 @@ adex8_10000:
 	-rm data/adex8_10000.csv
 	python exp/opt7.py data/adex8_10000 10000 -a 10e-10 --adex
 
+# ----------------------------------------------------------------
+# Rerun -C, A opt but for subthreshold oscillations only
+lif9_10000:
+	-rm data/lif9_10000.csv
+	python exp/opt1.py data/lif9_10000 10000 -a 5e-3 --lif 
+
+adex9_10000:
+	-rm data/adex9_10000.csv
+	python exp/opt1.py data/adex9_10000 10000 -a 5e-10 --adex
+
+lif110_10000:
+	-rm data/lif10_10000.csv
+	python exp/opt2.py data/lif10_10000 10000 -a 5e-3 -w 0.6e-9  --lif
+
+adex10_10000:
+	-rm data/adex10_10000.csv
+	python exp/opt2.py data/adex10_10000 10000 -a 5e-10 -w 0.6e-9  --adex
 
 
 # ----------------------------------------------------------------
