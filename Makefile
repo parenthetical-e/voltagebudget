@@ -82,7 +82,7 @@ adex9_10000:
 	-rm data/adex9_10000.csv
 	python exp/opt1.py data/adex9_10000 10000 -a 5e-10 --adex
 
-lif110_10000:
+lif10_10000:
 	-rm data/lif10_10000.csv
 	python exp/opt2.py data/lif10_10000 10000 -a 5e-3 -w 0.6e-9  --lif
 
