@@ -142,7 +142,7 @@ if __name__ == "__main__":
     algorithm.run(N)
 
     results = dict(
-        sigma_comps=[s.objectives[0] for s in algorithm.result],
+        vfree=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result])
 
