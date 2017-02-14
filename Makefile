@@ -71,6 +71,15 @@ adex7_10000:
 	-rm data/adex7_10000.csv
 	python exp/opt7.py data/adex7_10000 10000 -a 5e-10 --adex
 
+# opt 8:
+# max C, max Vfree
+lif8_10000:
+	-rm data/lif8_10000.csv
+	python exp/opt8.py data/lif8_10000 10000 -a 5e-3 --lif 
+
+adex8_10000:
+	-rm data/adex8_10000.csv
+	python exp/opt8.py data/adex8_10000 10000 -a 5e-10 --adex
 
 # ----------------------------------------------------------------
 # Rerun -C, A opt but for subthreshold oscillations only
