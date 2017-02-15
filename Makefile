@@ -71,7 +71,9 @@ adex7_10000:
 	-rm data/adex7_10000.csv
 	python exp/opt7.py data/adex7_10000 10000 -a 5e-10 --adex
 
-# opt 8:
+# ----------------------------------------------------------------
+# Rerun -C, A opt but for subthreshold oscillations only
+
 # max C, max Vfree
 lif8_10000:
 	-rm data/lif8_10000.csv
@@ -81,8 +83,41 @@ adex8_10000:
 	-rm data/adex8_10000.csv
 	python exp/opt8.py data/adex8_10000 10000 -a 5e-10 --adex
 
-# ----------------------------------------------------------------
-# Rerun -C, A opt but for subthreshold oscillations only
+# max C, max Vfree, larger A range compared to '7'
+exp11: lif11_10000 adex10_10000 
+
+lif11_10000:
+	-rm data/lif11_10000.csv
+	python exp/opt8.py data/lif11_10000 10000 -a 30e-3 --lif 
+
+adex11_10000:
+	-rm data/adex11_10000.csv
+	python exp/opt8.py data/adex11_10000 10000 -a 10e-10 --adex
+
+# max C, min Vfree
+exp12: lif12_10000 adex12_10000
+
+lif12_10000:
+	-rm data/lif12_10000.csv
+	python exp/opt9.py data/lif12_10000 10000 -a 5e-3 --lif 
+
+adex12_10000:
+	-rm data/adex12_10000.csv
+	python exp/opt9.py data/adex12_10000 10000 -a 5e-10 --adex
+
+# max C, min Vfree, larger A range compared to '12'
+exp13: lif13_10000 adex13_10000
+
+lif13_10000:
+	-rm data/lif13_10000.csv
+	python exp/opt9.py data/lif13_10000 10000 -a 30e-3 --lif 
+
+adex13_10000:
+	-rm data/adex13_10000.csv
+	python exp/opt9.py data/adex13_10000 10000 -a 10e-10 --adex
+
+
+# --
 lif9_10000:
 	-rm data/lif9_10000.csv
 	python exp/opt1.py data/lif9_10000 10000 -a 5e-3 --lif 
