@@ -138,29 +138,38 @@ adex10_10000:
 # ----------------------------------------------------------------
 amp1:
 	-rm data/amp1.csv 
-	python exp/amp.py data/amp1 -n 100 -f 50 -a 50e-3 --lif
+	python exp/amp.py data/amp1 -n 10 -f 50 -a 50e-3 --lif
 
 # Increase `w_in` a bit
 amp2:
 	-rm data/amp2.csv 
-	python exp/amp.py data/amp2 -n 100 -w 0.3e-9 -f 50 -a 50e-3 --lif
+	python exp/amp.py data/amp2 -n 10 -w 0.3e-9 -f 50 -a 50e-3 --lif
 
 # Restriced the A range; large values were leading to double (non stim)
 # spikes
 # Increase `w_in` a bit
 amp3:
 	-rm data/amp3.csv 
-	python exp/amp.py data/amp3 -n 100 -w 0.3e-9 -f 50 -a 5e-3 --lif
+	python exp/amp.py data/amp3 -n 10 -w 0.3e-9 -f 50 -a 5e-3 --lif
 
 amp4:
 	-rm data/amp4.csv 
-	python exp/amp.py data/amp4 -n 100 -w 0.6e-9 -f 50 -a 5e-10 --adex
+	python exp/amp.py data/amp4 -n 10 -w 0.6e-9 -f 50 -a 5e-10 --adex
 
-# Denser sampling
+# Denser sampling.
 amp5:
 	-rm data/amp5.csv 
-	python exp/amp.py data/amp5 -n 100 -w 0.2e-9 -f 50 -a 20e-3 --lif --n_grid 50
+	python exp/amp.py data/amp5 -n 10 -w 0.2e-9 -f 50 -a 20e-3 --lif --n_grid 50
 
 amp6:
 	-rm data/amp6.csv 
-	python exp/amp.py data/amp6 -n 100 -w 0.6e-9 -f 50 -a 10e-10 --adex --n_grid 50
+	python exp/amp.py data/amp6 -n 10 -w 0.6e-9 -f 50 -a 10e-10 --adex --n_grid 50
+
+# Explore freq and t_stim over a dense range of A
+amp10:
+	parallel -j 6 -v \
+		--joblog 'data/log' \
+		--nice 19 \
+		'python exp/amp.py data/amp10_f{1}_t{2} -n 20 -w 0.3e-9 -f {1} -t {2} -a 15e-10 --adex --n_grid 50' ::: \
+			8 12 20 40 ::: \
+			0.1 0.12 0.14 0.15 0.16 0.18 
