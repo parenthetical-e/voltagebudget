@@ -144,9 +144,8 @@ opt20:
 	parallel -j 6 -v \
 		--joblog 'data/log' \
 		--nice 19 \
-		'python exp/opt20.py data/opt20_f{1}_t{2} 10000 -a 5e-3 -w 0.3e-9 -t {2} -f {1} --lif' ::: \
-			8 12 20 40 ::: \
-			0.1 0.12 0.14 0.15 0.16 0.18 
+		'python exp/opt20.py data/opt20_f{1} 10 -a 5e-3 -w 0.3e-9 -t 0.1 -f {1} --lif' ::: \
+			8 12 20 40
 
 # For adex comp is {a, b, Ereset}
 opt21:
@@ -154,9 +153,8 @@ opt21:
 	parallel -j 6 -v \
 		--joblog 'data/log' \
 		--nice 19 \
-		'python exp/opt21.py data/opt21_f{1}_t{2} 10000 -a 2e-10 -w 0.3e-9 -t {2} -f {1} --adex' ::: \
-			8 12 20 40 ::: \
-			0.1 0.12 0.14 0.15 0.16 0.18 
+		'python exp/opt21.py data/opt21_f{1} 10 -a 2e-10 -w 0.3e-9 -t 0.1 -f {1} --adex' ::: \
+			8 12 20 40 
 
 
 # ----------------------------------------------------------------
