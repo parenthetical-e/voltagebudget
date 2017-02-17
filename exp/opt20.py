@@ -1,6 +1,6 @@
 """Usage: opt20.py NAME N 
         (--lif | --adex)
-        [-a A] [-t T]
+        [-w W] [-a A] [-t T] [-f F] [-n N]
 
 Search {A, sigma_in} and maximizing {C, sigma_y}.
 
