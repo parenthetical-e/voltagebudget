@@ -5,8 +5,8 @@
 Search {A, sigma_in} and maximizing {C, sigma_y}.
 
     Arguments:
-        NAME    results name (.hdf5)
-        N       number of interations
+        NAME    results name
+        N       number of opt interations
 
     Options:
         -h --help               show this screen
