@@ -140,7 +140,7 @@ opt20:
 	parallel -j 6 -v \
 		--joblog 'data/log' \
 		--nice 19 \
-		'python exp/opt20.py data/opt20_f{1}_t{2} 10000 -a 5e-3 -w 0.3e-9 -t {1} -f {2} --lif' ::: \
+		'python exp/opt20.py data/opt20_f{1}_t{2} 10000 -a 5e-3 -w 0.3e-9 -t {2} -f {1} --lif' ::: \
 			8 12 20 40 ::: \
 			0.1 0.12 0.14 0.15 0.16 0.18 
 
