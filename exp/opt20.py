@@ -46,7 +46,8 @@ def create_problem(nrn,
                    **params):
     def problem(pars):
         A = pars[0]
-        sigma_in = pars[1]
+        phi = pars[1]
+        sigma_in = pars[2]
 
         # Reset sigma_in
         params["w_in"][1] = params["w_in"][0] * sigma_in
@@ -58,6 +59,7 @@ def create_problem(nrn,
                                ts,
                                f=f,
                                A=A,
+                               phi=phi,
                                r_b=0,
                                budget=True,
                                report=None,
@@ -148,22 +150,26 @@ if __name__ == "__main__":
     sim = create_problem(nrn, t, t_stim, k, ns, ts, f=f, **params)
 
     # ---------------------------------------------------------------------
-    problem = Problem(2, 2)
-    problem.types[:] = [Real(0.0, Amax), Real(0.0, 1)]
+    problem = Problem(3, 2)
+    problem.types[:] = [
+        Real(0.0, Amax), Real(0.0, (1 / f) * 0.5), Real(0.0, 1)
+    ]
 
     problem.function = sim
     algorithm = NSGAII(problem)
     algorithm.run(N)
 
+    # - Results
     results = dict(
         sigma_comp=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
-        sigma_in=[s.variables[1] for s in algorithm.result])
+        phis=[s.variables[1] for s in algorithm.result],
+        sigma_in=[s.variables[2] for s in algorithm.result])
 
     keys = sorted(results.keys())
-    with open("{}.csv".format(name), "wb") as f:
-        writer = csv.writer(f, delimiter=",")
+    with open("{}.csv".format(name), "wb") as fi:
+        writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
 
