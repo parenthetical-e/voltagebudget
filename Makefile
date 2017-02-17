@@ -135,6 +135,10 @@ adex10_10000:
 	python exp/opt2.py data/adex10_10000 10000 -a 5e-10 -w 0.6e-9  --adex
 
 # ----------------------------------------------------------------
+# Search both A, and comp
+# Opt for C, and sigma_y 
+
+# For lif comp is sigma_in
 opt20:
 	-rm data/opt20_*
 	parallel -j 6 -v \
@@ -143,6 +147,17 @@ opt20:
 		'python exp/opt20.py data/opt20_f{1}_t{2} 10000 -a 5e-3 -w 0.3e-9 -t {2} -f {1} --lif' ::: \
 			8 12 20 40 ::: \
 			0.1 0.12 0.14 0.15 0.16 0.18 
+
+# For adex comp is {a, b, Ereset}
+opt21:
+	-rm data/opt21_*
+	parallel -j 6 -v \
+		--joblog 'data/log' \
+		--nice 19 \
+		'python exp/opt21.py data/optt21_f{1}_t{2} 10000 -a 2e-10 -w 0.3e-9 -t {2} -f {1} --adex' ::: \
+			8 12 20 40 ::: \
+			0.1 0.12 0.14 0.15 0.16 0.18 
+
 
 # ----------------------------------------------------------------
 amp1:

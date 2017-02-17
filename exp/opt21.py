@@ -1,11 +1,11 @@
-"""Usage: opt20.py NAME N 
+"""Usage: opt21.py NAME N 
         (--lif | --adex)
         [-w W] [-a A] [-t T] [-f F] [-n N]
 
-Search {A, sigma_in} and maximizing {C, sigma_y}.
+Search {A, a, b, Ereset} and maximizing {C, sigma_y}.
 
     Arguments:
-        NAME    results name
+        NAME    results name 
         N       number of opt interations
 
     Options:
@@ -46,10 +46,14 @@ def create_problem(nrn,
                    **params):
     def problem(pars):
         A = pars[0]
-        sigma_in = pars[1]
+        a_max = pars[1]
+        b_max = pars[2]
+        E_max = pars[3]
 
         # Reset sigma_in
-        params["w_in"][1] = params["w_in"][0] * sigma_in
+        params["a"][1] = a_max
+        params["b"][1] = b_max
+        params["Ereset"][1] = E_max
 
         # Create Y, then Z
         ns_y, ts_y, vs_y = nrn(time,
@@ -83,7 +87,7 @@ def create_problem(nrn,
 
         # Window for opt analysis
         t0 = t_stim + 2e-3
-        tn = t_stim + 12e-3
+        tn = t_stim + 50e-3
 
         # Est sigma_comp (variance of the comp)
         times = fsutil.create_times(t, 1e-4)
@@ -131,25 +135,28 @@ if __name__ == "__main__":
 
     # ---------------------------------------------------------------------
     if args["--lif"]:
-        nrn = lif
-        params = dict(w_in=[w_y, w_y / 2], bias=[5e-3, 5e-3 / 5])
+        raise NotImplementedError("--lif not supported; try opt20?")
+        # nrn = lif
+        # params = dict(w_in=[0.3e-9, 0.3e-9 / 2], bias=[5e-3, 5e-3 / 5])
     elif args["--adex"]:
-        raise NotImplementedError("--adex not supported; try opt21?")
-    #     nrn = adex
-    #     params = dict(
-    #         w_in=w_y,
-    #         bias=(5e-10, 5e-10 / 20),
-    #         a=(-1.0e-9, 1.0e-9),
-    #         b=(10e-12, 60.0e-12),
-    #         Ereset=(-48e-3, -55e-3))
+        nrn = adex
+        params = dict(
+            w_in=w_y,
+            bias=(5e-10, 5e-10 / 20),
+            a=[-1.0e-9, 1.0e-9],
+            b=[10e-12, 60.0e-12],
+            Ereset=[-48e-3, -55e-3])
     else:
-        raise ValueError("opt.py requires neuron type --lif")
+        raise ValueError("opt21.py requires neuron type --lif")
 
     sim = create_problem(nrn, t, t_stim, k, ns, ts, f=f, **params)
 
     # ---------------------------------------------------------------------
-    problem = Problem(2, 2)
-    problem.types[:] = [Real(0.0, Amax), Real(0.0, 1)]
+    problem = Problem(4, 2)
+    problem.types[:] = [
+        Real(0.0, Amax), Real(-1.0e-9, 1.0e-9), Real(10e-12, 60.0e-12),
+        Real(-48e-3, -55e-3)
+    ]
 
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -159,18 +166,12 @@ if __name__ == "__main__":
         sigma_comp=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
-        sigma_in=[s.variables[1] for s in algorithm.result])
+        a=[s.variables[1] for s in algorithm.result],
+        b=[s.variables[2] for s in algorithm.result],
+        Ereest=[s.variables[3] for s in algorithm.result])
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as f:
         writer = csv.writer(f, delimiter=",")
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
-
-    # - Write args
-    args = {'N': N, 'Amax': Amax, 'f': f, 'w_y': w_y, 't_stim': t_stim}
-    keys = sorted(args.keys())
-    with open("{}_args.csv".format(name), "wb") as fi:
-        writer = csv.writer(fi, delimiter=",")
-        writer.writerow(keys)
-        writer.writerow([args[key] for key in keys])
