@@ -10,8 +10,11 @@ Search {A, sigma_in} and maximizing {C, sigma_y}.
 
     Options:
         -h --help               show this screen
+        -w W                    average input weight [default: 0.3e-9]
         -a A                    maximum oscillation size [default: 30e-3]
         -t T                    stim onset time (< 0.2) [default: 0.1]
+        -f F                    oscillation frequency (Hz) [default: 50]
+        -n N                    number of Y neurons [default: 100]
 """
 
 # %matplotlib inline
@@ -105,18 +108,21 @@ def create_problem(nrn,
 if __name__ == "__main__":
     args = docopt(__doc__, version='alpha')
     name = args["NAME"]
+
     N = int(args["N"])
+    w_y = float(args["-w"])
+
+    f = float(args["-f"])
     Amax = float(args["-a"])
 
     # ---------------------------------------------------------------------
     t = 0.3
 
-    k = 20
-
     t_stim = float(args["-t"])
     if t_stim > 0.2:
         raise ValueError("-t must be less than 0.2 seconds")
 
+    k = 20
     dt = 1e-4
     w = 1e-4
     a = 10000
@@ -124,15 +130,14 @@ if __name__ == "__main__":
     times = fsutil.create_times(t, dt)
 
     # ---------------------------------------------------------------------
-    f = 50
     if args["--lif"]:
         nrn = lif
-        params = dict(w_in=[0.3e-9, 0.3e-9 / 2], bias=[5e-3, 5e-3 / 5])
+        params = dict(w_in=[w_y, w_y / 2], bias=[5e-3, 5e-3 / 5])
     elif args["--adex"]:
         raise NotImplementedError("--adex not supported; try opt21?")
     #     nrn = adex
     #     params = dict(
-    #         w_in=0.3e-9,
+    #         w_in=w_y,
     #         bias=(5e-10, 5e-10 / 20),
     #         a=(-1.0e-9, 1.0e-9),
     #         b=(10e-12, 60.0e-12),
@@ -161,3 +166,11 @@ if __name__ == "__main__":
         writer = csv.writer(f, delimiter=",")
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
+
+    # - Write args
+    args = {'N': N, 'Amax': Amax, 'f': f, 'w_y': w_y, 't_stim': t_stim}
+    keys = sorted(args.keys())
+    with open("{}_args.csv".format(name), "wb") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(keys)
+        writer.writerow([args[key] for key in keys])
