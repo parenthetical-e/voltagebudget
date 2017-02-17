@@ -46,9 +46,10 @@ def create_problem(nrn,
                    **params):
     def problem(pars):
         A = pars[0]
-        a_max = pars[1]
-        b_max = pars[2]
-        E_max = pars[3]
+        phi = pars[1]
+        a_max = pars[2]
+        b_max = pars[3]
+        E_max = pars[4]
 
         # Reset sigma_in
         params["a"][1] = a_max
@@ -62,6 +63,7 @@ def create_problem(nrn,
                                ts,
                                f=f,
                                A=A,
+                               phi=phi,
                                r_b=0,
                                budget=True,
                                report=None,
@@ -152,26 +154,36 @@ if __name__ == "__main__":
     sim = create_problem(nrn, t, t_stim, k, ns, ts, f=f, **params)
 
     # ---------------------------------------------------------------------
-    problem = Problem(4, 2)
+    problem = Problem(5, 2)
     problem.types[:] = [
-        Real(0.0, Amax), Real(-1.0e-9, 1.0e-9), Real(10e-12, 60.0e-12),
-        Real(-48e-3, -55e-3)
+        Real(0.0, Amax), Real(0.0, (1 / f) * 0.5), Real(-1.0e-9, 1.0e-9),
+        Real(10e-12, 60.0e-12), Real(-48e-3, -55e-3)
     ]
 
     problem.function = sim
     algorithm = NSGAII(problem)
     algorithm.run(N)
 
+    # - Results
     results = dict(
         sigma_comp=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
-        a=[s.variables[1] for s in algorithm.result],
-        b=[s.variables[2] for s in algorithm.result],
-        Ereest=[s.variables[3] for s in algorithm.result])
+        phis=[s.variables[1] for s in algorithm.result],
+        a=[s.variables[2] for s in algorithm.result],
+        b=[s.variables[3] for s in algorithm.result],
+        Ereest=[s.variables[4] for s in algorithm.result])
 
     keys = sorted(results.keys())
-    with open("{}.csv".format(name), "wb") as f:
-        writer = csv.writer(f, delimiter=",")
+    with open("{}.csv".format(name), "wb") as fi:
+        writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
+
+    # - Write args
+    args = {'N': N, 'Amax': Amax, 'f': f, 'w_y': w_y, 't_stim': t_stim}
+    keys = sorted(args.keys())
+    with open("{}_args.csv".format(name), "wb") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(keys)
+        writer.writerow([args[key] for key in keys])
