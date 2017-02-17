@@ -174,3 +174,13 @@ amp10:
 		'python exp/amp.py data/amp10_f{1}_t{2} -n 20 -w 0.3e-9 -f {1} -t {2} -a 15e-10 --adex --n_grid 75' ::: \
 			8 12 20 40 ::: \
 			0.1 0.12 0.14 0.15 0.16 0.18 
+
+# lif of 10
+amp11:
+	-rm data/amp11*csv
+	parallel -j 6 -v \
+		--joblog 'data/log' \
+		--nice 19 \
+		'python exp/amp.py data/amp11_f{1}_t{2} -n 20 -w 0.3e-9 -f {1} -t {2} -a 20e-3 --lif --n_grid 75' ::: \
+			8 12 20 40 ::: \
+			0.1 0.12 0.14 0.15 0.16 0.18 
