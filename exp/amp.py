@@ -148,11 +148,19 @@ if __name__ == "__main__":
 
     # ---------------------------------------------------------------------
     # - Save spikes
+    At = []
+    for _ in ns_ys:
+        a = np.repeat(A, _.shape[0]).tolist()
+        At.append(a)
+    ns_ys = np.concatenate(ns_ys)
+    ts_ys = np.concatenate(ts_ys)
+    At = np.concatenate(At)
+
     np.savetxt(
         '{}_spks.csv'.format(name),
-        np.vstack([ns_ys, ts_ys]).T,
+        np.vstack([At, ns_ys, ts_ys]).T,
         delimiter=',',
-        header="n,t")
+        header="A,n,t")
 
     # - Save traces 
     # Pick 10 random neurons to save
