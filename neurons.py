@@ -10,6 +10,7 @@ def lif(time,
         bias=5e-3,
         f=0,
         A=1e-3,
+        phi=0,
         r_b=40,
         time_step=1e-4,
         refractory=2e-3,
@@ -60,6 +61,7 @@ def lif(time,
     # osc injection
     f *= Hz
     A *= volt
+    phi *= second
 
     # Fixed params
     Et = -54 * mvolt
@@ -87,7 +89,7 @@ def lif(time,
     dg_in/dt = -g_in / tau_ampa : 1
     dg_e/dt = -g_e / tau_ampa : 1
     dg_i/dt = -g_i / tau_gaba : 1
-    I_osc = A * sin(t * f * 2 * pi) : volt
+    I_osc = A * sin((t + phi) * f * 2 * pi) : volt
     I : volt
     """
 
@@ -167,6 +169,7 @@ def adex(time,
          bias=0.5e-9,
          f=0,
          A=1e-3,
+         phi=0,
          r_b=40,
          time_step=1e-4,
          budget=True,
@@ -208,6 +211,7 @@ def adex(time,
     # osc injection
     f *= Hz
     A *= amp
+    phi *= second
 
     # neuron kinetics
     El = -70.6 * mV
@@ -238,7 +242,7 @@ def adex(time,
     dg_in/dt = -g_in / tau_ampa : siemens
     dg_e/dt = -g_e / tau_ampa : siemens
     dg_i/dt = -g_i / tau_gaba : siemens
-    I_osc = A * sin(t * f * 2 * pi) : amp
+    I_osc = A * sin((t + phi) * f * 2 * pi) : amp
     Er : volt
     a: siemens
     b: amp
