@@ -190,8 +190,12 @@ if __name__ == "__main__":
         sigma_in=[s.variables[-2] for s in algorithm.result])
 
     As = [s.variables[:-1] for s in algorithm.result]
+
+    import ipdb
+    ipbd.set_trace()
+
     for i, Ai in enumerate(As):
-        results["A{i}"] = Ai
+        results["A{}".format(str(i))] = Ai
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as fi:
