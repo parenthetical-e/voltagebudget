@@ -164,7 +164,7 @@ opt22:
 	parallel -j 6 -v \
 		--joblog 'data/log' \
 		--nice 19 \
-		'python exp/opt22.py data/opt22_f{1} 10000 -a 5e-3 -w 0.3e-9 -t 0.1 -f {1} --lif' ::: \
+		'python exp/opt22.py data/opt22_f{1} 1000 -a 5e-3 -w 0.3e-9 -t 0.1 -f {1} --lif' ::: \
 			8 12 20 40
 
 # ----------------------------------------------------------------
