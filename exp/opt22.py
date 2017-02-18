@@ -183,25 +183,32 @@ if __name__ == "__main__":
     algorithm.run(N)
 
     # - Results
+    # Intially as dict
     results = dict(
         sigma_comp=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
         phis=[s.variables[-1] for s in algorithm.result],
         sigma_in=[s.variables[-2] for s in algorithm.result])
 
-    As = [s.variables[:-1] for s in algorithm.result]
-
+    As = [s.variables[:-2] for s in algorithm.result]
     for i, Ai in enumerate(As):
         results["A{}".format(i)] = Ai
+    As = np.vstack(As)
 
-    import ipdb
-    ipdb.set_trace()
+    # Then repack it all into an matrix
+    results = np.vstack([
+        results['Cs'],
+        results['sigma_comp'],
+        results['sigma_in'],
+        results['phis'],
+        As.T,
+    ])
 
-    keys = sorted(results.keys())
-    with open("{}.csv".format(name), "wb") as fi:
-        writer = csv.writer(fi, delimiter=",")
-        writer.writerow(keys)
-        writer.writerows(zip(* [results[key] for key in keys]))
+    # Finally write the resuls matric
+    header = ["C", "sigma_comp", "sigma_in", "phis"]
+    header += ["A{i}" for i in range(M)]
+    header = ",".join(header)
+    np.savetxt("{}.csv".format(name), results, header=header, delimiter=",")
 
     # - Write args
     args = {'M': M, 'N': N, 'Amax': Amax, 'f': f, 'w_y': w_y, 't_stim': t_stim}
