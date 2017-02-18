@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
     # Finally write the resuls matric
     header = ["C", "sigma_comp", "sigma_in", "phis"]
-    header += ["A{i}" for i in range(M)]
+    header += ["A{}".format(i) for i in range(M)]
     header = ",".join(header)
     np.savetxt("{}.csv".format(name), results, header=header, delimiter=",")
 
