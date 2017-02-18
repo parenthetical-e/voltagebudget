@@ -157,6 +157,16 @@ opt21:
 			8 12 20 40 
 
 
+# For lif comp is sigma_in
+# A opt individually for each ith neuron
+opt22:
+	-rm data/opt22_*
+	parallel -j 6 -v \
+		--joblog 'data/log' \
+		--nice 19 \
+		'python exp/opt22.py data/opt22_f{1} 10000 -a 5e-3 -w 0.3e-9 -t 0.1 -f {1} --lif' ::: \
+			8 12 20 40
+
 # ----------------------------------------------------------------
 amp1:
 	-rm data/amp1.csv 
