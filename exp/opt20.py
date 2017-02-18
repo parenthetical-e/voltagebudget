@@ -85,7 +85,7 @@ def create_problem(nrn,
 
         # Window for opt analysis
         t0 = t_stim + 2e-3
-        tn = t_stim + 12e-3
+        tn = t_stim + 50e-3
 
         # Est sigma_comp (variance of the comp)
         times = fsutil.create_times(t, 1e-4)
