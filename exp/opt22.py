@@ -191,11 +191,11 @@ if __name__ == "__main__":
 
     As = [s.variables[:-1] for s in algorithm.result]
 
-    import ipdb
-    ipbd.set_trace()
-
     for i, Ai in enumerate(As):
-        results["A{}".format(str(i))] = Ai
+        results["A{}".format(i)] = Ai
+
+    import ipdb
+    ipdb.set_trace()
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as fi:
