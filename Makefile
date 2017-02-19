@@ -174,7 +174,7 @@ opt23:
 	parallel -j 6 -v \
 		--joblog 'data/log' \
 		--nice 19 \
-		'python exp/opt21.py data/opt23_f{1} 1000 -a 2e-10 -w 0.3e-9 -t 0.1 -f {1} --adex' ::: \
+		'python exp/opt23.py data/opt23_f{1} 1000 -a 2e-10 -w 0.3e-9 -t 0.1 -f {1} --adex' ::: \
 			8 12 20 40 
 
 # ----------------------------------------------------------------
