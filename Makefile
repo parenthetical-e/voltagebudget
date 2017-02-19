@@ -167,6 +167,16 @@ opt22:
 		'python exp/opt22.py data/opt22_f{1} 1000 -a 5e-3 -w 0.3e-9 -t 0.1 -f {1} --lif' ::: \
 			8 12 20 40
 
+# For adex comp is {a, b, Ereset}
+# A opt individually for each ith neuron
+opt23:
+	-rm data/opt23_*
+	parallel -j 6 -v \
+		--joblog 'data/log' \
+		--nice 19 \
+		'python exp/opt21.py data/opt23_f{1} 1000 -a 2e-10 -w 0.3e-9 -t 0.1 -f {1} --adex' ::: \
+			8 12 20 40 
+
 # ----------------------------------------------------------------
 amp1:
 	-rm data/amp1.csv 
