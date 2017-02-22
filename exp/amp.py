@@ -60,17 +60,17 @@ def create_simulation(nrn,
             print("Null Y.")
             return 0.0, 0.0, None
 
-        w_out = 2.0e-9 / N  # Magic number...
+        w_out = 2.0e-9 / N
         _, ts_z = lif(time,
                       Nz,
                       ns_y,
                       ts_y,
-                      w_in=(w_out, w_out / 2),
-                      bias=(10e-6, 10e-6 / 5),
+                      w_in=(w_out, w_out),
+                      bias=(5e-3, 5e-3 / 5),
                       r_b=0,
                       f=0,
                       A=0,
-                      refractory=t_stim + pad,
+                      refractory=time,
                       budget=False,
                       report=None)
 
