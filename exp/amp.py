@@ -38,7 +38,6 @@ def create_simulation(nrn,
                       N,
                       ns,
                       ts,
-                      f,
                       pad=20e-3,
                       Nz=100,
                       **params):
@@ -48,7 +47,6 @@ def create_simulation(nrn,
                                N,
                                ns,
                                ts,
-                               f=f,
                                A=A,
                                r_b=0,
                                budget=True,
@@ -60,12 +58,11 @@ def create_simulation(nrn,
             print("Null Y.")
             return 0.0, 0.0, None
 
-        w_out = 2.0e-9 / N
         _, ts_z = lif(time,
                       Nz,
                       ns_y,
                       ts_y,
-                      w_in=(w_out, w_out),
+                      w_in=(0.2e-9, 0.2e-9),
                       bias=(5e-3, 5e-3 / 5),
                       r_b=0,
                       f=0,
@@ -74,19 +71,24 @@ def create_simulation(nrn,
                       budget=False,
                       report=None)
 
+        # Window for opt analysis
+        t0 = t_stim + 2e-3
+        tn = t_stim + 50e-3
+
         # Est comp
-        m = np.logical_or(t_stim <= ts_y, ts_y <= (t_stim + pad))
-        sigma_y = np.std(ts_y[m])
+        times = fsutil.create_times(t, 1e-4)
+        comp = vs_y['comp']
+
+        m = np.logical_and(times >= t0, times <= tn)
+        sigma_comp = comp[:, m].std()
 
         # Est communication
-        # import ipdb
-        # ipdb.set_trace()
-        m = np.logical_or(t_stim <= ts_z, ts_z <= (t_stim + pad))
+        m = np.logical_or(t0 <= ts_z, ts_z <= tn)
         C = 0
         if ts_z[m].size > 0:
             C = ts_z[m].size / float(Nz)
 
-        return C, sigma_y, ns_y, ts_y, vs_y
+        return C, sigma_comp, ns_y, ts_y, vs_y
 
     return simulation
 
@@ -108,7 +110,7 @@ if __name__ == "__main__":
         raise ValueError("-t must be less than 0.2 seconds")
 
     # ---------------------------------------------------------------------
-    k = 100
+    k = 20
     dt = 1e-4
     w = 1e-4
     a = 10000
@@ -139,15 +141,21 @@ if __name__ == "__main__":
 
     # - C, sigma_y, ns_y, ts_y, vs_y
     Cs = [res[0] for res in results]
-    sigma_ys = [res[1] for res in results]
+    sigma_comp = [res[1] for res in results]
     ns_ys = [res[2] for res in results]
     ts_ys = [res[3] for res in results]
     vs_ys = [res[4] for res in results]
 
-    results = dict(As=As, Cs=Cs, sigma_ys=sigma_ys)
+    results = dict(As=As, Cs=Cs, sigma_comp=sigma_comp)
 
     # ---------------------------------------------------------------------
-    # - Save spikes
+    # - Save traces and spikes (in a window)
+
+    # Define the window
+    t0 = t_stim - 10e-3
+    tn = t_stim + 50e-3
+
+    # Save spikes
     At = []
     for _ in ns_ys:
         a = np.repeat(A, _.shape[0]).tolist()
@@ -156,16 +164,19 @@ if __name__ == "__main__":
     ts_ys = np.concatenate(ts_ys)
     At = np.concatenate(At)
 
+    m = np.logical_or(t0 <= ts_ys, ts_ys <= tn)
+
     np.savetxt(
         '{}_spks.csv'.format(name),
-        np.vstack([At, ns_ys, ts_ys]).T,
+        np.vstack([At[m], ns_ys[m], ts_ys[m]]).T,
         delimiter=',',
         header="A,n,t")
 
     # - Save traces 
-    # Pick 10 random neurons to save
     dt_sim = 1e-4
     times = fsutil.create_times(t, dt_sim)
+
+    m = np.logical_and(times >= t0, times <= tn)
 
     free = []
     osc = []
@@ -174,19 +185,19 @@ if __name__ == "__main__":
     At = []
     timest = []
     for A, v in zip(As, vs_ys):
-        fr = v["free"]
-        o = v["osc"]
-        c = v["comp"]
-        m = v["vm"]
+        fr = v["free"][:, m]
+        o = v["osc"][:, m]
+        c = v["comp"][:, m]
+        mm = v["vm"][:, m]
         a = np.repeat(A, fr.shape[1]).tolist()
 
         free.append(fr)
         osc.append(o)
         comp.append(c)
-        vm.append(m)
+        vm.append(mm)
         At.extend(a)
 
-        timest.extend(times)
+        timest.extend(times[m])
 
     free = np.hstack(free)
     free = np.vstack([At, timest, free])
