@@ -212,15 +212,15 @@ amp6:
 # lif
 amp10:
 	-rm data/amp10*csv
-	python exp/amp.py data/amp10_f8 -n 100 -w 0.3e-9 -f 8 -t 0.15 -a 12e-3 --lif --n_grid 60
-	python exp/amp.py data/amp10_f12 -n 100 -w 0.3e-9 -f 12 -t 0.12 -a 12e-3 --lif --n_grid 60
-	python exp/amp.py data/amp10_f20 -n 100 -w 0.3e-9 -f 20 -t 0.11 -a 12e-3 --lif --n_grid 60
-	python exp/amp.py data/amp10_f40 -n 100 -w 0.3e-9 -f 40 -t 0.11 -a 12e-3 --lif --n_grid 60
+	python exp/amp.py data/amp10_f8 -n 100 -w 0.3e-9 -f 8 -t 0.15 -a 10e-3 --lif --n_grid 50
+	python exp/amp.py data/amp10_f12 -n 100 -w 0.3e-9 -f 12 -t 0.12 -a 10e-3 --lif --n_grid 50
+	python exp/amp.py data/amp10_f20 -n 100 -w 0.3e-9 -f 20 -t 0.11 -a 10e-3 --lif --n_grid 50
+	python exp/amp.py data/amp10_f40 -n 100 -w 0.3e-9 -f 40 -t 0.11 -a 10e-3 --lif --n_grid 60
 
 # adex
 amp11:
 	-rm data/amp11*csv
-	python exp/amp.py data/amp11_f8 -n 100 -w 0.3e-9 -f 8 -t 0.15 -a 5e-10 --adex --n_grid 25
-	python exp/amp.py data/amp11_f12 -n 100 -w 0.3e-9 -f 12 -t 0.12 -a 5e-10 --adex --n_grid 25
-	python exp/amp.py data/amp11_f20 -n 100 -w 0.3e-9 -f 20 -t 0.11 -a 5e-10 --adex --n_grid 25
-	python exp/amp.py data/amp11_f40 -n 100 -w 0.3e-9 -f 40 -t 0.11 -a 5e-10 --adex --n_grid 25
+	python exp/amp.py data/amp11_f8 -n 100 -w 0.3e-9 -f 8 -t 0.15 -a 3e-10 --adex --n_grid 50
+	python exp/amp.py data/amp11_f12 -n 100 -w 0.3e-9 -f 12 -t 0.12 -a 3e-10 --adex --n_grid 50
+	python exp/amp.py data/amp11_f20 -n 100 -w 0.3e-9 -f 20 -t 0.11 -a 3e-10 --adex --n_grid 50
+	python exp/amp.py data/amp11_f40 -n 100 -w 0.3e-9 -f 40 -t 0.11 -a 3e-10 --adex --n_grid 50
