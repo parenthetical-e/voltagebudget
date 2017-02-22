@@ -208,21 +208,19 @@ amp6:
 	python exp/amp.py data/amp6 -n 10 -w 0.6e-9 -f 50 -a 10e-10 --adex --n_grid 50
 
 # Explore freq and t_stim over a dense range of A
+# -t set to place spikes near or at oscillation peak
+# lif
 amp10:
 	-rm data/amp10*csv
-	parallel -j 6 -v \
-		--joblog 'data/log' \
-		--nice 19 \
-		'python exp/amp.py data/amp10_f{1}_t{2} -n 20 -w 0.3e-9 -f {1} -t {2} -a 15e-10 --adex --n_grid 75' ::: \
-			8 12 20 40 ::: \
-			0.1 0.12 0.14 0.15 0.16 0.18 
+	python exp/amp.py data/amp10_f8 -n 20 -w 0.3e-9 -f 8 -t 0.15 -a 12e-3 --lif --n_grid 60
+	python exp/amp.py data/amp10_f12 -n 20 -w 0.3e-9 -f 12 -t 0.12 -a 12e-3 --lif --n_grid 60
+	python exp/amp.py data/amp10_f20 -n 20 -w 0.3e-9 -f 20 -t 0.11 -a 12e-3 --lif --n_grid 60
+	python exp/amp.py data/amp10_f40 -n 20 -w 0.3e-9 -f 40 -t 0.11 -a 12e-3 --lif --n_grid 60
 
-# lif of 10
+# adex
 amp11:
 	-rm data/amp11*csv
-	parallel -j 6 -v \
-		--joblog 'data/log' \
-		--nice 19 \
-		'python exp/amp.py data/amp11_f{1}_t{2} -n 20 -w 0.3e-9 -f {1} -t {2} -a 20e-3 --lif --n_grid 75' ::: \
-			8 12 20 40 ::: \
-			0.1 0.12 0.14 0.15 0.16 0.18 
+	python exp/amp.py data/amp11_f8 -n 20 -w 0.3e-9 -f 8 -t 0.15 -a 5e-10 --adex --n_grid 25
+	python exp/amp.py data/amp11_f12 -n 20 -w 0.3e-9 -f 12 -t 0.12 -a 5e-10 --adex --n_grid 25
+	python exp/amp.py data/amp11_f20 -n 20 -w 0.3e-9 -f 20 -t 0.11 -a 5e-10 --adex --n_grid 25
+	python exp/amp.py data/amp11_f40 -n 20 -w 0.3e-9 -f 40 -t 0.11 -a 5e-10 --adex --n_grid 25
