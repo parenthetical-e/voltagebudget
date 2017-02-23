@@ -1,4 +1,4 @@
-"""Usage: opt20.py NAME N 
+"""Usage: opt20a.py NAME N 
         (--lif | --adex)
         [-w W] [-a A] [-t T] [-f F] [-n N]
 
@@ -79,11 +79,8 @@ def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
         tn = t_stim + 50e-3
 
         # Est sigma_comp (variance of the comp)
-        times = fsutil.create_times(t, 1e-4)
-        comp = vs_y['comp']
-
-        m = np.logical_and(times >= t0, times <= tn)
-        sigma_comp = comp[:, m].std()
+        m = np.logical_or(t0 <= ts_y, ts_y <= tn)
+        sigma_comp = ts_y[m].std()
 
         # Est communication
         m = np.logical_or(t0 <= ts_z, ts_z <= tn)
