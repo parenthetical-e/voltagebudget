@@ -34,16 +34,7 @@ from voltagebudget.neurons import adex, lif
 from voltagebudget.util import k_spikes
 
 
-def create_problem(nrn,
-                   time,
-                   t_stim,
-                   N,
-                   ns,
-                   ts,
-                   f,
-                   pad=20e-3,
-                   Nz=100,
-                   **params):
+def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
     def problem(pars):
         A = pars[0]
         phi = pars[1]
