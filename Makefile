@@ -139,13 +139,47 @@ adex10_10000:
 # Opt for C, and sigma_y 
 
 # For lif comp is sigma_in
-opt20:
-	-rm data/opt20_*
-	parallel -j 6 -v \
-		--joblog 'data/log' \
-		--nice 19 \
-		'python exp/opt20.py data/opt20_f{1} 10000 -a 5e-3 -w 0.3e-9 -t 0.1 -f {1} --lif' ::: \
-			8 12 20 40
+# A sigma phi
+opt20a:
+	-rm data/opt20a_*
+	python exp/opt20a.py data/opt20a_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt20a.py data/opt20a_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt20a.py data/opt20a_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+
+# A sigma
+opt20b:
+	-rm data/opt20b_*
+	python exp/opt20b.py data/opt20b_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt20b.py data/opt20b_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt20b.py data/opt20b_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+
+# phi sigma
+opt20c:
+	-rm data/opt20c_*
+	python exp/opt20c.py data/opt20c_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt20c.py data/opt20c_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt20c.py data/opt20c_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+
+# phi
+opt20d:
+	-rm data/opt20d_*
+	python exp/opt20d.py data/opt20d_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt20d.py data/opt20d_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt20d.py data/opt20d_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+
+# A
+opt20e:
+	-rm data/opt20e_*
+	python exp/opt20e.py data/opt20e_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt20e.py data/opt20e_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt20e.py data/opt20e_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+
+# sigma
+opt20f:
+	-rm data/opt20f_*
+	python exp/opt20f.py data/opt20f_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt20f.py data/opt20f_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt20f.py data/opt20f_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
 
 # For adex comp is {a, b, Ereset}
 opt21:
