@@ -149,7 +149,7 @@ if __name__ == "__main__":
         sigma_comp=[s.objectives[0] for s in algorithm.result],
         Cs=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
-        sigma_in=[s.variables[2] for s in algorithm.result])
+        sigma_in=[s.variables[1] for s in algorithm.result])
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as fi:
