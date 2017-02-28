@@ -83,21 +83,12 @@ def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
         times = fsutil.create_times(t, 1e-4)
         m = np.logical_and(times >= t0, times <= tn)
 
-        rest = vs_y['rest']
-        budget = vs_y['budget'] - rest
-        osc = vs_y['osc'] - rest
-        comp = vs_y['comp'] - rest
-        free = vs_y["free"]
+        comp = vs_y['comp'][:, m].mean()
+        osc = vs_y['osc'][:, m].mean()
 
-        opt_comp = budget - osc - free
-        opt_comp = opt_comp[:, m].mean()
+        print(comp, osc)
 
-        opt_osc = budget - comp - free
-        opt_osc = opt_osc[:, m].mean()
-
-        print(opt_comp, opt_osc)
-
-        return -opt_comp, -opt_osc
+        return -comp, -osc
 
     return problem
 
