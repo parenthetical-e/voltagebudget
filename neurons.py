@@ -148,10 +148,14 @@ def lif(time,
     result = [ns_e, ts_e]
 
     if budget:
-        vm = traces_e.v_
-        v_comp = (vm - v_osc) + np.mean(v_osc)
-        v_free = vm - float(Er)
         v_b = float(Et - Er)
+        vm = traces_e.v_
+
+        v_comp = (vm - v_osc) + np.mean(v_osc) - float(Er)
+        v_osc = v_osc - float(Er)
+
+        v_free = v_b - v_comp - v_osc
+
         vs = dict(
             vm=vm,
             comp=v_comp,
@@ -325,11 +329,21 @@ def adex(time,
     result = [ns_e, ts_e]
 
     if budget:
+        v_b = float(Et - Er)
         vm = traces_e.v_
-        v_comp = (vm - v_osc) + np.mean(v_osc)
-        v_free = vm - float(Et)
-        v_b = Et - Er
-        vs = dict(vm=vm, comp=v_comp, osc=v_osc, free=v_free, budget=v_b)
+
+        v_comp = (vm - v_osc) + np.mean(v_osc) - float(Er)
+        v_osc = v_osc - float(Er)
+
+        v_free = v_b - v_comp - v_osc
+
+        vs = dict(
+            vm=vm,
+            comp=v_comp,
+            osc=v_osc,
+            free=v_free,
+            budget=v_b,
+            rest=float(Er))
 
         result.append(vs)
 

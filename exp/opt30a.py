@@ -86,7 +86,8 @@ def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
         comp = vs_y['comp'][:, m].mean()
         osc = vs_y['osc'][:, m].mean()
 
-        print(comp, osc)
+        print("opt: ({}, {}); par: (A {}, phi {}, sigma {})".format(
+            comp, osc, A, phi, sigma_in))
 
         return -comp, -osc
 
