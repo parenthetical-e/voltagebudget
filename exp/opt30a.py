@@ -156,8 +156,8 @@ if __name__ == "__main__":
 
     # - Results
     results = dict(
-        sigma_comp=[s.objectives[0] for s in algorithm.result],
-        Cs=[s.objectives[1] for s in algorithm.result],
+        v_comp=[s.objectives[0] for s in algorithm.result],
+        v_osc=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
         phis=[s.variables[1] for s in algorithm.result],
         sigma_in=[s.variables[2] for s in algorithm.result])
