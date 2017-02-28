@@ -95,6 +95,8 @@ def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
         opt_osc = budget - comp - free
         opt_osc = opt_osc[:, m].mean()
 
+        print(opt_comp, opt_osc)
+
         return -opt_comp, -opt_osc
 
     return problem
