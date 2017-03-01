@@ -211,6 +211,26 @@ opt23:
 		'python exp/opt23.py data/opt23_f{1} 1000 -a 2e-10 -w 0.3e-9 -t 0.1 -f {1} --adex' ::: \
 			8 12 20 40 
 
+
+# ----------------------------------------------------------------
+# Opt using only budget terms
+#
+# For lif comp is sigma_in
+# A sigma phi
+opt30a:
+	-rm data/opt30a_*
+	python exp/opt30a.py data/opt30a_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt30a.py data/opt30a_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt30a.py data/opt30a_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+
+# A sigma
+opt30b:
+	-rm data/opt30b_*
+	python exp/opt30b.py data/opt30b_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt30b.py data/opt30b_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt30b.py data/opt30b_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+
+
 # ----------------------------------------------------------------
 amp1:
 	-rm data/amp1.csv 

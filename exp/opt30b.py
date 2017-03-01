@@ -1,8 +1,8 @@
-"""Usage: opt30a.py NAME N 
+"""Usage: opt20b.py NAME N 
         (--lif | --adex)
         [-w W] [-a A] [-t T] [-f F] [-n N]
 
-Search {A, phi, sigma_in} and maximizing {C, sigma_y}.
+Search {A, sigma_in} and maximizing {C, sigma_y}.
 
     Arguments:
         NAME    results name
@@ -39,8 +39,7 @@ from voltagebudget.util import estimate_computation
 def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
     def problem(pars):
         A = pars[0]
-        phi = pars[1]
-        sigma_in = pars[2]
+        sigma_in = pars[1]
 
         # Reset sigma_in
         params["w_in"][1] = params["w_in"][0] * sigma_in
@@ -52,7 +51,7 @@ def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
                                ts,
                                f=f,
                                A=A,
-                               phi=phi,
+                               phi=0,
                                r_b=0,
                                budget=True,
                                report=None,
@@ -73,8 +72,8 @@ def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
         comp = vs_y['comp'][:, m].mean()
         osc = vs_y['osc'][:, m].mean()
 
-        print("opt: ({}, {}); par: (A {}, phi {}, sigma {})".format(
-            comp, osc, A, phi, sigma_in))
+        print("opt: ({}, {}); par: (A {}, sigma {})".format(comp, osc, A,
+                                                            sigma_in))
 
         return -comp, -osc
 
@@ -124,10 +123,8 @@ if __name__ == "__main__":
     sim = create_problem(nrn, t, t_stim, k, ns, ts, f=f, **params)
 
     # ---------------------------------------------------------------------
-    problem = Problem(3, 2)
-    problem.types[:] = [
-        Real(0.0, Amax), Real(0.0, (1 / f) * 0.5), Real(0.0, 1)
-    ]
+    problem = Problem(2, 2)
+    problem.types[:] = [Real(0.0, Amax), Real(0.0, 1)]
 
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -138,8 +135,7 @@ if __name__ == "__main__":
         v_comp=[s.objectives[0] for s in algorithm.result],
         v_osc=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
-        phis=[s.variables[1] for s in algorithm.result],
-        sigma_in=[s.variables[2] for s in algorithm.result])
+        sigma_in=[s.variables[1] for s in algorithm.result])
 
     # Simulate params, want sigma_comp and C
     Cs = []
@@ -148,7 +144,7 @@ if __name__ == "__main__":
     for i in range(l):
         sigma = results['sigma_in'][i]
         A = results['As'][i]
-        phi = results['phis'][i]
+        phi = 0
 
         # Create Y, then Z
         ns_y, ts_y, vs_y = nrn(t,
@@ -180,7 +176,14 @@ if __name__ == "__main__":
         writer.writerows(zip(* [results[key] for key in keys]))
 
     # - Write args
-    args = {'N': N, 'Amax': Amax, 'f': f, 'w_y': w_y, 't_stim': t_stim}
+    args = {
+        'N': N,
+        'Amax': Amax,
+        'f': f,
+        'w_y': w_y,
+        't_stim': t_stim,
+        'phi': phi
+    }
     keys = sorted(args.keys())
     with open("{}_args.csv".format(name), "wb") as fi:
         writer = csv.writer(fi, delimiter=",")
