@@ -172,7 +172,7 @@ if __name__ == "__main__":
         phis=[s.variables[1] for s in algorithm.result],
         a=[s.variables[2] for s in algorithm.result],
         b=[s.variables[3] for s in algorithm.result],
-        Ereest=[s.variables[4] for s in algorithm.result])
+        Ereset=[s.variables[4] for s in algorithm.result])
 
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as fi:
