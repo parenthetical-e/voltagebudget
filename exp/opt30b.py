@@ -143,6 +143,8 @@ if __name__ == "__main__":
     l = len(results['As'])
     for i in range(l):
         sigma = results['sigma_in'][i]
+        params["w_in"][1] = params["w_in"][0] * sigma
+
         A = results['As'][i]
         phi = 0
 
