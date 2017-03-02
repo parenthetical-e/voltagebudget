@@ -2,7 +2,7 @@
         (--lif | --adex)
         [-w W] [-a A] [-t T] [-f F] [-n N]
 
-Search {A, phi, sigma_in} and maximizing {C, sigma_y}.
+Search {A, phi, sigma_in} and maximizing {Vcomp, Vosc}.
 
     Arguments:
         NAME    results name
