@@ -329,21 +329,18 @@ def adex(time,
     result = [ns_e, ts_e]
 
     if budget:
-        v_b = float(Et - Er)
+        Et = float(Et)
+        El = float(El)
+
+        v_b = float(Et - El)
         vm = traces_e.v_
 
-        v_comp = (vm - v_osc) + np.mean(v_osc) - float(Er)
-        v_osc = v_osc - float(Er)
-
+        v_comp = (vm - v_osc) + np.mean(v_osc) - float(El)
+        v_osc = v_osc - float(El)
         v_free = v_b - v_comp - v_osc
 
         vs = dict(
-            vm=vm,
-            comp=v_comp,
-            osc=v_osc,
-            free=v_free,
-            budget=v_b,
-            rest=float(Er))
+            vm=vm, comp=v_comp, osc=v_osc, free=v_free, budget=v_b, rest=El)
 
         result.append(vs)
 
