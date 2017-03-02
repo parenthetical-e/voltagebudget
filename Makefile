@@ -230,6 +230,12 @@ opt30b:
 	python exp/opt30b.py data/opt30b_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
 	python exp/opt30b.py data/opt30b_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
 
+# A sigma
+opt30c:
+	-rm data/opt30c_*
+	python exp/opt30c.py data/opt30c_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
+	python exp/opt30c.py data/opt30c_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
+	python exp/opt30c.py data/opt30c_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
 
 # ----------------------------------------------------------------
 amp1:
