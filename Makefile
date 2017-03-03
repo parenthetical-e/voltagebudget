@@ -221,23 +221,23 @@ opt30c:
 # A sigma phi
 opt31a:
 	-rm data/opt31a_*
-	python exp/opt31a.py data/opt31a_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --adex
-	python exp/opt31a.py data/opt31a_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --adex
-	python exp/opt31a.py data/opt31a_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --adex
+	python exp/opt31a.py data/opt31a_f8 10000 -a .5e-10 -w 0.3e-9 -t 0.14 -f 8 --adex
+	python exp/opt31a.py data/opt31a_f20 10000 -a .5e-10 -w 0.3e-9 -t 0.11 -f 20 --adex
+	python exp/opt31a.py data/opt31a_f40 10000 -a .5e-10 -w 0.3e-9 -t 0.105 -f 40 --adex
 
 # A sigma
 opt31b:
 	-rm data/opt31b_*
-	python exp/opt31b.py data/opt31b_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --adex
-	python exp/opt31b.py data/opt31b_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --adex
-	python exp/opt31b.py data/opt31b_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --adex
+	python exp/opt31b.py data/opt31b_f8 10000 -a .5e-10 -w 0.3e-9 -t 0.14 -f 8 --adex
+	python exp/opt31b.py data/opt31b_f20 10000 -a .5e-10 -w 0.3e-9 -t 0.11 -f 20 --adex
+	python exp/opt31b.py data/opt31b_f40 10000 -a .5e-10 -w 0.3e-9 -t 0.105 -f 40 --adex
 
 # phi sigma
 opt31c:
 	-rm data/opt31c_*
-	python exp/opt31c.py data/opt31c_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --adex
-	python exp/opt31c.py data/opt31c_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --adex
-	python exp/opt31c.py data/opt31c_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --adex
+	python exp/opt31c.py data/opt31c_f8 10000 -a .5e-10 -w 0.3e-9 -t 0.14 -f 8 --adex
+	python exp/opt31c.py data/opt31c_f20 10000 -a .5e-10 -w 0.3e-9 -t 0.11 -f 20 --adex
+	python exp/opt31c.py data/opt31c_f40 10000 -a .5e-10 -w 0.3e-9 -t 0.105 -f 40 --adex
 
 # ----------------------------------------------------------------
 amp1:
