@@ -1,7 +1,16 @@
+from __future__ import division
+
 from fakespikes import neurons, util, rates
 import numpy as np
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import lif
+
+
+def create_times(t, dt):
+    n_steps = int(t * (1.0 / dt))
+    times = np.linspace(0, t, n_steps)
+
+    return times
 
 
 def k_spikes(t, k, w, dt=1e-3, t_pad=0.1, a=100, seed=42):
@@ -32,31 +41,35 @@ def get_budget(t, times, free, osc, comp):
     return free[:, ind], osc[:, ind], comp[:, ind]
 
 
-def estimate_communication(t_stim, ns, ts, time=0.3, N=100, t0=2e-3, tn=50e-3):
+def estimate_communication(t0,
+                           tn,
+                           ns,
+                           ts,
+                           coincidence_t=1e-3,
+                           coincidence_n=20,
+                           time_step=1e-4):
 
-    _, ts_z = lif(time,
-                  N,
-                  ns,
-                  ts,
-                  w_in=(0.2e-9, 0.2e-9),
-                  bias=(5e-3, 5e-3 / 5),
-                  r_b=0,
-                  f=0,
-                  A=0,
-                  refractory=time,
-                  budget=False,
-                  report=None)
+    # Create time
+    times = create_times(np.max(ts), time_step)
 
-    # Window for opt analysis
-    t0 = t_stim + t0
-    tn = t_stim + tn
+    # Calculate C for every possible coincidence (CC) window, for all time
+    Cs = []
+    for t in times:
+        # Get CC window
+        cc0 = t
+        ccn = t + coincidence_t
+        m = np.logical_or(cc0 <= ts, ts <= ccn)
 
-    # Est communication
-    m = np.logical_or(t0 <= ts_z, ts_z <= tn)
+        # Count spikes in the window
+        C_t = 0
+        if ts[m].size > 0:
+            n_spikes = ts[m].size
+            C_t = min(n_spikes / coincidence_n, 1.0)
 
-    C = 0
-    if ts_z[m].size > 0:
-        C = ts_z[m].size / float(N)
+        Cs.append(C_t)
+
+    # Find largest C
+    C = np.max(Cs)
 
     return C
 

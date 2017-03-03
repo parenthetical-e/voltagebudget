@@ -165,7 +165,7 @@ if __name__ == "__main__":
                                report=None,
                                **params)
 
-        C = estimate_communication(t_stim, ns_y, ts_y)
+        C = estimate_communication(t_stim, t_stim + 50e-3, ns_y, ts_y)
         sigma_comp = estimate_computation(ns_y, ts_y)
 
         Cs.append(C)
