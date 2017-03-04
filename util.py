@@ -49,6 +49,11 @@ def estimate_communication(t0,
                            coincidence_n=20,
                            time_step=1e-4):
 
+    # Select analysis window 
+    m = np.logical_or(t0 <= ts, ts <= tn)
+    ts = ts[m]
+    ns = ns[m]
+
     # Create time
     times = create_times(np.max(ts), time_step)
 
