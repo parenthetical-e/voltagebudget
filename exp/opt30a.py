@@ -141,9 +141,9 @@ if __name__ == "__main__":
         phis=[s.variables[1] for s in algorithm.result],
         sigma_in=[s.variables[2] for s in algorithm.result])
 
-    # Simulate params, want sigma_comp and C
+    # Simulate params, want sigma_y and C
     Cs = []
-    sigma_comps = []
+    sigma_ys = []
     l = len(results['As'])
     for i in range(l):
         sigma = results['sigma_in'][i]
@@ -166,13 +166,13 @@ if __name__ == "__main__":
                                **params)
 
         C = estimate_communication(t_stim, ns_y, ts_y)
-        sigma_comp = estimate_computation(ns_y, ts_y)
+        sigma_y = estimate_computation(ns_y, ts_y)
 
         Cs.append(C)
-        sigma_comps.append(sigma_comp)
+        sigma_ys.append(sigma_y)
 
     results['Cs'] = Cs
-    results['sigma_comps'] = sigma_comps
+    results['sigma_ys'] = sigma_ys
 
     # Write
     keys = sorted(results.keys())
