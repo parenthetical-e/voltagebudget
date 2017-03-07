@@ -6,13 +6,6 @@ from voltagebudget.neurons import adex
 from voltagebudget.neurons import lif
 
 
-def create_times(t, dt):
-    n_steps = int(t * (1.0 / dt))
-    times = np.linspace(0, t, n_steps)
-
-    return times
-
-
 def k_spikes(t, k, w, dt=1e-3, t_pad=0.1, a=100, seed=42):
     """Generate approx. `k` spikes in the window `w` at time `t`"""
 
@@ -27,35 +20,40 @@ def k_spikes(t, k, w, dt=1e-3, t_pad=0.1, a=100, seed=42):
     return ns, ts
 
 
-def get_budget(t, times, free, osc, comp):
+def mean_budget(times, vs, window):
+    t0 = window[0]
+    tn = window[1]
+    m = np.logical_and(times >= t0, times <= tn)
 
-    if times.shape[0] != free.shape[1]:
-        raise ValueError("times be the same length as the ncol in all"
-                         "other variables (besides t).")
+    vs_m = {}
+    for k, v in vs.items():
+        try:
+            len(vs[k])  # error on scalar/float
 
-    if (free.shape != osc.shape) or (free.shape != comp.shape):
-        raise ValueError("Shape mismatch in voltage varialbles")
+            vs_m[k] = vs[k][:, m].mean()
+        except TypeError:
+            vs_m[k] = vs[k]  # copy over scalar values
 
-    ind = (np.abs(times - t)).argmin()
-
-    return free[:, ind], osc[:, ind], comp[:, ind]
+    return vs_m
 
 
-def estimate_communication(t0,
-                           tn,
+def estimate_communication(times,
                            ns,
                            ts,
+                           window,
                            coincidence_t=1e-3,
                            coincidence_n=20,
                            time_step=1e-4):
 
-    # Select analysis window 
-    m = np.logical_or(t0 <= ts, ts <= tn)
+    # Define overall analysis window 
+    t0 = window[0]
+    tn = window[1]
+    if tn + coincidence_t > times.max():
+        raise ValueError("Final window must be less than max value in times")
+
+    m = np.logical_and(t0 <= ts, ts <= tn)
     ts = ts[m]
     ns = ns[m]
-
-    # Create time
-    times = create_times(np.max(ts), time_step)
 
     # Calculate C for every possible coincidence (CC) window, for all time
     Cs = []
@@ -63,7 +61,7 @@ def estimate_communication(t0,
         # Get CC window
         cc0 = t
         ccn = t + coincidence_t
-        m = np.logical_or(cc0 <= ts, ts <= ccn)
+        m = np.logical_and(cc0 <= ts, ts <= ccn)
 
         # Count spikes in the window
         C_t = 0
@@ -79,7 +77,14 @@ def estimate_communication(t0,
     return C
 
 
-def estimate_computation(ns, ts, t0=2e-3, tn=50e-3):
-    m = np.logical_or(t0 <= ts, ts <= tn)
+def estimate_computation(times, ns, ts, window):
+    t0 = window[0]
+    tn = window[1]
+    m = np.logical_and(t0 <= ts, ts <= tn)
 
-    return ts[m].std()
+    ts = ts[m]
+
+    if ts.size > 0:
+        return ts.std()
+    else:
+        return 0.0

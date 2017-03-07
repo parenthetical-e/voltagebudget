@@ -1,17 +1,16 @@
-"""Usage: opt30a.py NAME N 
-        (--lif | --adex)
+"""Usage: opt30a.py NAME M 
         [-w W] [-a A] [-t T] [-f F] [-n N]
 
 Search {A, phi, sigma_in} and maximizing {Vcomp, Vosc}.
 
     Arguments:
         NAME    results name
-        N       number of opt interations
+        M       number of opt interations
 
     Options:
         -h --help               show this screen
-        -w W                    average input weight [default: 0.3e-9]
-        -a A                    maximum oscillation size [default: 30e-3]
+        -w W                    average input weight [default: 0.15e-9]
+        -a A                    maximum oscillation size [default: 1e-3]
         -t T                    stim onset time (< 0.2) [default: 0.1]
         -f F                    oscillation frequency (Hz) [default: 50]
         -n N                    number of Y neurons [default: 100]
@@ -30,48 +29,39 @@ from fakespikes import util as fsutil
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
 from platypus.types import Real
-from voltagebudget.neurons import adex, lif
+from voltagebudget.neurons import lif
 from voltagebudget.util import k_spikes
 from voltagebudget.util import estimate_communication
 from voltagebudget.util import estimate_computation
+from voltagebudget.util import mean_budget
 
 
-def create_problem(nrn, time, t_stim, N, ns, ts, f, Nz=100, **params):
+def create_problem(time, window, ns, ts, f, w_in, bias, time_step=1e-4, N=100):
     def problem(pars):
         A = pars[0]
         phi = pars[1]
         sigma_in = pars[2]
 
-        # Reset sigma_in
-        params["w_in"][1] = params["w_in"][0] * sigma_in
-
         # Create Y, then Z
-        ns_y, ts_y, vs_y = nrn(time,
+        ns_y, ts_y, vs_y = lif(time,
                                N,
                                ns,
                                ts,
+                               w_in=[w_in, w_in * sigma_in],
+                               bias=bias,
                                f=f,
                                A=A,
                                phi=phi,
                                r_b=0,
                                budget=True,
                                report=None,
-                               **params)
-
-        # If Y didn't spike, C=0
-        if ns_y.shape[0] == 0:
-            print("Null Y.")
-            return 0.0, 0.0
+                               time_step=time_step)
 
         # Window for opt analysis
-        t0 = t_stim + 3e-3
-        tn = t_stim + 5e-3
-
-        times = fsutil.create_times(t, 1e-4)
-        m = np.logical_and(times >= t0, times <= tn)
-
-        comp = vs_y['comp'][:, m].mean()
-        osc = vs_y['osc'][:, m].mean()
+        times = fsutil.create_times(time, time_step)
+        vs_m = mean_budget(times, vs_y, window)
+        comp = vs_m['comp']
+        osc = vs_m['osc']
 
         print("opt: ({}, {}); par: (A {}, phi {}, sigma {})".format(
             comp, osc, A, phi, sigma_in))
@@ -85,13 +75,14 @@ if __name__ == "__main__":
     args = docopt(__doc__, version='alpha')
     name = args["NAME"]
 
-    N = int(args["N"])
+    M = int(args["M"])
+    N = int(args["-n"])
     w_y = float(args["-w"])
-
     f = float(args["-f"])
     Amax = float(args["-a"])
 
     # ---------------------------------------------------------------------
+    # Create input
     t = 0.3
 
     t_stim = float(args["-t"])
@@ -99,41 +90,34 @@ if __name__ == "__main__":
         raise ValueError("-t must be less than 0.2 seconds")
 
     k = 20
-    dt = 1e-4
+    time_step = 1e-4
     w = 1e-4
     a = 10000
-    ns, ts = k_spikes(t_stim, k, w, a=a, dt=dt, seed=42)
-    times = fsutil.create_times(t, dt)
+    ns, ts = k_spikes(t_stim, k, w, a=a, dt=time_step, seed=42)
+    times = fsutil.create_times(t, time_step)
 
     # ---------------------------------------------------------------------
-    if args["--lif"]:
-        nrn = lif
-        params = dict(w_in=[w_y, w_y / 2], bias=[5e-3, 5e-3 / 5])
-    elif args["--adex"]:
-        raise NotImplementedError("--adex not supported; try opt21?")
-    #     nrn = adex
-    #     params = dict(
-    #         w_in=w_y,
-    #         bias=(5e-10, 5e-10 / 20),
-    #         a=(-1.0e-9, 1.0e-9),
-    #         b=(10e-12, 60.0e-12),
-    #         Ereset=(-48e-3, -55e-3))
-    else:
-        raise ValueError("opt.py requires neuron type --lif")
+    # Intialize the problem
+    w_in = w_y
+    bias = [5e-3, 5e-3 / 5]
+    window = [t_stim + 1e-3, t_stim + 4e-3]
 
-    sim = create_problem(nrn, t, t_stim, k, ns, ts, f=f, **params)
+    sim = create_problem(
+        t, window, ns, ts, f, w_in, bias, N=N, time_step=time_step)
 
-    # ---------------------------------------------------------------------
     problem = Problem(3, 2)
     problem.types[:] = [
         Real(0.0, Amax), Real(0.0, (1 / f) * 0.5), Real(0.0, 1)
     ]
-
     problem.function = sim
-    algorithm = NSGAII(problem)
-    algorithm.run(N)
 
-    # - Results
+    # ---------------------------------------------------------------------
+    # Run
+    algorithm = NSGAII(problem)
+    algorithm.run(M)
+
+    # ---------------------------------------------------------------------
+    # Process results
     results = dict(
         v_comp=[s.objectives[0] for s in algorithm.result],
         v_osc=[s.objectives[1] for s in algorithm.result],
@@ -143,36 +127,40 @@ if __name__ == "__main__":
 
     # Simulate params, want sigma_comp and C
     Cs = []
-    sigma_comps = []
+    sigma_ys = []
     l = len(results['As'])
+
     for i in range(l):
         sigma = results['sigma_in'][i]
-        params["w_in"][1] = params["w_in"][0] * sigma
+        w_in = [w_y, w_y * sigma]
 
         A = results['As'][i]
         phi = results['phis'][i]
 
         # Create Y, then Z
-        ns_y, ts_y, vs_y = nrn(t,
+        ns_y, ts_y, vs_y = lif(t,
                                N,
                                ns,
                                ts,
+                               w_in=w_in,
+                               bias=bias,
                                f=f,
                                A=A,
                                phi=phi,
                                r_b=0,
                                budget=True,
                                report=None,
-                               **params)
+                               time_step=time_step)
 
-        C = estimate_communication(t_stim, t_stim + 50e-3, ns_y, ts_y)
-        sigma_comp = estimate_computation(ns_y, ts_y)
+        C = estimate_communication(
+            times, ns_y, ts_y, window, time_step=time_step)
+        sigma_y = estimate_computation(times, ns_y, ts_y, window)
 
         Cs.append(C)
-        sigma_comps.append(sigma_comp)
+        sigma_ys.append(sigma_y)
 
     results['Cs'] = Cs
-    results['sigma_comps'] = sigma_comps
+    results['sigma_ys'] = sigma_ys
 
     # Write
     keys = sorted(results.keys())
@@ -181,7 +169,7 @@ if __name__ == "__main__":
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
 
-    # - Write args
+    # Write args
     args = {'N': N, 'Amax': Amax, 'f': f, 'w_y': w_y, 't_stim': t_stim}
     keys = sorted(args.keys())
     with open("{}_args.csv".format(name), "wb") as fi:
