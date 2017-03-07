@@ -1,4 +1,4 @@
-"""Usage: opt31a.py NAME M 
+"""Usage: opt31b.py NAME M 
         [-w W] [-a A] [-t T] [-f F] [-n N]
 
 Search {A, phi, a, b, Ereset} and maximizing {Vcomp, Vosc}.
@@ -42,18 +42,15 @@ def create_problem(time,
                    ts,
                    f,
                    w_in,
-                   a_mim,
-                   b_min,
-                   E_min,
+                   a,
+                   b,
+                   E,
                    bias,
                    time_step=1e-4,
                    N=100):
     def problem(pars):
         A = pars[0]
         phi = pars[1]
-        a = [a_min, pars[2]]
-        b = [b_min, pars[3]]
-        E = [E_min, pars[4]]
 
         # Create Y, then Z
         ns_y, ts_y, vs_y = adex(
@@ -77,8 +74,7 @@ def create_problem(time,
         comp = vs_m['comp']
         osc = vs_m['osc']
 
-        print("opt: ({}, {}); par: (A {}, phi {}, a {}, b {}, Ereset {})".
-              format(comp, osc, A, phi, a, b, E))
+        print("opt: ({}, {}); par: (A {}, phi {})".format(comp, osc, A, phi))
 
         return -comp, -osc
 
@@ -113,30 +109,16 @@ if __name__ == "__main__":
     # Intialize the problem
     w_in = w_y
     bias = [5e-10, 5e-10 / 20]
-    a_min = -1.0e-9
-    b_min = 10e-12
-    E_min = -48e-3
+    a = [-1.0e-9, 1.0e-9]
+    b = [10e-12, 60.0e-12]
+    E = [-48e-3, -55e-3]
     window = [t_stim + 6e-3, t_stim + 9e-3]
 
     sim = create_problem(
-        t,
-        window,
-        ns,
-        ts,
-        f,
-        w_in,
-        a_min,
-        b_min,
-        E_min,
-        bias,
-        time_step=time_step,
-        N=N)
+        t, window, ns, ts, f, w_in, a, b, E, bias, time_step=time_step, N=N)
 
-    problem = Problem(5, 2)
-    problem.types[:] = [
-        Real(0.0, Amax), Real(0.0, (1 / f) * 0.5), Real(-1.0e-9, 1.0e-9),
-        Real(10e-12, 60.0e-12), Real(-48e-3, -55e-3)
-    ]
+    problem = Problem(2, 2)
+    problem.types[:] = [Real(0.0, Amax), Real(0.0, (1 / f) * 0.5)]
     problem.function = sim
 
     # ---------------------------------------------------------------------
@@ -150,10 +132,7 @@ if __name__ == "__main__":
         v_comp=[s.objectives[0] for s in algorithm.result],
         v_osc=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
-        phis=[s.variables[1] for s in algorithm.result],
-        a=[s.variables[2] for s in algorithm.result],
-        b=[s.variables[3] for s in algorithm.result],
-        Ereset=[s.variables[4] for s in algorithm.result])
+        phis=[s.variables[1] for s in algorithm.result])
 
     # Simulate params, want sigma_comp and C
     Cs = []
@@ -162,10 +141,6 @@ if __name__ == "__main__":
     for i in range(l):
         A = results['As'][i]
         phi = results['phis'][i]
-
-        a = [a_min, results['a'][i]]
-        b = [b_min, results['b'][i]]
-        E = [E_min, results['Ereset'][i]]
 
         # Create Y, then Z
         ns_y, ts_y, vs_y = adex(
