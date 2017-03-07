@@ -206,7 +206,7 @@ opt30a:
 # A sigma phi
 opt31a:
 	-rm data/opt31a_*
-	python exp/opt31a.py data/opt31a_f8 10000 -a .5e-10 -w 0.15e-9 -t 0.14 -f 8 --adex
+	python exp/opt31a.py data/opt31a_f8 10000 -a .25e-10 -w 0.3e-9 -t 0.14 -f 8 --adex
 
 
 # ----------------------------------------------------------------
