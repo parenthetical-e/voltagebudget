@@ -201,6 +201,9 @@ opt30a:
 	-rm data/opt30a_*
 	python exp/opt30a.py data/opt30a_f8 10000 -a 3e-3 -w 0.15e-9 -t 0.14 -f 8 
 
+opt30b:
+	-rm data/opt30b_*
+	python exp/opt30b.py data/opt30b_f8 10000 -a 3e-3 -w 0.15e-9 -t 0.14 -f 8 
 
 # For adex comp is sigma_in
 # A sigma phi
@@ -208,6 +211,9 @@ opt31a:
 	-rm data/opt31a_*
 	python exp/opt31a.py data/opt31a_f8 10000 -a .25e-10 -w 0.3e-9 -t 0.14 -f 8 
 
+opt31b:
+	-rm data/opt31b_*
+	python exp/opt31b.py data/opt31b_f8 10000 -a .25e-10 -w 0.3e-9 -t 0.14 -f 8 
 
 # ----------------------------------------------------------------
 # Explore freq and t_stim over a dense range of A
