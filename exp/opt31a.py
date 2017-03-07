@@ -116,7 +116,7 @@ if __name__ == "__main__":
     a_min = -1.0e-9
     b_min = 10e-12
     E_min = -48e-3
-    window = [t_stim + 1e-3, t_stim + 4e-3]
+    window = [t_stim + 1e-3, t_stim + 50e-3]
 
     sim = create_problem(
         t,
