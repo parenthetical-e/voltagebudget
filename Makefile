@@ -199,90 +199,29 @@ opt23:
 # A sigma phi
 opt30a:
 	-rm data/opt30a_*
-	python exp/opt30a.py data/opt30a_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
-	python exp/opt30a.py data/opt30a_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
-	python exp/opt30a.py data/opt30a_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
+	python exp/opt30a.py data/opt30a_f8 10000 -a 3e-3 -w 0.15e-9 -t 0.14 -f 8 --lif
 
-# A sigma
-opt30b:
-	-rm data/opt30b_*
-	python exp/opt30b.py data/opt30b_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
-	python exp/opt30b.py data/opt30b_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
-	python exp/opt30b.py data/opt30b_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
 
-# phi sigma
-opt30c:
-	-rm data/opt30c_*
-	python exp/opt30c.py data/opt30c_f8 10000 -a 3e-3 -w 0.3e-9 -t 0.14 -f 8 --lif
-	python exp/opt30c.py data/opt30c_f20 10000 -a 3e-3 -w 0.3e-9 -t 0.11 -f 20 --lif
-	python exp/opt30c.py data/opt30c_f40 10000 -a 3e-3 -w 0.3e-9 -t 0.105 -f 40 --lif
-
-# For lif comp is sigma_in
+# For adex comp is sigma_in
 # A sigma phi
 opt31a:
 	-rm data/opt31a_*
-	python exp/opt31a.py data/opt31a_f8 10000 -a .5e-10 -w 0.3e-9 -t 0.14 -f 8 --adex
-	python exp/opt31a.py data/opt31a_f20 10000 -a .5e-10 -w 0.3e-9 -t 0.11 -f 20 --adex
-	python exp/opt31a.py data/opt31a_f40 10000 -a .5e-10 -w 0.3e-9 -t 0.105 -f 40 --adex
+	python exp/opt31a.py data/opt31a_f8 10000 -a .5e-10 -w 0.15e-9 -t 0.14 -f 8 --adex
 
-# A sigma
-opt31b:
-	-rm data/opt31b_*
-	python exp/opt31b.py data/opt31b_f8 10000 -a .5e-10 -w 0.3e-9 -t 0.14 -f 8 --adex
-	python exp/opt31b.py data/opt31b_f20 10000 -a .5e-10 -w 0.3e-9 -t 0.11 -f 20 --adex
-	python exp/opt31b.py data/opt31b_f40 10000 -a .5e-10 -w 0.3e-9 -t 0.105 -f 40 --adex
-
-# phi sigma
-opt31c:
-	-rm data/opt31c_*
-	python exp/opt31c.py data/opt31c_f8 10000 -a .5e-10 -w 0.3e-9 -t 0.14 -f 8 --adex
-	python exp/opt31c.py data/opt31c_f20 10000 -a .5e-10 -w 0.3e-9 -t 0.11 -f 20 --adex
-	python exp/opt31c.py data/opt31c_f40 10000 -a .5e-10 -w 0.3e-9 -t 0.105 -f 40 --adex
 
 # ----------------------------------------------------------------
-amp1:
-	-rm data/amp1.csv 
-	python exp/amp.py data/amp1 -n 10 -f 50 -a 50e-3 --lif
-
-# Increase `w_in` a bit
-amp2:
-	-rm data/amp2.csv 
-	python exp/amp.py data/amp2 -n 10 -w 0.3e-9 -f 50 -a 50e-3 --lif
-
-# Restriced the A range; large values were leading to double (non stim)
-# spikes
-# Increase `w_in` a bit
-amp3:
-	-rm data/amp3.csv 
-	python exp/amp.py data/amp3 -n 10 -w 0.3e-9 -f 50 -a 5e-3 --lif
-
-amp4:
-	-rm data/amp4.csv 
-	python exp/amp.py data/amp4 -n 10 -w 0.6e-9 -f 50 -a 5e-10 --adex
-
-# Denser sampling.
-amp5:
-	-rm data/amp5.csv 
-	python exp/amp.py data/amp5 -n 10 -w 0.2e-9 -f 50 -a 20e-3 --lif --n_grid 50
-
-amp6:
-	-rm data/amp6.csv 
-	python exp/amp.py data/amp6 -n 10 -w 0.6e-9 -f 50 -a 10e-10 --adex --n_grid 50
-
 # Explore freq and t_stim over a dense range of A
 # -t set to place spikes near or at oscillation peak
 # lif
-amp10:
-	-rm data/amp10*csv
-	python exp/amp.py data/amp10_f8 -n 100 -w 0.3e-9 -f 8 -t 0.15 -a 10e-3 --lif --n_grid 50
-	python exp/amp.py data/amp10_f12 -n 100 -w 0.3e-9 -f 12 -t 0.12 -a 10e-3 --lif --n_grid 50
-	python exp/amp.py data/amp10_f20 -n 100 -w 0.3e-9 -f 20 -t 0.11 -a 10e-3 --lif --n_grid 50
-	python exp/amp.py data/amp10_f40 -n 100 -w 0.3e-9 -f 40 -t 0.11 -a 10e-3 --lif --n_grid 60
+amp1:
+	-rm data/amp1*csv
+	python exp/amp.py data/amp1_f8 -n 100 -w 0.15e-9 -f 8 -t 0.14 -a 4e-3 --lif --n_grid 50
+	python exp/amp.py data/amp1_f20 -n 100 -w 0.15e-9 -f 20 -t 0.11 -a 4e-3 --lif --n_grid 50
+	python exp/amp.py data/amp1_f40 -n 100 -w 0.15e-9 -f 40 -t 0.11 -a 4e-3 --lif --n_grid 60
 
 # adex
-amp11:
-	-rm data/amp11*csv
-	python exp/amp.py data/amp11_f8 -n 100 -w 0.3e-9 -f 8 -t 0.15 -a 3e-10 --adex --n_grid 50
-	python exp/amp.py data/amp11_f12 -n 100 -w 0.3e-9 -f 12 -t 0.12 -a 3e-10 --adex --n_grid 50
-	python exp/amp.py data/amp11_f20 -n 100 -w 0.3e-9 -f 20 -t 0.11 -a 3e-10 --adex --n_grid 50
-	python exp/amp.py data/amp11_f40 -n 100 -w 0.3e-9 -f 40 -t 0.11 -a 3e-10 --adex --n_grid 50
+amp2:
+	-rm data/amp2*csv
+	python exp/amp.py data/amp2_f8 -n 100 -w 0.15e-9 -f 8 -t 0.14 -a 0.5e-10 --adex --n_grid 50
+	python exp/amp.py data/amp2_f20 -n 100 -w 0.15e-9 -f 20 -t 0.11 -a 0.5e-10 --adex --n_grid 50
+	python exp/amp.py data/amp2_f40 -n 100 -w 0.15e-9 -f 40 -t 0.11 -a 0.5e-10 --adex --n_grid 50
