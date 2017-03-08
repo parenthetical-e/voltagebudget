@@ -37,6 +37,14 @@ def mean_budget(times, vs, window):
     return vs_m
 
 
+def estimate_rate(ns, ts, window):
+    t0 = window[0]
+    tn = window[1]
+    m = np.logical_and(t0 <= ts, ts <= tn)
+
+    return len(ts[m])
+
+
 def estimate_communication(times,
                            ns,
                            ts,
