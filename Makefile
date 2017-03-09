@@ -221,11 +221,11 @@ opt31b:
 # lif
 amp1:
 	-rm data/amp1*csv
-	python exp/amp.py data/amp1_f8_n1 -n 1 -w 0.15e-9 -f 8 -t 0.14 -a 1e-3 --lif --n_grid 250
-	python exp/amp.py data/amp1_f8_n100 -n 100 -w 0.15e-9 -f 8 -t 0.14 -a 1e-3 --lif --n_grid 250
+	python exp/amp.py data/amp1_f8_n1 -n 1 -w 0.15e-9 -f 8 -t 0.14 -a 6e-3 --lif --n_grid 300
+	python exp/amp.py data/amp1_f8_n100 -n 100 -w 0.15e-9 -f 8 -t 0.14 -a 6e-3 --lif --n_grid 300
 
 # adex
 amp2:
 	-rm data/amp2*csv
-	python exp/amp.py data/amp2_f8_n1 -n 1 -w 0.3e-9 -f 8 -t 0.14 -a 1.0e-10 --adex --n_grid 250
-	python exp/amp.py data/amp2_f8_n100 -n 100 -w 0.3e-9 -f 8 -t 0.14 -a 1.0e-10 --adex --n_grid 250
+	python exp/amp.py data/amp2_f8_n1 -n 1 -w 0.3e-9 -f 8 -t 0.14 -a 0.6e-10 --adex --n_grid 300
+	python exp/amp.py data/amp2_f8_n100 -n 100 -w 0.3e-9 -f 8 -t 0.14 -a 0.6e-10 --adex --n_grid 300
