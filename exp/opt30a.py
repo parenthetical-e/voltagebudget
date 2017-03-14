@@ -34,9 +34,21 @@ from voltagebudget.util import k_spikes
 from voltagebudget.util import estimate_communication
 from voltagebudget.util import estimate_computation
 from voltagebudget.util import mean_budget
+from voltagebudget.util import filter_budget
+from voltagebudget.util import filter_spikes
+from voltagebudget.util import filter_times
 
 
-def create_problem(time, window, ns, ts, f, w_in, bias, time_step=1e-4, N=100):
+def create_problem(time,
+                   stim_window,
+                   delay_window,
+                   ns,
+                   ts,
+                   f,
+                   w_in,
+                   bias,
+                   time_step=1e-4,
+                   N=100):
     def problem(pars):
         A = pars[0]
         phi = pars[1]
@@ -59,9 +71,21 @@ def create_problem(time, window, ns, ts, f, w_in, bias, time_step=1e-4, N=100):
 
         # Window for opt analysis
         times = fsutil.create_times(time, time_step)
-        vs_m = mean_budget(times, vs_y, window)
-        comp = vs_m['comp']
-        osc = vs_m['osc']
+
+        # Filter ns, ts, vs for window
+        ns_t, ts_y = filter_spikes(ts_y, ns_y, stim_window)
+        vs_y = filter_budget(times, vs_y, stim_window)
+        times = filter_times(times, stim_window)
+
+        # Est. the mean budget in the delay_window around t*, the first passage
+        # in the network (ns, ts).
+        try:
+            vs_m = mean_budget(times, N, ns_y, ts_y, vs_y, delay_window)
+            comp = vs_m['comp']
+            osc = vs_m['osc']
+        except ValueError:
+            comp = 0.0
+            osc = 0.0
 
         print("opt: ({}, {}); par: (A {}, phi {}, sigma {})".format(
             comp, osc, A, phi, sigma_in))
@@ -100,10 +124,21 @@ if __name__ == "__main__":
     # Intialize the problem
     w_in = w_y
     bias = [5e-3, 5e-3 / 5]
-    window = [t_stim + 1e-3, t_stim + 4e-3]
+
+    stim_window = [t_stim, t_stim + 10e-3]
+    delay_window = [-2e-3, 0.0]
 
     sim = create_problem(
-        t, window, ns, ts, f, w_in, bias, N=N, time_step=time_step)
+        t,
+        stim_window,
+        delay_window,
+        ns,
+        ts,
+        f,
+        w_in,
+        bias,
+        N=N,
+        time_step=time_step)
 
     problem = Problem(3, 2)
     problem.types[:] = [
@@ -153,8 +188,8 @@ if __name__ == "__main__":
                                time_step=time_step)
 
         C = estimate_communication(
-            times, ns_y, ts_y, window, time_step=time_step)
-        sigma_y = estimate_computation(times, ns_y, ts_y, window)
+            times, ns_y, ts_y, stim_window, time_step=time_step)
+        sigma_y = estimate_computation(times, ns_y, ts_y, stim_window)
 
         Cs.append(C)
         sigma_ys.append(sigma_y)
