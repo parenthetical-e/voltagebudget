@@ -80,7 +80,8 @@ def create_problem(time,
         # Est. the mean budget in the delay_window around t*, the first passage
         # in the network (ns, ts).
         try:
-            vs_m = mean_budget(times, N, ns_y, ts_y, vs_y, delay_window)
+            vs_m = mean_budget(
+                times, N, ns_y, ts_y, vs_y, delay_window, spiked_only=False)
             comp = vs_m['comp']
             osc = vs_m['osc']
         except ValueError:
