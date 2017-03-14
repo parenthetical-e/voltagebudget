@@ -126,7 +126,7 @@ if __name__ == "__main__":
     bias = [5e-3, 5e-3 / 5]
 
     stim_window = [t_stim, t_stim + 10e-3]
-    delay_window = [-2e-3, 0.0]
+    delay_window = [-1e-3, 0.0]
 
     sim = create_problem(
         t,
