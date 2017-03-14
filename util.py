@@ -1,6 +1,8 @@
 from __future__ import division
 
-from fakespikes import neurons, util, rates
+from fakespikes import neurons, rates
+from fakespikes import util as fsutil
+
 import numpy as np
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import lif
@@ -10,29 +12,64 @@ def k_spikes(t, k, w, dt=1e-3, t_pad=0.1, a=100, seed=42):
     """Generate approx. `k` spikes in the window `w` at time `t`"""
 
     # Generate a rate pulse
-    times = util.create_times(t + t_pad, dt)
+    times = fsutil.create_times(t + t_pad, dt)
     nrns = neurons.Spikes(k, t + t_pad, dt=dt, seed=seed)
     pulse = rates.square_pulse(times, a, t, w, dt, min_a=0)
 
     # Poisson sample the rate timecourse
-    ns, ts = util.to_spiketimes(times, nrns.poisson(pulse))
+    ns, ts = fsutil.to_spiketimes(times, nrns.poisson(pulse))
 
     return ns, ts
 
 
-def mean_budget(times, vs, window):
-    t0 = window[0]
-    tn = window[1]
-    m = np.logical_and(times >= t0, times <= tn)
+def filter_times(times, window):
+    m = np.logical_and(times >= window[0], times <= window[1])
+    return times[m]
 
-    vs_m = {}
+
+def filter_spikes(ts, ns, window):
+    m = np.logical_and(ts >= window[0], ts <= window[1])
+
+    return ns[m], ts[m]
+
+
+def filter_budget(times, vs, window):
+    m = np.logical_and(times >= window[0], times <= window[1])
+
+    filtered = {}
     for k, v in vs.items():
         try:
             len(vs[k])  # error on scalar/float
 
-            vs_m[k] = vs[k][:, m].mean()
+            filtered[k] = vs[k][:, m]
         except TypeError:
-            vs_m[k] = vs[k]  # copy over scalar values
+            filtered[k] = vs[k]  # copy over scalar values
+
+    return filtered
+
+
+def mean_budget(times, N, ns, ts, vs, window, spiked_only=True):
+    if ns.size == 0:
+        raise ValueError("(ns, ts) are empty")
+
+    # Find first passage, t*
+    t_star = np.min(ts)
+
+    w = (t_star + window[0], t_star + window[1])
+    vs_f = filter_budget(times, vs, w)
+
+    n_idx = range(N)
+    if spiked_only:
+        n_idx = sorted(np.unique(ns))
+
+    vs_m = {}
+    for k, v in vs_f.items():
+        try:
+            len(v)  # error on scalar/float
+
+            vs_m[k] = v[n_idx, :].mean()
+        except TypeError:
+            vs_m[k] = v  # copy over scalar values
 
     return vs_m
 
