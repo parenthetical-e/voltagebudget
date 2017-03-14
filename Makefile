@@ -199,7 +199,7 @@ opt23:
 # A sigma phi
 opt30a:
 	-rm data/opt30a_*
-	python exp/opt30a.py data/opt30a_f8 10000 -a 3e-3 -w 0.15e-9 -t 0.14 -f 8 
+	python exp/opt30a.py data/opt30a_f8 1000 -a 3e-3 -w 0.15e-9 -t 0.14 -f 8 -n 1000
 
 opt30b:
 	-rm data/opt30b_*
