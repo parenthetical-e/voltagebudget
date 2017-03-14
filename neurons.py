@@ -143,8 +143,8 @@ def lif(time,
     net.run(time * second, report=report)
 
     # Extract spikes
-    ns_e = spikes_e.i_
-    ts_e = spikes_e.t_
+    ns_e = np.asarray(spikes_e.i_)
+    ts_e = np.asarray(spikes_e.t_)
     result = [ns_e, ts_e]
 
     if budget:
@@ -324,8 +324,8 @@ def adex(time,
     net.run(time * second, report=report)
 
     # Extract spikes
-    ns_e = spikes_e.i_
-    ts_e = spikes_e.t_
+    ns_e = np.asarray(spikes_e.i_)
+    ts_e = np.asarray(spikes_e.t_)
     result = [ns_e, ts_e]
 
     if budget:
