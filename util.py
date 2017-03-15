@@ -75,8 +75,6 @@ def mean_budget(times, N, ns, ts, vs, window, spiked_only=True):
     for k, v in vs_m.items():
         vs_m[k] = np.mean(v)
 
-    print(vs_m)
-
     return vs_m
 
 
