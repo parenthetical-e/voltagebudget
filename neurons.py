@@ -154,7 +154,7 @@ def lif(time,
         v_comp = (vm - v_osc) + np.mean(v_osc) - float(Er)
         v_osc = v_osc - float(Er)
 
-        v_free = v_b - v_comp - v_osc
+        v_free = float(Et) - vm
 
         vs = dict(
             vm=vm,
@@ -337,7 +337,7 @@ def adex(time,
 
         v_comp = (vm - v_osc) + np.mean(v_osc) - float(El)
         v_osc = v_osc - float(El)
-        v_free = v_b - v_comp - v_osc
+        v_free = float(Et) - vm
 
         vs = dict(
             vm=vm, comp=v_comp, osc=v_osc, free=v_free, budget=v_b, rest=El)
