@@ -60,18 +60,20 @@ def mean_budget(times, N, ns, ts, vs, window, spiked_only=True):
 
     vs_m = defaultdict(list)
     for n, t in zip(ns, ts):
-        # Find first passage, t*
+        # Find first passage, t
         w = (t + window[0], t + window[1])
         vs_f = filter_budget(times, vs, w)
 
+        # Gather voltages for each passage
         for k, v in vs_f.items():
             try:
                 len(v)  # error on scalar/float
 
-                vs_m[k] = v[n, :].mean()
+                vs_m[k].append(v[n, :].mean())
             except TypeError:
                 vs_m[k] = v  # copy over scalar values
 
+    # Avg voltages for all neurons
     for k, v in vs_m.items():
         vs_m[k] = np.mean(v)
 
