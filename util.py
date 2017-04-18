@@ -27,7 +27,7 @@ def filter_times(times, window):
     return times[m]
 
 
-def filter_spikes(ts, ns, window):
+def filter_spikes(ns, ts, window):
     m = np.logical_and(ts >= window[0], ts <= window[1])
 
     return ns[m], ts[m]
