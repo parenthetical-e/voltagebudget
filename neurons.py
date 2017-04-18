@@ -2,6 +2,11 @@ import numpy as np
 from brian2 import *
 
 
+def readout(time, ns, ts, w_read=0.1e-9):
+    bias_read = 5e-3
+    return lif(time, 1, ts, ns, w_in=w_read, bias=bias_read, budget=True)
+
+
 def lif(time,
         N,
         ns,
