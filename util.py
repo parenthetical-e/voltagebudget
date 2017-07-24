@@ -6,18 +6,59 @@ from fakespikes import util as fsutil
 import numpy as np
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import lif
+from copy import deepcopy
 
 
-def k_spikes(t, k, w, dt=1e-3, t_pad=0.1, a=100, seed=42):
-    """Generate approx. `k` spikes in the window `w` at time `t`"""
+def poisson_impulse(t, t_stim, w, rate, n, dt=1e-3, seed=None):
+
+    # Poisson sample the rate over w
+    times = fsutil.create_times(t, dt)
+    nrns = neurons.Spikes(n, t, dt=dt, seed=seed)
+    pulse = rates.square_pulse(times, rate, t_stim, w, dt, min_a=0)
+
+    ns, ts = fsutil.to_spiketimes(times, nrns.poisson(pulse))
+
+    return ns, ts
+
+
+def k_spikes(t,
+             n,
+             k,
+             w,
+             dt=1e-3,
+             t_pad=0.1,
+             a0=100,
+             a_step=.1,
+             max_iterations=1000,
+             seed=42):
+    """Generate `k` spikes in the window `w` at time `t`"""
 
     # Generate a rate pulse
     times = fsutil.create_times(t + t_pad, dt)
-    nrns = neurons.Spikes(k, t + t_pad, dt=dt, seed=seed)
-    pulse = rates.square_pulse(times, a, t, w, dt, min_a=0)
+    nrns = neurons.Spikes(n, t + t_pad, dt=dt, seed=seed)
 
-    # Poisson sample the rate timecourse
-    ns, ts = fsutil.to_spiketimes(times, nrns.poisson(pulse))
+    i = 0
+    k0 = 0
+    a = deepcopy(a0)
+    while k != k0:
+
+        pulse = rates.square_pulse(times, a, t, w, dt, min_a=0)
+
+        # Poisson sample the rate timecourse
+        ns, ts = fsutil.to_spiketimes(times, nrns.poisson(pulse))
+
+        k0 = len(ns)
+        if k0 < k:
+            a += a_step
+        if k0 > k:
+            a -= a_step
+
+        i += 1
+        if i > max_iterations:
+            print(">>> Convergence FAILED!")
+            break
+
+    print(">>> {} spikes generated after {} iterations.".format(k0, i))
 
     return ns, ts
 
@@ -31,6 +72,40 @@ def filter_spikes(ns, ts, window):
     m = np.logical_and(ts >= window[0], ts <= window[1])
 
     return ns[m], ts[m]
+
+
+def l2(va, vb):
+    """Calculates the L2 norm between two voltage series."""
+
+    return np.trapz((va - vb)**2)
+
+
+def levenshtein(a, b):
+    """Calculates the Levenshtein distance between a and b.
+
+    Note: a and b are two sequences
+    """
+
+    a = list(a)
+    b = list(b)
+    n, m = len(a), len(b)
+
+    # Make sure n <= m, to use O(min(n,m)) space
+    if n > m:
+        a, b = b, a
+        n, m = m, n
+
+    current = range(n + 1)
+    for i in range(1, m + 1):
+        previous, current = current, [i] + [0] * n
+        for j in range(1, n + 1):
+            add, delete = previous[j] + 1, current[j - 1] + 1
+            change = previous[j - 1]
+            if a[j - 1] != b[i - 1]:
+                change = change + 1
+            current[j] = min(add, delete, change)
+
+    return current[-1]
 
 
 def filter_budget(times, vs, window):
