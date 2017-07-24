@@ -1,6 +1,9 @@
+import numpy as np
+
+from itertools import product
 from joblib import Parallel, delayed
 from fakespikes.util import bin_times
-import numpy as np
+from voltagebudget.neurons import lif, adex
 
 
 def coincidence_detection(ts, k=20, a_tol=1e-3):
@@ -33,31 +36,64 @@ def coincidence_detection(ts, k=20, a_tol=1e-3):
     return coincidences
 
 
-def lif_brute(time, ns, ts, ts_y, w_range, bias_range, num=10, n_jobs=10):
+def lif_brute(time,
+              ns,
+              ts,
+              ts_y,
+              w_range,
+              bias_range,
+              num=10,
+              n_jobs=8,
+              diagnostic=False):
     # Grid search
     ws = np.linspace(*w_range, num=num)
     bs = np.linspace(*bias_range, num=num)
-    results = Parallel(n_jobs=n_jobs)(delayed(lif)(
-        time, 1, ns, ts, w_in, bias=bias, budget=False) for w_in in ws)
+    params = list(product(ws, bs))
+
+    results = Parallel(
+        n_jobs=n_jobs, verbose=1)(delayed(lif)(
+            time, 1, ns, ts, w_in=w_in, bias=bias, budget=False, report=None)
+                                  for (w_in, bias) in params)
 
     # Extract spike times
     ts_hats = [r[1] for r in results]
 
-    # Est. min error
+    # Est. min error.
     # Loop over y_hats, comparing to ts_y
     errors = []
     for i, ts_hat in enumerate(ts_hats):
+        # Punish and skip empty lists
+        if ts_hat.size == 0:
+            errors.append(999999)
+            continue
+
+        # Local errors
         errors_i = []
+
+        # Find closests to ts_y
         for t in ts_hat:
-            # Find closests to ts_y
             idx = (np.abs(ts_y - t)).argmin()
             errors_i.append(np.abs(ts_y[idx] - t))
+
+        # Global mean error for these params
         errors.append(np.mean(errors_i))
+
+    # Handle nan
+    errors = np.asarray(errors)
+    errors[np.logical_not(np.isfinite(errors))] = 9999999
 
     # Return best weight
     lowest = np.argmin(errors)
 
-    return ws[lowest], bs[lowest]
+    # Predict with best
+    w_best, b_best = params[lowest]
+    ts_best = lif(time, 1, ns, ts, w_in=w_best, bias=b_best, budget=False)[1]
+
+    if diagnostic:
+        details = {"lowest": lowest, "errors": errors}
+        return w_best, b_best, details
+
+    return w_best, b_best, ts_best
 
 
 def coincidence(args,
