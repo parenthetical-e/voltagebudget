@@ -4,7 +4,34 @@ from brian2 import *
 
 def readout(time, ns, ts, w_read=0.1e-9):
     bias_read = 5e-3
-    return lif(time, 1, ts, ns, w_in=w_read, bias=bias_read, budget=True)
+    return lif(time,
+               1,
+               ns,
+               ts,
+               w_in=w_read,
+               bias=bias_read,
+               budget=True,
+               r_b=0,
+               report=None)
+
+
+def shadow_voltage(time, ns, ts, tau_c, w_in=0.3e-9, f=0, A=0, phi=0):
+    Et = 10  # 10 volt is HUUUUGE, ...nearly infinite.
+
+    _, _, vs = lif(time,
+                   1,
+                   ns,
+                   ts,
+                   w_in=w_in,
+                   tau_ampa=tau_c,
+                   bias=5e-3,
+                   f=f,
+                   A=A,
+                   phi=phi,
+                   r_b=0,
+                   Et=Et)
+
+    return vs['vm'].flatten()
 
 
 def lif(time,
@@ -16,12 +43,18 @@ def lif(time,
         f=0,
         A=1e-3,
         phi=0,
-        r_b=40,
+        r_b=0,
+        Et=-54e-3,
+        tau_ampa=5e-3,
+        tau_gaba=10e-3,
         time_step=1e-4,
-        refractory=2e-3,
+        refractory=1e-3,
         budget=True,
-        report='text'):
+        report='text',
+        seed=None):
     """Create LIF 'computing' neurons"""
+
+    np.random.seed(seed)
 
     defaultclock.dt = time_step * second
     prefs.codegen.target = 'numpy'
@@ -69,15 +102,15 @@ def lif(time,
     phi *= second
 
     # Fixed params
-    Et = -54 * mvolt
+    Et *= volt
     Er = -65 * mvolt
 
     Ee = 0 * mvolt
     Ei = -80 * mvolt
 
     tau_m = 10 * ms
-    tau_ampa = 5e-3 * second
-    tau_gaba = 10e-3 * second
+    tau_ampa *= second
+    tau_gaba *= second
 
     # -----------------------------------------------------------------
     # E/I noise
@@ -189,8 +222,10 @@ def adex(time,
          r_b=40,
          time_step=1e-4,
          budget=True,
-         report='text'):
+         report='text',
+         seed=None):
     """Create AdEx 'computing' neurons"""
+    np.random.seed(seed)
 
     defaultclock.dt = time_step * second
     prefs.codegen.target = 'numpy'
