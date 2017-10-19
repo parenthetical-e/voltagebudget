@@ -1,6 +1,6 @@
+from itertools import product
 import numpy as np
 
-from itertools import product
 from joblib import Parallel, delayed
 from fakespikes.util import bin_times
 from voltagebudget.neurons import lif, adex
@@ -46,8 +46,22 @@ def lif_brute(time,
               n_jobs=8,
               diagnostic=False):
     # Grid search
-    ws = np.linspace(*w_range, num=num)
-    bs = np.linspace(*bias_range, num=num)
+    try:
+        w1, w2 = w_range
+        ws = np.linspace(w1, w2, num=num)
+    except ValueError:
+        ws = [
+            w_range,
+        ]
+
+    try:
+        b1, b2 = b_range
+        bs = np.linspace(b1, b2, num=num)
+    except ValueError:
+        bs = [
+            b_range,
+        ]
+
     params = list(product(ws, bs))
 
     results = Parallel(
