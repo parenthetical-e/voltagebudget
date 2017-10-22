@@ -8,7 +8,7 @@ from copy import deepcopy
 
 
 def poisson_impulse(t, t_stim, w, rate, n, dt=1e-3, seed=None):
-    """Create a pulse of spikes w seconds wide, starting at t_stim"""
+    """Create a pulse of spikes w seconds wide, starting at t_stim."""
 
     # Poisson sample the rate over w
     times = fsutil.create_times(t, dt)
