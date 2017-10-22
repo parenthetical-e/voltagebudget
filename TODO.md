@@ -1,7 +1,14 @@
-- Inequalities and Tosc, and C
-- Opt using Vfree,
-  + set Vo = max(Vf)
-  + set Vo = min(Vf)
-  + set V0 = mean(Vf)
-- Opt using (A, theta) -> Loss(es) = {C, Lev/L1}
-  + what are Vo, Vf, now
+# Qs
+
+- define forward 
+- and reverse
+
+- T def?
+- Indep: k_spikes in?
+- Define comp examples (in a notebook)
+
+# As
+
+- Metric of comp is `spike_window_code` or `spike_time_code` of on target and ref followed by `levenstien` on the two
+- Or use `precision`?
+- Comm: `estimate_communication`

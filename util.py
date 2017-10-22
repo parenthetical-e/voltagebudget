@@ -4,8 +4,6 @@ from fakespikes import neurons, rates
 from fakespikes import util as fsutil
 
 import numpy as np
-from voltagebudget.neurons import adex
-from voltagebudget.neurons import lif
 from copy import deepcopy
 
 
@@ -22,12 +20,12 @@ def poisson_impulse(t, t_stim, w, rate, n, dt=1e-3, seed=None):
 
 
 def k_spikes(t,
-             n,
              k,
              w,
              dt=1e-3,
              t_pad=0.1,
              a0=100,
+             n=10,
              a_step=.1,
              max_iterations=1000,
              seed=42):
@@ -169,6 +167,7 @@ def estimate_communication(times,
                            window,
                            coincidence_t=1e-3,
                            coincidence_n=20,
+                           return_all=False,
                            time_step=1e-4):
 
     # Define overall analysis window 
@@ -197,13 +196,19 @@ def estimate_communication(times,
 
         Cs.append(C_t)
 
-    # Find largest C
-    C = np.max(Cs)
+    # Find avg C
+    C = np.mean(Cs)
+    out = C
 
-    return C
+    if return_all:
+        out = (C, Cs)
+
+    return out
 
 
 def estimate_computation(times, ns, ts, window):
+    print("Should you be using me?")
+
     t0 = window[0]
     tn = window[1]
     m = np.logical_and(t0 <= ts, ts <= tn)
