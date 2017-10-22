@@ -15,12 +15,10 @@ def coincidence_detection(ts, k=20, a_tol=1e-3):
 
     i = 0
     while i < n:
-
         t = ts[i]
 
         # Find coincidences, and count them
         diff = np.abs(t - ts)
-
         C_index = diff <= a_tol
         C = np.sum(C_index)
 
