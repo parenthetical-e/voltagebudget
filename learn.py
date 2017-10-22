@@ -3,7 +3,7 @@ import numpy as np
 
 from joblib import Parallel, delayed
 from fakespikes.util import bin_times
-from voltagebudget.neurons import lif, adex
+from voltagebudget.neurons import adex
 
 
 def coincidence_detection(ts, k=20, a_tol=1e-3):
