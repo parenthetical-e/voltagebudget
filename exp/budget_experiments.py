@@ -6,6 +6,7 @@ from fakespikes.util import levenstien
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import shadow_adex
 from voltagebudget.util import poisson_impulse
+from voltagebudget.util import filter_budget
 
 global MODES
 
@@ -29,18 +30,23 @@ MODES = {
 }
 
 
-def foward(name,
-           t,
-           t_stim,
-           n,
-           w_in,
-           w_sigma,
-           f=0,
-           A=1e-3,
-           phi=0,
-           mode='regular',
-           seed_value=42,
-           time_step=1e-4):
+def forward(name,
+            t=0.8,
+            stim_onset=0.5,
+            stim_offset=0.7,
+            budget_onset=0.4,
+            budget_offset=0.5,
+            w_in=0.8e-3,
+            w_sigma=0.08e-3,
+            stim_rate=60,
+            N=20,
+            f=0,
+            A=1e-3,
+            phi=0,
+            mode='regular',
+            seed_prob=42,
+            seed_stim=7525,
+            time_step=1e-4):
     """Optimize using voltage budget."""
     np.random.seed(seed_value)
 
@@ -50,28 +56,51 @@ def foward(name,
         params = MODES[mode]
 
     # IN
-    w = 20e-3
-    a = 60
-    n = 20
-    ns, ts = util.poisson_impulse(t, t_stim, w, a, n, seed=7425)
+    ns, ts = util.poisson_impulse(
+        t,
+        stim_onset,
+        stim_offset - stim_onset,
+        stim_rate,
+        n=20,
+        seed=seed_stim)
 
     # Define individual neurons (by weight)
     w_ins = np.random.normal(w_in, w_sigma, N)
-    w_ins[w_ins < 0] = 0  # Safety
+    w_ins[w_ins < 0] = 0.01e-9  # Safety
 
     # Define ideal targt computation (no oscillation)
     # (Make sure and explain this breakdown well in th paper)
     # (it would be an easy point of crit otherwise)
-    ns_opt, ts_opt, budget_opt = adex(t, ns, ts, f=0, A=0, phi=0, **params)
+    ns_c, ts_c, budget_c = adex(t, ns, ts, f=0, A=0, phi=0, **params)
 
-    for w in w_ins:
-        # !
-        ns_osc, ts_osc, budget_osc = adex(
-            t, ns, ts, f=f, A=A, phi=phi, **params)
+    # Use C budget and shadow osc to find the ideal osc
+    # In the budget_onset, budget_offset window
+    budget_w = filter_budget(budget_c, budget_c['times'],
+                             (budget_onset, budget_offset))
 
-        # Process budget
+    V_free = budget_w['V_free']
+    E_thresh = budget_w['E_thresh']
 
-        # Score
+    # If the whole system spiked, end early.
+    if np.min(V_free) >= E_thresh:
+        return 0, 0, 0
+
+    # Otherwise setup the problem
+    def problem(pars):
+        A = pars[0]
+        phi = pars[1]
+        f = pars[2]
+
+        free = 0
+        for w in w_ins:
+            # !
+            ns_o, ts_o, budget_o = adex(t, ns, ts, f=f, A=A, phi=phi, **params)
+
+            # 
+            budget_o = filter_budget(budget_o, budget_o['times'],
+                                     (budget_onset, budget_offset))
+
+        return -comp, -osc
 
 
 def reverse():
