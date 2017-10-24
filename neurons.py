@@ -29,6 +29,7 @@ def adex(time,
          f=0,
          A=1e-3,
          phi=0,
+         sigma=0,
          time_step=1e-4,
          budget=True,
          report='text',
@@ -78,7 +79,7 @@ def adex(time,
     I_noise = g_noise * (v - El) : amp
     dg_in/dt = -g_in / tau_in : siemens
     I_osc = A * sin((t + phi) * f * 2 * pi) : amp
-    dg_noise/dt = -g_noise + (sigma * sqrt(tau_n) * xi) : siemens
+    dg_noise/dt = -g_noise + (sigma * sqrt(tau_in) * xi) : siemens
     """
 
     P_e = NeuronGroup(
