@@ -1,5 +1,6 @@
 import numpy as np
 from brian2 import *
+from copy import deepcopy
 
 
 def shadow_adex(time, ns, ts, **adex_kwargs):
@@ -107,9 +108,8 @@ def adex(time,
     # necessary, but I can't get Brian to express the needed
     # diff eq to get the osc budget term in one pass.)
     if budget:
-        from copy import deepcopy
         net.run(time * second, report=report)
-        v_osc = deepcopy(traces_e.v_)
+        V_osc = deepcopy(np.asarray(traces_e.v_).flatten())
 
     net.restore('no_stim')
     net.add([P_stim, C_stim, spikes_e])
@@ -121,27 +121,23 @@ def adex(time,
     result = [ns_e, ts_e]
 
     if budget:
-        times = np.asarray(traces_e.t_)
-
-        Ecut = float(Ecut)
-        El = float(El)
-
-        v_b = float(Ecut - El)
-        vm = traces_e.v_
-
-        v_comp = (vm - v_osc) + np.mean(v_osc) - float(El)
-        v_osc = v_osc - float(El)
-        v_free = float(Ecut) - vm
+        E_leak = float(El)
+        E_cut = float(Ecut)
+        V_m = np.asarray(traces_e.v_).flatten()
+        V_comp = E_leak - V_osc - V_m
+        V_osc = E_leak - V_osc
+        V_free = E_leak - V_m
 
         vs = dict(
-            times=times,
-            vm=vm,
-            comp=v_comp,
-            osc=v_osc,
-            free=v_free,
-            budget=v_b,
-            rest=El,
-            tau_m=float(C / g_l))
+            tau_m=float(C / g_l),
+            times=np.asarray(traces_e.t_).flatten(),
+            V_m=V_m,
+            V_comp=V_comp,
+            V_osc=V_osc,
+            V_free=V_free,
+            E_leak=E_leak,
+            E_cut=E_cut,
+            E_thresh=float(Et))
 
         result.append(vs)
 
