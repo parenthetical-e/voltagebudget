@@ -43,6 +43,7 @@ def forward(name,
             f=0,
             A=1e-3,
             phi=0,
+            sigma=0,
             mode='regular',
             seed_prob=42,
             seed_stim=7525,
@@ -71,7 +72,17 @@ def forward(name,
     # Define ideal targt computation (no oscillation)
     # (Make sure and explain this breakdown well in th paper)
     # (it would be an easy point of crit otherwise)
-    ns_c, ts_c, budget_c = adex(t, ns, ts, f=0, A=0, phi=0, **params)
+    ns_c, ts_c, budget_c = adex(
+        t,
+        ns,
+        ts,
+        w_in=w_in,
+        f=0,
+        A=0,
+        phi=0,
+        sigma=sigma,
+        seed=seed_prob,
+        **params)
 
     # Use C budget and shadow osc to find the ideal osc
     # In the budget_onset, budget_offset window
@@ -90,13 +101,24 @@ def forward(name,
         A = pars[0]
         phi = pars[1]
         f = pars[2]
+        w = pars[3]
+        if w < 0:
+            w = w_in  # Default value 
 
         free = 0
-        for w in w_ins:
+        for n in range(N):
             # !
-            ns_o, ts_o, budget_o = adex(t, ns, ts, f=f, A=A, phi=phi, **params)
+            ns_o, ts_o, budget_o = adex(
+                t,
+                ns,
+                ts,
+                w_in=w,
+                f=f,
+                A=A,
+                phi=phi,
+                seed=seed_prob + n,
+                **params)
 
-            # 
             budget_o = filter_budget(budget_o, budget_o['times'],
                                      (budget_onset, budget_offset))
 

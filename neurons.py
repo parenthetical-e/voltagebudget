@@ -12,6 +12,7 @@ def shadow_adex(time, ns, ts, **adex_kwargs):
     return budget['vm'].flatten(), budget
 
 
+# TODO: add sigma
 def adex(time,
          ns,
          ts,
@@ -71,11 +72,13 @@ def adex(time,
     # -----------------------------------------------------------------
     # Define neuron and its connections
     eqs = """
-    dv/dt = (g_l * (El - v) + g_l * delta_t * exp((v - Et) / delta_t) + I_in + I_osc + bias - w) / C : volt
+    dv/dt = (g_l * (El - v) + g_l * delta_t * exp((v - Et) / delta_t) + I_in + I_osc + I_noise + bias - w) / C : volt
     dw/dt = (a * (v - El) - w) / tau_w : amp
     I_in = g_in * (v - El) : amp
+    I_noise = g_noise * (v - El) : amp
     dg_in/dt = -g_in / tau_in : siemens
     I_osc = A * sin((t + phi) * f * 2 * pi) : amp
+    dg_noise/dt = -g_noise + sigma * sqrt(tau_n) * xi : siemens
     """
 
     P_e = NeuronGroup(
