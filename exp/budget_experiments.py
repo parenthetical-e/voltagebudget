@@ -189,8 +189,24 @@ def forward(name,
             seed=seed_prob + n,
             **params)
 
-        comm = est
-        prec = precision(ns, ts, ns_ref, ts, combine=True)
+        comm = estimate_communication(
+            times, ns, ts, window, coincidence_t=1e-3, coincidence_n=20)
+        _, prec = precision(ns_n, ts_n, ns_ref, ts_ref, combine=True)
+
+        communication_scores.append(comm)
+        precision_scores.append(prec)
+
+    results["communication_scores"] = communication_scores
+    results["precision_scores"] = precision_scores
+
+    # Write
+    keys = sorted(results.keys())
+    with open("{}.csv".format(name), "wb") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(keys)
+        writer.writerows(zip(* [results[key] for key in keys]))
+
+    return results
 
 
 def reverse():
