@@ -3,10 +3,17 @@ import numpy as np
 from fakespikes.util import spike_window_code
 from fakespikes.util import spike_time_code
 from fakespikes.util import levenstien
+from fakespikes.util import estimate_communication
+from fakespikes.util import precision
+
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import shadow_adex
 from voltagebudget.util import poisson_impulse
 from voltagebudget.util import filter_budget
+
+from platypus.algorithms import NSGAII
+from platypus.core import Problem
+from platypus.types import Real
 
 global MODES
 
@@ -37,20 +44,32 @@ def forward(name,
             budget_onset=0.4,
             budget_offset=0.5,
             w_in=0.8e-3,
-            w_sigma=0.08e-3,
             stim_rate=60,
             N=20,
             f=0,
             A=1e-3,
-            phi=0,
+            phi=np.pi,
             sigma=0,
             mode='regular',
+            reduce_fn='mean',
+            M=10000,
+            fix_w=False,
+            fix_A=False,
+            fix_phi=False,
+            fix_f=False,
             seed_prob=42,
             seed_stim=7525,
             time_step=1e-4):
-    """Optimize using voltage budget."""
-    np.random.seed(seed_value)
+    """Optimize using the voltage budget."""
+    np.random.seed(seed_prob)
 
+    # Lookup the reduce function
+    try:
+        reduce_fn = getattr(np, reduce_fn)
+    except AttributeError:
+        raise ValueError("{} is not a numpy function".format(reduce_fn))
+
+    # Set cell-type
     if mode == 'heterogenous':
         raise NotImplementedError("TODO")
     else:
@@ -65,14 +84,10 @@ def forward(name,
         n=20,
         seed=seed_stim)
 
-    # Define individual neurons (by weight)
-    w_ins = np.random.normal(w_in, w_sigma, N)
-    w_ins[w_ins < 0] = 0.01e-9  # Safety
-
     # Define ideal targt computation (no oscillation)
     # (Make sure and explain this breakdown well in th paper)
     # (it would be an easy point of crit otherwise)
-    ns_c, ts_c, budget_c = adex(
+    ns_ref, ts_ref = adex(
         t,
         ns,
         ts,
@@ -82,47 +97,100 @@ def forward(name,
         phi=0,
         sigma=sigma,
         seed=seed_prob,
+        budget=False,
         **params)
 
-    # Use C budget and shadow osc to find the ideal osc
-    # In the budget_onset, budget_offset window
-    budget_w = filter_budget(budget_c, budget_c['times'],
-                             (budget_onset, budget_offset))
+    # Setup the problem,
+    # which is closed in forward()
+    def sim(pars):
+        A_p = pars[0]
+        phi_p = pars[1]
+        f_p = pars[2]
+        w_p = pars[3]
 
-    V_free = budget_w['V_free']
-    E_thresh = budget_w['E_thresh']
+        # Turn off opt on a select
+        # parameter? 
+        # Resorts to a default.
+        if fix_w:
+            w_p = w_in
+        if fix_A:
+            A_p = A
+        if fix_f:
+            f_p = f
+        if fix_phi:
+            phi_p = phi
 
-    # If the whole system spiked, end early.
-    if np.min(V_free) >= E_thresh:
-        return 0, 0, 0
-
-    # Otherwise setup the problem
-    def problem(pars):
-        A = pars[0]
-        phi = pars[1]
-        f = pars[2]
-        w = pars[3]
-        if w < 0:
-            w = w_in  # Default value 
-
-        free = 0
+        # Run N simulations for mode
+        # differing only by noise?
+        comp = []
+        osc = []
         for n in range(N):
-            # !
             ns_o, ts_o, budget_o = adex(
                 t,
                 ns,
                 ts,
-                w_in=w,
-                f=f,
-                A=A,
-                phi=phi,
+                w_in=w_p,
+                f=f_p,
+                A=A_p,
+                phi=phi_p,
+                sigma=sigma,
                 seed=seed_prob + n,
                 **params)
 
             budget_o = filter_budget(budget_o, budget_o['times'],
                                      (budget_onset, budget_offset))
 
+            comp.append(budget_o['V_comp'])
+            osc.append(budget_o['V_osc'])
+
+        comp = reduce_fn(np.concatenate(comp))
+        osc = reduce_fn(np.concatenate(osc))
+
         return -comp, -osc
+
+    # ---------------------------------------------------------------------
+    problem = Problem(4, 2)
+    problem.types[:] = [
+        Real(0.0, A), Real(0.0, phi), Real(0, f), Real(0.0, w_in)
+    ]
+    problem.function = sim
+
+    algorithm = NSGAII(problem)
+    algorithm.run(M)
+
+    results = dict(
+        V_comp=[s.objectives[0] for s in algorithm.result],
+        V_osc=[s.objectives[1] for s in algorithm.result],
+        As=[s.variables[0] for s in algorithm.result],
+        Phis=[s.variables[1] for s in algorithm.result],
+        Fs=[s.variables[2] for s in algorithm.result],
+        Ws=[s.variables[3] for s in algorithm.result])
+
+    communication_scores = []
+    precision_scores = []
+
+    n_sims = len(results['As'])
+    for n in range(N):
+        A_n = results['As'][i]
+        phi_n = results['Phis'][i]
+        f_n = results['Fs'][i]
+        w_n = results['Ws'][i]
+
+        ns_n, ts_n = adex(
+            t,
+            ns,
+            ts,
+            w_in=w_in,
+            f=0,
+            A=0,
+            phi=0,
+            sigma=sigma,
+            budget=False,
+            seed=seed_prob + n,
+            **params)
+
+        comm = est
+        prec = precision(ns, ts, ns_ref, ts, combine=True)
 
 
 def reverse():
