@@ -84,6 +84,7 @@ def forward(name,
         n=20,
         seed=seed_stim)
 
+    # --------------------------------------------------------------
     # Define ideal targt computation (no oscillation)
     # (Make sure and explain this breakdown well in th paper)
     # (it would be an easy point of crit otherwise)
@@ -148,7 +149,7 @@ def forward(name,
 
         return -comp, -osc
 
-    # ---------------------------------------------------------------------
+    # --------------------------------------------------------------
     problem = Problem(4, 2)
     problem.types[:] = [
         Real(0.0, A), Real(0.0, phi), Real(0, f), Real(0.0, w_in)
@@ -166,10 +167,11 @@ def forward(name,
         Fs=[s.variables[2] for s in algorithm.result],
         Ws=[s.variables[3] for s in algorithm.result])
 
+    # --------------------------------------------------------------
+    # Score spiking from the optimal (?) budgets
     communication_scores = []
     precision_scores = []
 
-    n_sims = len(results['As'])
     for n in range(N):
         A_n = results['As'][i]
         phi_n = results['Phis'][i]
@@ -199,6 +201,8 @@ def forward(name,
     results["communication_scores"] = communication_scores
     results["precision_scores"] = precision_scores
 
+    # --------------------------------------------------------------
+    # Fin!
     # Write
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as fi:
