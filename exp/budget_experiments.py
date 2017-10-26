@@ -1,8 +1,10 @@
+#!/usr/bin/env python 
+
 import fire
 import numpy as np
 from fakespikes.util import spike_window_code
 from fakespikes.util import spike_time_code
-from fakespikes.util import levenstien
+from fakespikes.util import levenshtein
 from fakespikes.util import estimate_communication
 from fakespikes.util import precision
 
@@ -59,10 +61,12 @@ def forward(name,
             fix_f=False,
             seed_prob=42,
             seed_stim=7525,
+            report=None,
             time_step=1e-4):
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
 
+    # --------------------------------------------------------------
     # Lookup the reduce function
     try:
         reduce_fn = getattr(np, reduce_fn)
@@ -76,7 +80,7 @@ def forward(name,
         params = MODES[mode]
 
     # IN
-    ns, ts = util.poisson_impulse(
+    ns, ts = poisson_impulse(
         t,
         stim_onset,
         stim_offset - stim_onset,
@@ -99,6 +103,7 @@ def forward(name,
         sigma=sigma,
         seed=seed_prob,
         budget=False,
+        report=report,
         **params)
 
     # Setup the problem,
@@ -136,9 +141,10 @@ def forward(name,
                 phi=phi_p,
                 sigma=sigma,
                 seed=seed_prob + n,
+                report=report,
                 **params)
 
-            budget_o = filter_budget(budget_o, budget_o['times'],
+            budget_o = filter_budget(budget_o['times'], budget_o,
                                      (budget_onset, budget_offset))
 
             comp.append(budget_o['V_comp'])
