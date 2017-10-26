@@ -59,6 +59,7 @@ def adex(time,
     w_in *= siemens
     tau_in *= second
     bias *= amp
+    sigma *= siemens
     a *= siemens
     b *= amp
     delta_t *= volt
@@ -79,7 +80,7 @@ def adex(time,
     I_noise = g_noise * (v - El) : amp
     dg_in/dt = -g_in / tau_in : siemens
     I_osc = A * sin((t + phi) * f * 2 * pi) : amp
-    dg_noise/dt = -g_noise + (sigma * sqrt(tau_in) * xi) : siemens
+    dg_noise/dt = -(g_noise+ (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     """
 
     P_e = NeuronGroup(

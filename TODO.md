@@ -1,10 +1,8 @@
 # Qs
-
-- define forward 
-- and reverse
+- Let adex take an N arg again; if w_in is fixed not stocastic there is no neeed to limit to 1
+- define reverse
 
 - T def?
-- Indep: k_spikes in?
 - Define comp examples (in a notebook)
 
 # As
