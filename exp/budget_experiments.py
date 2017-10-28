@@ -1,6 +1,7 @@
 #!/usr/bin/env python 
 
 import fire
+import csv
 import numpy as np
 from fakespikes.util import spike_window_code
 from fakespikes.util import spike_time_code
@@ -25,7 +26,7 @@ MODES = {
         'a': -0.5e-9,
         'tau_w': 100e-3,
         'b': 7e-12,
-        'Erheo': -51e-3,
+        'E_rheo': -51e-3,
         'delta_t': 2e-3
     },
     'burst': {
@@ -33,35 +34,45 @@ MODES = {
         'a': -0.5e-9,
         'tau_w': 100e-3,
         'b': 7e-12,
-        'Erheo': -51e-3,
+        'E_rheo': -51e-3,
         'delta_t': 2e-3
     },
 }
 
 
+def replay(results, i, *adex_args, **adex_kwargs):
+    # Load results into dict
+    # Find i
+    # Replay it
+
+    pass
+
+
 def forward(name,
+            N=50,
             t=0.8,
             stim_onset=0.5,
             stim_offset=0.7,
-            budget_onset=0.4,
-            budget_offset=0.5,
+            budget_onset=0.5,
+            budget_offset=0.7,
             w_in=0.8e-3,
             stim_rate=60,
-            N=20,
+            K=20,
             f=0,
-            A=1e-3,
+            A=0.2e-9,
             phi=np.pi,
-            sigma=0,
+            sigma=.1e-9,
             mode='regular',
             reduce_fn='mean',
             M=10000,
             fix_w=False,
             fix_A=False,
             fix_phi=False,
-            fix_f=False,
             seed_prob=42,
             seed_stim=7525,
             report=None,
+            save_only=False,
+            verbose=False,
             time_step=1e-4):
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
@@ -79,20 +90,25 @@ def forward(name,
     else:
         params = MODES[mode]
 
-    # IN
+    # -
+    if verbose:
+        print(">>> Building input.")
     ns, ts = poisson_impulse(
         t,
         stim_onset,
         stim_offset - stim_onset,
         stim_rate,
-        n=20,
+        n=K,
         seed=seed_stim)
 
     # --------------------------------------------------------------
     # Define ideal targt computation (no oscillation)
     # (Make sure and explain this breakdown well in th paper)
     # (it would be an easy point of crit otherwise)
+    if verbose:
+        print(">>> Creating reference.")
     ns_ref, ts_ref = adex(
+        N,
         t,
         ns,
         ts,
@@ -106,13 +122,15 @@ def forward(name,
         report=report,
         **params)
 
+    if verbose:
+        print(">>> Reference times {}".format(ts_ref[:5]))
+
     # Setup the problem,
     # which is closed in forward()
     def sim(pars):
         A_p = pars[0]
         phi_p = pars[1]
-        f_p = pars[2]
-        w_p = pars[3]
+        w_p = pars[2]
 
         # Turn off opt on a select
         # parameter? 
@@ -121,8 +139,6 @@ def forward(name,
             w_p = w_in
         if fix_A:
             A_p = A
-        if fix_f:
-            f_p = f
         if fix_phi:
             phi_p = phi
 
@@ -130,39 +146,47 @@ def forward(name,
         # differing only by noise?
         comp = []
         osc = []
-        for n in range(N):
-            ns_o, ts_o, budget_o = adex(
-                t,
-                ns,
-                ts,
-                w_in=w_p,
-                f=f_p,
-                A=A_p,
-                phi=phi_p,
-                sigma=sigma,
-                seed=seed_prob + n,
-                report=report,
-                **params)
 
-            budget_o = filter_budget(budget_o['times'], budget_o,
-                                     (budget_onset, budget_offset))
+        ns_o, ts_o, budget_o = adex(
+            N,
+            t,
+            ns,
+            ts,
+            w_in=w_p,
+            f=f,
+            A=A_p,
+            phi=phi_p,
+            sigma=sigma,
+            seed=seed_prob,
+            report=report,
+            **params)
 
-            comp.append(budget_o['V_comp'])
-            osc.append(budget_o['V_osc'])
+        if verbose:
+            print(">>> Osc. times {}".format(ts_o[:5]))
 
-        comp = reduce_fn(np.concatenate(comp))
-        osc = reduce_fn(np.concatenate(osc))
+        budget_o = filter_budget(budget_o['times'], budget_o,
+                                 (budget_onset, budget_offset))
+
+        comp.append(budget_o['V_comp'])
+        osc.append(budget_o['V_osc'])
+
+        comp = reduce_fn(np.vstack(comp))
+        osc = reduce_fn(np.vstack(osc))
 
         return -comp, -osc
 
     # --------------------------------------------------------------
-    problem = Problem(4, 2)
+    if verbose:
+        print(">>> Building problem.")
+    problem = Problem(3, 2)
     problem.types[:] = [
-        Real(0.0, A), Real(0.0, phi), Real(0, f), Real(0.0, w_in)
+        Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_in)
     ]
     problem.function = sim
-
     algorithm = NSGAII(problem)
+
+    if verbose:
+        print(">>> Running problem.")
     algorithm.run(M)
 
     results = dict(
@@ -170,53 +194,62 @@ def forward(name,
         V_osc=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
         Phis=[s.variables[1] for s in algorithm.result],
-        Fs=[s.variables[2] for s in algorithm.result],
-        Ws=[s.variables[3] for s in algorithm.result])
+        Ws=[s.variables[2] for s in algorithm.result])
 
     # --------------------------------------------------------------
-    # Score spiking from the optimal (?) budgets
+    if verbose:
+        print(">>> Analyzing results.")
+
     communication_scores = []
     precision_scores = []
 
-    for n in range(N):
-        A_n = results['As'][i]
-        phi_n = results['Phis'][i]
-        f_n = results['Fs'][i]
-        w_n = results['Ws'][i]
+    for m in range(M):
+        A_m = results['As'][m]
+        phi_m = results['Phis'][m]
+        w_m = results['Ws'][m]
 
-        ns_n, ts_n = adex(
+        ns_m, ts_m, budget_m = adex(
+            N,
             t,
             ns,
             ts,
-            w_in=w_in,
-            f=0,
-            A=0,
-            phi=0,
+            w_in=w_w,
+            f=f,
+            A=A_m,
+            phi=phi_m,
             sigma=sigma,
-            budget=False,
-            seed=seed_prob + n,
+            budget=True,
+            seed=seed_prob,
+            report=report,
             **params)
 
+        times = budget_m['times']
         comm = estimate_communication(
-            times, ns, ts, window, coincidence_t=1e-3, coincidence_n=20)
-        _, prec = precision(ns_n, ts_n, ns_ref, ts_ref, combine=True)
+            times,
+            ns_m,
+            ts_m, (budget_onset, budget_offset),
+            coincidence_t=1e-3,
+            coincidence_n=20)
+        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=False)
 
         communication_scores.append(comm)
-        precision_scores.append(prec)
+        precision_scores.append(prec.mean())
 
     results["communication_scores"] = communication_scores
     results["precision_scores"] = precision_scores
 
     # --------------------------------------------------------------
-    # Fin!
-    # Write
+    if verbose:
+        print(">>> Saving results.")
+
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "wb") as fi:
         writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
 
-    return results
+    if not save_only:
+        return results
 
 
 def reverse():
