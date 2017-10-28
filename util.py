@@ -33,6 +33,8 @@ def filter_budget(times, vs, window):
     for k, v in vs.items():
         try:
             len(vs[k])  # error on scalar/float
+            filtered[k] = vs[k][:, m]
+        except IndexError:
             filtered[k] = vs[k][m]
         except TypeError:
             filtered[k] = vs[k]  # copy over scalar values
