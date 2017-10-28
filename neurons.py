@@ -3,24 +3,25 @@ from brian2 import *
 from copy import deepcopy
 
 
-def shadow_adex(time, ns, ts, **adex_kwargs):
+def shadow_adex(time, N, ns, ts, **adex_kwargs):
     """Est. the 'shadow voltage' of the AdEx membrane voltage."""
     # In the neuron can't fire, we're in the shadow realm!
     Et = 1000  # 1000 volts is infinity, for neurons.
-    _, _, budget = adex(time, ns, ts, budget=True, Et=Et, **adex_kwargs)
+    _, _, budget = adex(time, N, ns, ts, budget=True, Et=Et, **adex_kwargs)
 
-    return budget['vm'].flatten(), budget
+    return budget['V_m'], budget
 
 
 # TODO: add sigma
-def adex(time,
+def adex(N,
+         time,
          ns,
          ts,
          a=0e-9,
          b=10e-12,
          tau_w=30e-3,
          tau_m=20e-3,
-         Erheo=-48e-3,
+         E_rheo=-48e-3,
          delta_t=2e-3,
          w_in=0.8e-9,
          tau_in=5e-3,
@@ -53,7 +54,7 @@ def adex(time,
     # Other neuron params
     El = -70.6 * mV
     Et *= volt
-    Erheo *= volt
+    E_rheo *= volt
 
     # Comp vars
     w_in *= siemens
@@ -84,10 +85,10 @@ def adex(time,
     """
 
     P_e = NeuronGroup(
-        1,
+        N,
         model=eqs,
         threshold='v > Ecut',
-        reset="v = Erheo; w += b",
+        reset="v = E_rheo; w += b",
         method='euler')
 
     # Init
@@ -114,7 +115,7 @@ def adex(time,
     # diff eq to get the osc budget term in one pass.)
     if budget:
         net.run(time * second, report=report)
-        V_osc = deepcopy(np.asarray(traces_e.v_).flatten())
+        V_osc = deepcopy(np.asarray(traces_e.v_))
 
     net.restore('no_stim')
     net.add([P_stim, C_stim, spikes_e])
@@ -128,14 +129,18 @@ def adex(time,
     if budget:
         E_leak = float(El)
         E_cut = float(Ecut)
-        V_m = np.asarray(traces_e.v_).flatten()
-        V_comp = E_leak - V_osc - V_m
-        V_osc = E_leak - V_osc
-        V_free = E_leak - V_m
+        E_rheo = float(E_rheo)
+
+        V_m = np.asarray(traces_e.v_)
+        V_m[V_m > E_rheo] = E_rheo
+
+        V_comp = (V_m - V_osc) + np.mean(V_osc) - float(El)
+        V_osc = E_rheo - V_osc
+        V_free = E_rheo - V_m
 
         vs = dict(
             tau_m=float(C / g_l),
-            times=np.asarray(traces_e.t_).flatten(),
+            times=np.asarray(traces_e.t_),
             V_m=V_m,
             V_comp=V_comp,
             V_osc=V_osc,
