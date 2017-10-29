@@ -1,4 +1,5 @@
 from __future__ import division
+import csv
 
 from fakespikes import neurons, rates
 from fakespikes import util as fsutil
@@ -40,3 +41,34 @@ def filter_budget(times, vs, window):
             filtered[k] = vs[k]  # copy over scalar values
 
     return filtered
+
+
+def _read_csv_as_dict(filename):
+    # csv goes here:
+    data = {}
+
+    # Open and iterate over lines
+    # when csv is returning lines as dicts
+    # using the header as a key
+    reader = csv.DictReader(open(filename, 'r'))
+    for row in reader:
+        for k, v in row.items():
+            # Add or init?
+            if k in data:
+                data[k].append(v)
+            else:
+                data[k] = [
+                    v,
+                ]
+
+    return data
+
+
+def read_stim(stim):
+    """Read in budget_experiment stimulation, as a dict"""
+    return _read_csv_as_dict(stim)
+
+
+def read_results(results):
+    """Read in budget_experiment results, as a dict"""
+    return _read_csv_as_dict(results)
