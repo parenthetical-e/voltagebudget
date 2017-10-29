@@ -53,6 +53,12 @@ def _read_csv_cols_into_dict(filename):
     reader = csv.DictReader(open(filename, 'r'))
     for row in reader:
         for k, v in row.items():
+            # Is a number?
+            try:
+                v = float(v)
+            except ValueError:
+                pass
+
             # Add or init?
             if k in data:
                 data[k].append(v)
@@ -83,10 +89,13 @@ def read_args(args):
         v = row[1]
 
         # Convert numbers
-        try:
-            v = float(v)
-        except ValueError:
-            pass
+        if k == 'seed':
+            v = int(v)
+        else:
+            try:
+                v = float(v)
+            except ValueError:
+                pass
 
         # Convert bools
         if v == ' True':

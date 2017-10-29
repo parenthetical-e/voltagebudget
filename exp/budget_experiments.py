@@ -15,6 +15,7 @@ from voltagebudget.util import poisson_impulse
 from voltagebudget.util import filter_budget
 from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
+from voltagebudget.util import read_args
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -42,23 +43,40 @@ MODES = {
 }
 
 
-def rerun(stim, results, i, N, t, f, **adex_kwargs):
-    # Load stim and results into dict
+def replay(args, stim, results, i, save_npy=None):
+    """Rerun the results of a budget_experiment"""
+
+    # Load parameters, input, and results
+    arg_data = read_args(args)
     stim_data = read_stim(stim)
     results_data = read_results(results)
 
-    # Replay i 
-    return adex(
-        N,
-        t,
-        stim_data['ns'],
-        stim_data['ts'],
-        w_in=stim_data['Ws'][i],
-        A=stim_data['As'][i],
-        phi=stim_data['Phis'][i],
-        f=f,
+    # Construct a valid kawrgs for adex()
+    exclude = [
+        'N', 'time', 'budget', 'report', 'save_args', 'phi', 'w_in', 'A'
+    ]
+    kwargs = {}
+    for k, v in arg_data.items():
+        if k not in exclude:
+            kwargs[k] = v
+
+    # Replay row i results
+    ns, ts, budget = adex(
+        arg_data['N'],
+        arg_data['time'],
+        np.asarray(stim_data['ns']),
+        np.asarray(stim_data['ts']),
+        w_in=results_data['Ws'][i],
+        A=results_data['As'][i],
+        phi=results_data['Phis'][i],
         budget=True,
-        **adex_kwargs)
+        report=None,
+        **kwargs)
+
+    if save_npy is not None:
+        np.savez(save, ns=ns, ts=ts, budget=budget)
+    else:
+        return ns, ts, budget
 
 
 def forward(name,
@@ -118,7 +136,7 @@ def forward(name,
         print(">>> Saving input.")
     with open("{}_stim.csv".format(name), "wb") as fi:
         writer = csv.writer(fi, delimiter=",")
-        writer.writerow(["n", "t"])
+        writer.writerow(["ns", "ts"])
         writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
 
     # --------------------------------------------------------------
@@ -279,4 +297,4 @@ def reverse():
 
 
 if __name__ == "__main__":
-    fire.Fire({'forward': forward, 'reverse': reverse})
+    fire.Fire({'forward': forward, 'reverse': reverse, 'replay': replay})
