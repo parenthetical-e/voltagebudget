@@ -13,6 +13,8 @@ from voltagebudget.neurons import adex
 from voltagebudget.neurons import shadow_adex
 from voltagebudget.util import poisson_impulse
 from voltagebudget.util import filter_budget
+from voltagebudget.util import read_results
+from voltagebudget.util import read_stim
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -40,12 +42,23 @@ MODES = {
 }
 
 
-def replay(stim, results, i, *adex_args, **adex_kwargs):
+def rerun(stim, results, i, N, t, f, **adex_kwargs):
     # Load stim and results into dict
-    # Find i
-    # Replay it
+    stim_data = read_stim(stim)
+    results_data = read_results(results)
 
-    pass
+    # Replay i 
+    return adex(
+        N,
+        t,
+        stim_data['ns'],
+        stim_data['ts'],
+        w_in=stim_data['Ws'][i],
+        A=stim_data['As'][i],
+        phi=stim_data['Phis'][i],
+        f=f,
+        budget=True,
+        **adex_kwargs)
 
 
 def forward(name,
@@ -127,6 +140,7 @@ def forward(name,
         seed=seed_prob,
         budget=False,
         report=report,
+        save_args="{}_ref_args".format(name),
         **params)
 
     if verbose:
