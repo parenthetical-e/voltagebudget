@@ -43,7 +43,7 @@ def filter_budget(times, vs, window):
     return filtered
 
 
-def _read_csv_as_dict(filename):
+def _read_csv_cols_into_dict(filename):
     # csv goes here:
     data = {}
 
@@ -66,9 +66,35 @@ def _read_csv_as_dict(filename):
 
 def read_stim(stim):
     """Read in budget_experiment stimulation, as a dict"""
-    return _read_csv_as_dict(stim)
+    return _read_csv_cols_into_dict(stim)
 
 
 def read_results(results):
     """Read in budget_experiment results, as a dict"""
-    return _read_csv_as_dict(results)
+    return _read_csv_cols_into_dict(results)
+
+
+def read_args(args):
+    """Read in an adex arguments file, as a dict"""
+    reader = csv.reader(open(args, 'r'))
+    args_data = {}
+    for row in reader:
+        k = row[0]
+        v = row[1]
+
+        # Convert numbers
+        try:
+            v = float(v)
+        except ValueError:
+            pass
+
+        # Convert bools
+        if v == ' True':
+            v = True
+        if v == 'False':
+            v = False
+
+        # save
+        args_data[k] = v
+
+    return args_data

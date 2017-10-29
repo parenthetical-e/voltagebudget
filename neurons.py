@@ -1,3 +1,5 @@
+import inspect
+import csv
 import numpy as np
 from brian2 import *
 from copy import deepcopy
@@ -34,11 +36,27 @@ def adex(N,
          time_step=1e-4,
          budget=True,
          report='text',
+         save_args=None,
          seed=None):
     """A AdEx neuron"""
     np.random.seed(seed)
     defaultclock.dt = time_step * second
     prefs.codegen.target = 'numpy'
+
+    # -----------------------------------------------------------------
+    if save_args is not None:
+        skip = ['ns', 'ts', 'save_args']
+        arg_names = inspect.getargspec(adex)[0]
+
+        args = []
+        for arg in arg_names:
+            if arg not in skip:
+                row = (arg, eval(arg))
+                args.append(row)
+
+        with open("{}.csv".format(save_args), "wb") as fi:
+            writer = csv.writer(fi, delimiter=",")
+            writer.writerows(args)
 
     # -----------------------------------------------------------------
     # If there's no input, return empty 
