@@ -40,8 +40,8 @@ MODES = {
 }
 
 
-def replay(results, i, *adex_args, **adex_kwargs):
-    # Load results into dict
+def replay(stim, results, i, *adex_args, **adex_kwargs):
+    # Load stim and results into dict
     # Find i
     # Replay it
 
@@ -53,8 +53,8 @@ def forward(name,
             t=0.8,
             stim_onset=0.5,
             stim_offset=0.7,
-            budget_onset=0.5,
-            budget_offset=0.7,
+            budget_onset=0.65,
+            budget_offset=0.75,
             w_in=0.8e-3,
             stim_rate=60,
             K=20,
@@ -100,6 +100,13 @@ def forward(name,
         stim_rate,
         n=K,
         seed=seed_stim)
+
+    if verbose:
+        print(">>> Saving input.")
+    with open("{}_stim.csv".format(name), "wb") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(["n", "t"])
+        writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
 
     # --------------------------------------------------------------
     # Define ideal targt computation (no oscillation)
@@ -233,7 +240,7 @@ def forward(name,
         _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=False)
 
         communication_scores.append(comm)
-        precision_scores.append(prec.mean())
+        precision_scores.append(np.mean(prec))
 
     results["communication_scores"] = communication_scores
     results["precision_scores"] = precision_scores
