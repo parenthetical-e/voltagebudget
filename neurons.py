@@ -5,7 +5,7 @@ from brian2 import *
 from copy import deepcopy
 
 
-def shadow_adex(time, N, ns, ts, **adex_kwargs):
+def shadow_adex(N, time, ns, ts, **adex_kwargs):
     """Est. the 'shadow voltage' of the AdEx membrane voltage."""
     # In the neuron can't fire, we're in the shadow realm!
     Et = 1000  # 1000 volts is infinity, for neurons.
@@ -19,10 +19,12 @@ def adex(N,
          time,
          ns,
          ts,
+         C=200e-12,
+         g_l=10e-9,
+         V_l=-70e-3,
          a=0e-9,
          b=10e-12,
          tau_w=30e-3,
-         tau_m=20e-3,
          E_rheo=-48e-3,
          delta_t=2e-3,
          w_in=0.8e-9,
@@ -65,12 +67,12 @@ def adex(N,
 
     # -----------------------------------------------------------------
     # tau_m:
-    tau_m *= second
-    g_l = 30 * nS
-    C = tau_m * g_l
+    g_l *= siemens
+    C *= farad
+    tau_m = C / g_l
 
     # Other neuron params
-    El = -70.6 * mV
+    El = V_l * volt
     Et *= volt
     E_rheo *= volt
 
@@ -150,16 +152,19 @@ def adex(N,
         E_rheo = float(E_rheo)
 
         V_m = np.asarray(traces_e.v_)
-        V_m[V_m > E_rheo] = E_rheo
 
-        V_comp = (V_m - V_osc) + np.mean(V_osc) - float(El)
+        V_m_thesh = V_m.copy()
+        V_m_thesh[V_m_thesh > E_rheo] = E_rheo
+
+        V_comp = (V_m_thesh - V_osc) + np.mean(V_osc) - float(El)
         V_osc = E_rheo - V_osc
-        V_free = E_rheo - V_m
+        V_free = E_rheo - V_m_thesh
 
         vs = dict(
             tau_m=float(C / g_l),
             times=np.asarray(traces_e.t_),
             V_m=V_m,
+            V_m_thresh=V_m_thesh,
             V_comp=V_comp,
             V_osc=V_osc,
             V_free=V_free,

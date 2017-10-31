@@ -1,7 +1,9 @@
 #!/usr/bin/env python 
 
 import fire
+import json
 import csv
+import os
 import numpy as np
 from fakespikes.util import spike_window_code
 from fakespikes.util import spike_time_code
@@ -9,6 +11,7 @@ from fakespikes.util import levenshtein
 from fakespikes.util import estimate_communication
 from fakespikes.util import precision
 
+import voltagebudget
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import shadow_adex
 from voltagebudget.util import poisson_impulse
@@ -21,29 +24,8 @@ from platypus.algorithms import NSGAII
 from platypus.core import Problem
 from platypus.types import Real
 
-global MODES
 
-MODES = {
-    'regular': {
-        'tau_m': 5e-3,
-        'a': -0.5e-9,
-        'tau_w': 100e-3,
-        'b': 7e-12,
-        'E_rheo': -51e-3,
-        'delta_t': 2e-3
-    },
-    'burst': {
-        'tau_m': 5e-3,
-        'a': -0.5e-9,
-        'tau_w': 100e-3,
-        'b': 7e-12,
-        'E_rheo': -51e-3,
-        'delta_t': 2e-3
-    },
-}
-
-
-def replay(args, stim, results, i, save_npy=None):
+def replay(args, stim, results, i, save_npy=None, verbose=False):
     """Rerun the results of a budget_experiment"""
 
     # Load parameters, input, and results
@@ -60,15 +42,25 @@ def replay(args, stim, results, i, save_npy=None):
         if k not in exclude:
             kwargs[k] = v
 
+    w = results_data['Ws'][i]
+    A = results_data['As'][i]
+    phi = results_data['Phis'][i]
+
     # Replay row i results
+    if verbose:
+        print(">>> Replaying with optimal parameters w:{}, A:{}, phi:{}".
+              format(w, A, phi))
+        print(">>> Default paramerers")
+        print(kwargs)
+
     ns, ts, budget = adex(
         arg_data['N'],
         arg_data['time'],
         np.asarray(stim_data['ns']),
         np.asarray(stim_data['ts']),
-        w_in=results_data['Ws'][i],
-        A=results_data['As'][i],
-        phi=results_data['Phis'][i],
+        w_in=w,
+        A=A,
+        phi=phi,
         budget=True,
         report=None,
         **kwargs)
@@ -82,12 +74,12 @@ def replay(args, stim, results, i, save_npy=None):
 def forward(name,
             N=50,
             t=0.8,
-            stim_onset=0.5,
+            stim_onset=0.6,
             stim_offset=0.7,
-            budget_onset=0.65,
-            budget_offset=0.75,
-            w_in=0.8e-3,
-            stim_rate=60,
+            budget_onset=0.6,
+            budget_offset=0.7,
+            w_in=1e-9,
+            stim_rate=20,
             K=20,
             f=0,
             A=0.2e-9,
@@ -95,7 +87,7 @@ def forward(name,
             sigma=.1e-9,
             mode='regular',
             reduce_fn='mean',
-            M=10000,
+            M=100,
             fix_w=False,
             fix_A=False,
             fix_phi=False,
@@ -109,17 +101,21 @@ def forward(name,
     np.random.seed(seed_prob)
 
     # --------------------------------------------------------------
+    # Read in modes:
+    json_path = os.path.join(
+        os.path.split(voltagebudget.__file__)[0], 'modes.json')
+    with open(json_path, 'r') as data_file:
+        modes = json.load(data_file)
+
+    # And select one...
+    params = modes[mode]
+
+    # --------------------------------------------------------------
     # Lookup the reduce function
     try:
         reduce_fn = getattr(np, reduce_fn)
     except AttributeError:
         raise ValueError("{} is not a numpy function".format(reduce_fn))
-
-    # Set cell-type
-    if mode == 'heterogenous':
-        raise NotImplementedError("TODO")
-    else:
-        params = MODES[mode]
 
     # -
     if verbose:
@@ -133,6 +129,7 @@ def forward(name,
         seed=seed_stim)
 
     if verbose:
+        print(">>> {} spikes generated.".format(ns.size))
         print(">>> Saving input.")
     with open("{}_stim.csv".format(name), "wb") as fi:
         writer = csv.writer(fi, delimiter=",")
