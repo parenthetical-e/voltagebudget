@@ -6,7 +6,9 @@
       "a": 2e-9,
       "tau_w": 30e-3,
       "b": 0e-12,
-      "E_rheo": -58e-3
+      "E_rheo": -58e-3,
+      "delta_t" : 2e-3,
+      "initial_inputs" : {"w_in" : 3e-9, "bias" : 0.12e-9}
   },
   "adaption": {
       "C": 200e-12,
@@ -15,7 +17,12 @@
       "a": 2e-9,
       "tau_w": 300e-3,
       "b": 60e-12,
-      "E_rheo": -58e-3
+      "E_rheo": -58e-3,
+      "delta_t": 2e-3,
+      "initial_inputs": {
+        "w_in": 3e-9,
+        "bias": 0.12e-9
+    }
   },
   "initial_burst": {
       "C": 130e-12,
@@ -24,7 +31,12 @@
       "a": 4e-9,
       "tau_w": 150e-3,
       "b": 120e-12,
-      "E_rheo": -50e-3
+      "E_rheo": -50e-3,
+      "delta_t": 2e-3,
+      "initial_inputs": {
+        "w_in": 3e-9,
+        "bias": 0.12e-9
+    }
   },
   "regular_burst": {
       "C": 200e-12,
@@ -33,7 +45,12 @@
       "a": 2e-9,
       "tau_w": 120e-3,
       "b": 100e-12,
-      "E_rheo": -46e-3
+      "E_rheo": -46e-3,
+      "delta_t": 2e-3,
+      "initial_inputs": {
+        "w_in": 3e-9,
+        "bias": 0.12e-9
+    }
   },
   "delayed_accelerating": {
       "C": 200e-12,
@@ -42,7 +59,12 @@
       "a": -10e-9,
       "tau_w": 300e-3,
       "b": 0e-12,
-      "E_rheo": -58e-3
+      "E_rheo": -58e-3,
+      "delta_t": 2e-3,
+      "initial_inputs": {
+        "w_in": 3e-9,
+        "bias": 0.12e-9
+    }
   },
   "delayed_regular_bursting": {
       "C": 200e-12,
@@ -51,7 +73,12 @@
       "a": -6e-9,
       "tau_w": 300e-3,
       "b": 0e-12,
-      "E_rheo": -58e-3
+      "E_rheo": -58e-3,
+      "delta_t": 2e-3,
+      "initial_inputs": {
+        "w_in": 3e-9,
+        "bias": 0.12e-9
+    }
   },
   "transient_spiking": {
       "C": 100e-12,
@@ -60,7 +87,12 @@
       "a": -10e-9,
       "tau_w": 90e-3,
       "b": 30e-12,
-      "E_rheo": -47e-3
+      "E_rheo": -47e-3,
+      "delta_t": 2e-3,
+      "initial_inputs": {
+        "w_in": 3e-9,
+        "bias": 0.12e-9
+    }
   },
   "irregular": {
       "C": 100e-12,
@@ -69,7 +101,12 @@
       "a": -11e-9,
       "tau_w": 1300e-3,
       "b": 30e-12,
-      "E_rheo": -48e-3
+      "E_rheo": -48e-3,
+      "delta_t": 2e-3,
+      "initial_inputs": {
+        "w_in": 3e-9,
+        "bias": 0.12e-9
+    }
   }
 }
 
