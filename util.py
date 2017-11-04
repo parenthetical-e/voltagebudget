@@ -1,5 +1,8 @@
 from __future__ import division
 import csv
+import os
+import json
+import voltagebudget
 
 from fakespikes import neurons, rates
 from fakespikes import util as fsutil
@@ -68,6 +71,16 @@ def _read_csv_cols_into_dict(filename):
                 ]
 
     return data
+
+
+def read_modes():
+    # Read in modes:
+    json_path = os.path.join(
+        os.path.split(voltagebudget.__file__)[0], 'modes.json')
+    with open(json_path, 'r') as data_file:
+        modes = json.load(data_file)
+
+    return modes
 
 
 def read_stim(stim):

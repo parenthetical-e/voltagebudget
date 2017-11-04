@@ -19,6 +19,14 @@ def adex(N,
          time,
          ns,
          ts,
+         w_in=0.8e-9,
+         tau_in=5e-3,
+         bias=0.0e-9,
+         Et=-50.4e-3,
+         f=0,
+         A=1e-3,
+         phi=0,
+         sigma=0,
          C=200e-12,
          g_l=10e-9,
          V_l=-70e-3,
@@ -27,14 +35,6 @@ def adex(N,
          tau_w=30e-3,
          E_rheo=-48e-3,
          delta_t=2e-3,
-         w_in=0.8e-9,
-         tau_in=5e-3,
-         bias=0.5e-9,
-         Et=-50.4e-3,
-         f=0,
-         A=1e-3,
-         phi=0,
-         sigma=0,
          time_step=1e-4,
          budget=True,
          report='text',
@@ -107,7 +107,7 @@ def adex(N,
     P_e = NeuronGroup(
         N,
         model=eqs,
-        threshold='v > Ecut',
+        threshold='v > Et',
         reset="v = E_rheo; w += b",
         method='euler')
 
@@ -121,10 +121,11 @@ def adex(N,
     C_stim.connect()
 
     # -----------------------------------------------------------------
-    # Deinfe variable
+    # Define variables
     spikes_e = SpikeMonitor(P_e)
     traces_e = StateMonitor(P_e, ['v'], record=True)
 
+    # -----------------------------------------------------------------
     # Define basic net
     net = Network(P_e, traces_e)
     net.store('no_stim')
@@ -141,12 +142,17 @@ def adex(N,
     net.add([P_stim, C_stim, spikes_e])
     net.run(time * second, report=report)
 
+    # -----------------------------------------------------------------
+    # Analyze and save.
+
     # Extract spikes
     ns_e = np.asarray(spikes_e.i_)
     ts_e = np.asarray(spikes_e.t_)
     result = [ns_e, ts_e]
 
     if budget:
+        # Define the terms that go into
+        # the budget....
         E_leak = float(El)
         E_cut = float(Ecut)
         E_rheo = float(E_rheo)
@@ -156,10 +162,12 @@ def adex(N,
         V_m_thesh = V_m.copy()
         V_m_thesh[V_m_thesh > E_rheo] = E_rheo
 
-        V_comp = (V_m_thesh - V_osc) + np.mean(V_osc) - float(El)
+        # and analyze the budget.
+        V_comp = V_m - V_osc
         V_osc = E_rheo - V_osc
         V_free = E_rheo - V_m_thesh
 
+        # Save it too.
         vs = dict(
             tau_m=float(C / g_l),
             times=np.asarray(traces_e.t_),
