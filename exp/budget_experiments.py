@@ -19,6 +19,7 @@ from voltagebudget.util import filter_budget
 from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
+from voltagebudget.util import read_modes
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -72,13 +73,14 @@ def replay(args, stim, results, i, save_npy=None, verbose=False):
 
 
 def forward(name,
+            percent_computation,
+            percent_communication,
             N=50,
             t=0.8,
             stim_onset=0.6,
             stim_offset=0.7,
             budget_onset=0.6,
             budget_offset=0.7,
-            w_in=1e-9,
             stim_rate=20,
             K=20,
             f=0,
@@ -101,14 +103,12 @@ def forward(name,
     np.random.seed(seed_prob)
 
     # --------------------------------------------------------------
-    # Read in modes:
-    json_path = os.path.join(
-        os.path.split(voltagebudget.__file__)[0], 'modes.json')
-    with open(json_path, 'r') as data_file:
-        modes = json.load(data_file)
-
-    # And select one...
+    modes = read_modes()
     params = modes[mode]
+
+    initial_inputs = params.pop('initial_inputs')
+    w_in = initial_inputs['w_in']
+    bias = initial_inputs['bias']
 
     # --------------------------------------------------------------
     # Lookup the reduce function
@@ -142,18 +142,20 @@ def forward(name,
     # (it would be an easy point of crit otherwise)
     if verbose:
         print(">>> Creating reference.")
-    ns_ref, ts_ref = adex(
+
+    ns_ref, ts_ref, budget_ref = adex(
         N,
         t,
         ns,
         ts,
         w_in=w_in,
+        bias=bias,
         f=0,
         A=0,
         phi=0,
         sigma=sigma,
         seed=seed_prob,
-        budget=False,
+        budget=True,
         report=report,
         save_args="{}_ref_args".format(name),
         **params)
@@ -161,8 +163,20 @@ def forward(name,
     if verbose:
         print(">>> Reference times {}".format(ts_ref[:5]))
 
-    # Setup the problem,
-    # which is closed in forward()
+    # --------------------------------------------------------------
+    if verbose:
+        print(">>> Setting up the problem function.")
+
+    # Move to short math-y variables.
+    y_m = reduce_fn(budget_ref['V_comp'])
+    z_m = reduce_fn(budget_ref['V_osc'])
+
+    dy = y_m * percent_computation
+    dz = z_m * percent_communication
+
+    y_bar = y_m - dy
+    z_bar = z_m + dz
+
     def sim(pars):
         A_p = pars[0]
         phi_p = pars[1]
@@ -180,15 +194,13 @@ def forward(name,
 
         # Run N simulations for mode
         # differing only by noise?
-        comp = []
-        osc = []
-
         ns_o, ts_o, budget_o = adex(
             N,
             t,
             ns,
             ts,
             w_in=w_p,
+            bias=bias,
             f=f,
             A=A_p,
             phi=phi_p,
@@ -196,20 +208,19 @@ def forward(name,
             seed=seed_prob,
             report=report,
             **params)
-
         if verbose:
             print(">>> Osc. times {}".format(ts_o[:5]))
 
+        # Isolate the analysis window
         budget_o = filter_budget(budget_o['times'], budget_o,
                                  (budget_onset, budget_offset))
 
-        comp.append(budget_o['V_comp'])
-        osc.append(budget_o['V_osc'])
+        # Reduce the voltages to measures...
+        y = reduce_fn(budget_o['V_comp'])
+        z = reduce_fn(budget_o['V_osc'])
 
-        comp = reduce_fn(np.vstack(comp))
-        osc = reduce_fn(np.vstack(osc))
-
-        return -comp, -osc
+        # Min. diff between targets and observed
+        return np.abs(y - y_bar), np.abs(z - z_bar)
 
     # --------------------------------------------------------------
     if verbose:
@@ -226,8 +237,8 @@ def forward(name,
     algorithm.run(M)
 
     results = dict(
-        V_comp=[s.objectives[0] for s in algorithm.result],
-        V_osc=[s.objectives[1] for s in algorithm.result],
+        Opt_y=[s.objectives[0] for s in algorithm.result],
+        Opt_z=[s.objectives[1] for s in algorithm.result],
         As=[s.variables[0] for s in algorithm.result],
         Phis=[s.variables[1] for s in algorithm.result],
         Ws=[s.variables[2] for s in algorithm.result])
@@ -237,8 +248,9 @@ def forward(name,
         print(">>> Analyzing results.")
 
     communication_scores = []
-    precision_scores = []
-
+    computation_scores = []
+    communication_voltages = []
+    computation_voltages = []
     for m in range(M):
         A_m = results['As'][m]
         phi_m = results['Phis'][m]
@@ -250,6 +262,7 @@ def forward(name,
             ns,
             ts,
             w_in=w_m,
+            bias=bias,
             f=f,
             A=A_m,
             phi=phi_m,
@@ -269,10 +282,15 @@ def forward(name,
         _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=False)
 
         communication_scores.append(comm)
-        precision_scores.append(np.mean(prec))
+        computation_scores.append(np.mean(prec))
+
+        computation_voltages.append(reduce_fn(budget_m['V_comp']))
+        communication_voltages.append(reduce_fn(budget_m['V_osc']))
 
     results["communication_scores"] = communication_scores
-    results["precision_scores"] = precision_scores
+    results["computation_scores"] = computation_scores
+    result["communication_voltages"] = communication_voltages
+    result["computation_voltages"] = computation_voltages
 
     # --------------------------------------------------------------
     if verbose:
@@ -289,7 +307,7 @@ def forward(name,
 
 
 def reverse():
-    """Optimize using ISI."""
+    """Optimize using metrics not voltages."""
     pass
 
 
