@@ -30,7 +30,7 @@ from scipy.optimize import least_squares
 
 def autotune_membrane(mode, bias_0, sigma_0, mean, std, t=1):
     # Load cell params
-    params, _, _ = read_modes(mode)
+    params, _, _, _ = read_modes(mode)
 
     # No input spikes
     ns = np.zeros(1)
@@ -104,33 +104,34 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
         return ns, ts, budget
 
 
-def forward(name,
-            percent_computation,
-            percent_communication,
-            N=50,
-            t=0.8,
-            stim_onset=0.6,
-            stim_offset=0.7,
-            budget_onset=None,
-            budget_offset=None,
-            stim_rate=20,
-            stim_number=20,
-            f=0,
-            A=0.2e-9,
-            phi=np.pi,
-            sigma=.1e-9,
-            mode='regular',
-            reduce_fn='mean',
-            M=100,
-            fix_w=False,
-            fix_A=False,
-            fix_phi=False,
-            seed_prob=42,
-            seed_stim=7525,
-            report=None,
-            save_only=False,
-            verbose=False,
-            time_step=1e-4):
+def forward(
+        name,
+        percent_computation,
+        percent_communication,
+        N=50,
+        t=0.8,
+        stim_onset=0.6,
+        stim_offset=0.7,
+        budget_onset=None,
+        budget_offset=None,
+        stim_rate=20,
+        stim_number=20,
+        f=0,
+        A=0.2e-9,
+        phi=np.pi,
+        # sigma=.1e-9,
+        mode='regular',
+        reduce_fn='mean',
+        M=100,
+        fix_w=False,
+        fix_A=False,
+        fix_phi=False,
+        seed_prob=42,
+        seed_stim=7525,
+        report=None,
+        save_only=False,
+        verbose=False,
+        time_step=1e-4):
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
 
@@ -142,7 +143,7 @@ def forward(name,
         budget_offset = stim_offset
 
     # Get mode
-    params, w_in, bias = read_modes(mode)
+    params, w_in, bias, sigma = read_modes(mode)
 
     # --------------------------------------------------------------
     # Lookup the reduce function
