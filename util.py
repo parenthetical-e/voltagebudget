@@ -81,14 +81,25 @@ def _read_csv_cols_into_dict(filename):
     return data
 
 
-def read_modes():
-    # Read in modes:
-    json_path = os.path.join(
-        os.path.split(voltagebudget.__file__)[0], 'modes.json')
+def read_modes(mode, json_path=None):
+    # Read in modes from the detault location
+    # or with what the user provided?
+    if json_path is None:
+        json_path = os.path.join(
+            os.path.split(voltagebudget.__file__)[0], 'modes.json')
+
     with open(json_path, 'r') as data_file:
         modes = json.load(data_file)
 
-    return modes
+    # Extract params
+    params = modes[mode]
+
+    # And default input
+    initial_inputs = params.pop('initial_inputs')
+    w_in = initial_inputs['w_in']
+    bias = initial_inputs['bias']
+
+    return params, w_in, bias
 
 
 def read_stim(stim):
@@ -119,9 +130,9 @@ def read_args(args):
                 pass
 
         # Convert bools
-        if v == ' True':
+        if v.strip() == 'True':
             v = True
-        if v == 'False':
+        if v.strip() == 'False':
             v = False
 
         # save
