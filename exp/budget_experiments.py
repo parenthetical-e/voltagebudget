@@ -289,8 +289,8 @@ def forward(name,
 
     results["communication_scores"] = communication_scores
     results["computation_scores"] = computation_scores
-    result["communication_voltages"] = communication_voltages
-    result["computation_voltages"] = computation_voltages
+    results["communication_voltages"] = communication_voltages
+    results["computation_voltages"] = computation_voltages
 
     # --------------------------------------------------------------
     if verbose:
