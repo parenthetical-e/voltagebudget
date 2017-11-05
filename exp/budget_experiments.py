@@ -25,6 +25,34 @@ from platypus.algorithms import NSGAII
 from platypus.core import Problem
 from platypus.types import Real
 
+from scipy.optimize import least_squares
+
+
+def autotune_membrane(mode, bias_0, sigma_0, mean, std, t=1):
+    # Load cell params
+    params, _, _ = read_modes(mode)
+
+    # No input spikes
+    ns = np.zeros(1)
+    ts = np.zeros(1)
+    w_in = 0
+
+    # -
+    def problem(p):
+        bias = p[0]
+        sigma = p[0]
+
+        vm, _ = shadow_adex(
+            1, t, ns, ts, w_in=w_in, bias=bias, report=None, **params)
+
+        return (np.mean(vm) - mean), (np.std(vm) - std)
+
+    # !
+    p0 = [bias_0, sigma_0]
+    sol = least_squares(problem, p0)
+
+    return sol
+
 
 def replay(args, stim, results, i, f, save_npy=None, verbose=False):
     """Rerun the results of a budget_experiment"""
