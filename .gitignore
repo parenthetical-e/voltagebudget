@@ -1,6 +1,11 @@
 # csv
 *.csv
 *log
+*.npz
+
+*Rhis*
+*RData*
+*.Rproj
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
