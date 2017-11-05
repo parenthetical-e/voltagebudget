@@ -106,18 +106,15 @@ def forward(name,
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
 
+    # --------------------------------------------------------------
+    # analysis windows...
     if budget_onset is None:
         budget_onset = stim_onset
     if budget_offset is None:
         budget_offset = stim_offset
 
-    # --------------------------------------------------------------
-    modes = read_modes()
-    params = modes[mode]
-
-    initial_inputs = params.pop('initial_inputs')
-    w_in = initial_inputs['w_in']
-    bias = initial_inputs['bias']
+    # Get mode
+    params, w_in, bias = read_modes(mode)
 
     # --------------------------------------------------------------
     # Lookup the reduce function
