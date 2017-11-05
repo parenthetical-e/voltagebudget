@@ -10,7 +10,8 @@
       "delta_t" : 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma" : 1.5e-9
     }
   },
   "adaption": {
@@ -24,7 +25,8 @@
       "delta_t": 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma": 1.5e-9
     }
   },
   "initial_burst": {
@@ -38,7 +40,8 @@
       "delta_t": 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma": 1.5e-9
     }
   },
   "regular_burst": {
@@ -52,7 +55,8 @@
       "delta_t": 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma": 1.5e-9
     }
   },
   "delayed_accelerating": {
@@ -66,7 +70,8 @@
       "delta_t": 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma": 1.5e-9
     }
   },
   "delayed_regular_bursting": {
@@ -80,7 +85,8 @@
       "delta_t": 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma": 1.5e-9
     }
   },
   "transient_spiking": {
@@ -94,7 +100,8 @@
       "delta_t": 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma": 1.5e-9
     }
   },
   "irregular": {
@@ -108,7 +115,8 @@
       "delta_t": 2e-3,
       "initial_inputs": {
         "w_in": 3e-9,
-        "bias": 0.12e-9
+        "bias": 0.12e-9,
+        "sigma": 1.5e-9
     }
   }
 }
