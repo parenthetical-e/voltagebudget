@@ -26,7 +26,7 @@ from platypus.core import Problem
 from platypus.types import Real
 
 
-def replay(args, stim, results, i, save_npy=None, verbose=False):
+def replay(args, stim, results, i, f, save_npy=None, verbose=False):
     """Rerun the results of a budget_experiment"""
 
     # Load parameters, input, and results
@@ -47,6 +47,9 @@ def replay(args, stim, results, i, save_npy=None, verbose=False):
     A = results_data['As'][i]
     phi = results_data['Phis'][i]
 
+    # drop f=0
+    kwargs.pop("f", None)
+
     # Replay row i results
     if verbose:
         print(">>> Replaying with optimal parameters w:{}, A:{}, phi:{}".
@@ -62,6 +65,7 @@ def replay(args, stim, results, i, save_npy=None, verbose=False):
         w_in=w,
         A=A,
         phi=phi,
+        f=f,
         budget=True,
         report=None,
         **kwargs)
@@ -79,10 +83,10 @@ def forward(name,
             t=0.8,
             stim_onset=0.6,
             stim_offset=0.7,
-            budget_onset=0.6,
-            budget_offset=0.7,
+            budget_onset=None,
+            budget_offset=None,
             stim_rate=20,
-            K=20,
+            stim_number=20,
             f=0,
             A=0.2e-9,
             phi=np.pi,
@@ -101,6 +105,11 @@ def forward(name,
             time_step=1e-4):
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
+
+    if budget_onset is None:
+        budget_onset = stim_onset
+    if budget_offset is None:
+        budget_offset = stim_offset
 
     # --------------------------------------------------------------
     modes = read_modes()
@@ -125,7 +134,8 @@ def forward(name,
         stim_onset,
         stim_offset - stim_onset,
         stim_rate,
-        n=K,
+        dt=1e-5,
+        n=stim_number,
         seed=seed_stim)
 
     if verbose:
@@ -159,9 +169,6 @@ def forward(name,
         report=report,
         save_args="{}_ref_args".format(name),
         **params)
-
-    if verbose:
-        print(">>> Reference times {}".format(ts_ref[:5]))
 
     # --------------------------------------------------------------
     if verbose:
@@ -208,8 +215,6 @@ def forward(name,
             seed=seed_prob,
             report=report,
             **params)
-        if verbose:
-            print(">>> Osc. times {}".format(ts_o[:5]))
 
         # Isolate the analysis window
         budget_o = filter_budget(budget_o['times'], budget_o,
@@ -236,12 +241,28 @@ def forward(name,
         print(">>> Running problem.")
     algorithm.run(M)
 
+    # Build results
+    if verbose:
+        print(">>> Building results.")
     results = dict(
         Opt_y=[s.objectives[0] for s in algorithm.result],
-        Opt_z=[s.objectives[1] for s in algorithm.result],
-        As=[s.variables[0] for s in algorithm.result],
-        Phis=[s.variables[1] for s in algorithm.result],
-        Ws=[s.variables[2] for s in algorithm.result])
+        Opt_z=[s.objectives[1] for s in algorithm.result])
+
+    if not fix_A:
+        As = [s.variables[0] for s in algorithm.result]
+    else:
+        As = [A] * M
+    if not fix_phi:
+        Phis = [s.variables[1] for s in algorithm.result]
+    else:
+        Phis = [phi] * M
+    if not fix_w:
+        Ws = [s.variables[2] for s in algorithm.result]
+    else:
+        Ws = [w_in] * M
+    results['As'] = As
+    results['Phis'] = Phis
+    results['Ws'] = Ws
 
     # --------------------------------------------------------------
     if verbose:
@@ -272,6 +293,7 @@ def forward(name,
             report=report,
             **params)
 
+        # -
         times = budget_m['times']
         comm = estimate_communication(
             times,
@@ -281,9 +303,9 @@ def forward(name,
             coincidence_n=20)
         _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=False)
 
+        # -
         communication_scores.append(comm)
         computation_scores.append(np.mean(prec))
-
         computation_voltages.append(reduce_fn(budget_m['V_comp']))
         communication_voltages.append(reduce_fn(budget_m['V_osc']))
 
