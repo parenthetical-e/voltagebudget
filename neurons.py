@@ -3,6 +3,7 @@ import csv
 import numpy as np
 from brian2 import *
 from copy import deepcopy
+from voltagebudget.util import step_waves
 
 
 def shadow_adex(N, time, ns, ts, **adex_kwargs):
@@ -39,8 +40,22 @@ def adex(N,
          budget=True,
          report='text',
          save_args=None,
+         step_params=None,
          seed=None):
-    """A AdEx neuron"""
+    """A AdEx neuron
+    
+    Params
+    ------
+    time : Numeric
+        Simulation run time (seconds)
+
+    [...]
+
+    step_params : None or 3-tuple (I, f, duty)
+        Inject a set of square wave currect
+    seed : None, int
+        The random seed
+    """
     np.random.seed(seed)
     defaultclock.dt = time_step * second
     prefs.codegen.target = 'numpy'
@@ -85,9 +100,9 @@ def adex(N,
     b *= amp
     delta_t *= volt
     tau_w *= second
-    Ecut = Et + 5 * delta_t  # practical threshold condition
+    E_cut = Et + 5 * delta_t  # how high should the spike go?
 
-    # osc injection
+    # osc injection?
     f *= Hz
     A *= amp
     phi *= second
@@ -95,7 +110,7 @@ def adex(N,
     # -----------------------------------------------------------------
     # Define neuron and its connections
     eqs = """
-    dv/dt = (g_l * (El - v) + g_l * delta_t * exp((v - Et) / delta_t) + I_in + I_osc + I_noise + bias - w) / C : volt
+    dv/dt = (g_l * (El - v) + g_l * delta_t * exp((v - Et) / delta_t) + I_in + I_osc + I_noise + I_ext + bias - w) / C : volt
     dw/dt = (a * (v - El) - w) / tau_w : amp
     I_in = g_in * (v - El) : amp
     I_noise = g_noise * (v - El) : amp
@@ -104,10 +119,20 @@ def adex(N,
     dg_noise/dt = -(g_noise+ (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     """
 
+    # Step injection?
+    if step_params is not None:
+        I, f_wave, duty = step_params
+        waves = step_waves(I, f_wave, duty, time, time_step)
+        I_sq = TimedArray(waves, dt=time_step * second)
+        eqs += """I_ext = I_sq(t) * amp : amp"""
+    else:
+        eqs += """I_ext = 0 * amp : amp"""
+
     P_e = NeuronGroup(
         N,
         model=eqs,
-        threshold='v > Et',
+        refractory=2 * msecond,
+        threshold='v > E_cut',
         reset="v = E_rheo; w += b",
         method='euler')
 
@@ -154,7 +179,7 @@ def adex(N,
         # Define the terms that go into
         # the budget....
         E_leak = float(El)
-        E_cut = float(Ecut)
+        E_cut = float(E_cut)
         E_rheo = float(E_rheo)
 
         V_m = np.asarray(traces_e.v_)

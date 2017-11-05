@@ -3,15 +3,23 @@ import csv
 import os
 import json
 import voltagebudget
+import numpy as np
 
+from scipy.signal import square
+from copy import deepcopy
 from fakespikes import neurons, rates
 from fakespikes import util as fsutil
 
-import numpy as np
-from copy import deepcopy
+
+def step_waves(I, f, duty, t, dt):
+    times = fsutil.create_times(t, dt)
+
+    wave = I * square(2 * np.pi * f * times - np.pi, duty=duty)
+
+    return wave
 
 
-def poisson_impulse(t, t_stim, w, rate, n, dt=1e-3, seed=None):
+def poisson_impulse(t, t_stim, w, rate, n=10, dt=1e-3, seed=None):
     """Create a pulse of spikes w seconds wide, starting at t_stim."""
 
     # Poisson sample the rate over w
