@@ -6,7 +6,6 @@ import voltagebudget
 import numpy as np
 
 from scipy.signal import square
-from copy import deepcopy
 from fakespikes import neurons, rates
 from fakespikes import util as fsutil
 
@@ -15,6 +14,7 @@ def step_waves(I, f, duty, t, dt):
     times = fsutil.create_times(t, dt)
 
     wave = I * square(2 * np.pi * f * times - np.pi, duty=duty)
+    wave[wave < 0] = 0.0
 
     return wave
 
@@ -100,6 +100,17 @@ def read_modes(mode, json_path=None):
     bias = initial_inputs['bias']
 
     return params, w_in, bias
+
+
+def get_mode_names(json_path=None):
+    if json_path is None:
+        json_path = os.path.join(
+            os.path.split(voltagebudget.__file__)[0], 'modes.json')
+
+    with open(json_path, 'r') as data_file:
+        modes = json.load(data_file)
+
+    return modes.keys()
 
 
 def read_stim(stim):
