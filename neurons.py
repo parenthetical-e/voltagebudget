@@ -188,7 +188,7 @@ def adex(N,
         V_m_thesh[V_m_thesh > E_rheo] = E_rheo
 
         # and analyze the budget.
-        V_comp = V_m - V_osc
+        V_comp = V_m_thresh - V_osc
         V_osc = E_rheo - V_osc
         V_free = E_rheo - V_m_thesh
 

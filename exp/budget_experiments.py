@@ -253,7 +253,7 @@ def forward(name,
 
     # Move to short math-y variables.
     y_ref = reduce_fn(budget_ref['V_comp'])
-    z_ref = reduce_fn(budget_ref['V_osc'])
+    z_ref = reduce_fn(budget_ref['V_free'])
 
     def sim(pars):
         A_p = pars[0]
@@ -298,7 +298,7 @@ def forward(name,
 
         # Min. diff between targets and observed
         # return np.abs(y - y_bar), np.abs(z - z_bar)
-        return (y_ref + delta - y), (z - z_ref - delta)
+        return (y_ref - y + delta), (z - z_ref - delta)
 
     # --------------------------------------------------------------
     if verbose:
@@ -375,7 +375,7 @@ def forward(name,
             ts_m, (budget_onset, budget_offset),
             coincidence_t=coincidence_t,
             coincidence_n=coincidence_n)
-        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=False)
+        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=True)
 
         # -
         communication_scores.append(comm)
