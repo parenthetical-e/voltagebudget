@@ -20,12 +20,63 @@ from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
+from voltagebudget.util import poisson_impulse
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
 from platypus.types import Real
 
 from scipy.optimize import least_squares
+
+
+def autotune_w(mode,
+               w_0,
+               rate,
+               t=3,
+               k=20,
+               stim_rate=30,
+               seed_stim=1,
+               max_mult=2):
+    # Load cell params
+    params, _, bias, sigma = read_modes(mode)
+
+    # Create frozen input spikes
+    stim_onset = 0.1
+    stim_offset = t
+    dt = 1e-5
+    ns, ts = poisson_impulse(
+        t,
+        stim_onset,
+        stim_offset - stim_onset,
+        stim_rate,
+        n=k,
+        dt=dt,
+        seed=seed_stim)
+
+    # -
+    def problem(p):
+        w = p[0]
+
+        ns_y, ts_y = adex(
+            1,
+            t,
+            ns,
+            ts,
+            w_in=w,
+            bias=bias,
+            sigma=sigma,
+            report=None,
+            budget=False,
+            **params)
+
+        rate_y = ts_y.size / (stim_offset - stim_onset)
+
+        return rate_y - rate
+
+    p0 = [w_0]
+    sol = least_squares(problem, p0, bounds=(0, w_0 * max_mult))
+
+    return sol
 
 
 def autotune_membrane(mode, bias_0, sigma_0, mean, std, t=1):
@@ -104,34 +155,33 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
         return ns, ts, budget
 
 
-def forward(
-        name,
-        percent_computation,
-        percent_communication,
-        N=50,
-        t=0.8,
-        stim_onset=0.6,
-        stim_offset=0.7,
-        budget_onset=None,
-        budget_offset=None,
-        stim_rate=20,
-        stim_number=20,
-        f=0,
-        A=0.2e-9,
-        phi=np.pi,
-        # sigma=.1e-9,
-        mode='regular',
-        reduce_fn='mean',
-        M=100,
-        fix_w=False,
-        fix_A=False,
-        fix_phi=False,
-        seed_prob=42,
-        seed_stim=7525,
-        report=None,
-        save_only=False,
-        verbose=False,
-        time_step=1e-4):
+def forward(name,
+            N=50,
+            t=0.8,
+            delta=0,
+            stim_onset=0.6,
+            stim_offset=0.7,
+            budget_onset=None,
+            budget_offset=None,
+            stim_rate=20,
+            stim_number=20,
+            coincidence_t=5e-3,
+            coincidence_n=20,
+            f=0,
+            A=0.2e-9,
+            phi=np.pi,
+            mode='regular',
+            reduce_fn='mean',
+            M=100,
+            fix_w=False,
+            fix_A=False,
+            fix_phi=False,
+            seed_prob=42,
+            seed_stim=7525,
+            report=None,
+            save_only=False,
+            verbose=False,
+            time_step=2.5e-5):
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
 
@@ -160,7 +210,7 @@ def forward(
         stim_onset,
         stim_offset - stim_onset,
         stim_rate,
-        dt=1e-5,
+        dt=0.5e-4,
         n=stim_number,
         seed=seed_stim)
 
@@ -194,6 +244,7 @@ def forward(
         budget=True,
         report=report,
         save_args="{}_ref_args".format(name),
+        time_step=time_step,
         **params)
 
     # --------------------------------------------------------------
@@ -201,14 +252,8 @@ def forward(
         print(">>> Setting up the problem function.")
 
     # Move to short math-y variables.
-    y_m = reduce_fn(budget_ref['V_comp'])
-    z_m = reduce_fn(budget_ref['V_osc'])
-
-    dy = y_m * percent_computation
-    dz = z_m * percent_communication
-
-    y_bar = y_m - dy
-    z_bar = z_m + dz
+    y_ref = reduce_fn(budget_ref['V_comp'])
+    z_ref = reduce_fn(budget_ref['V_osc'])
 
     def sim(pars):
         A_p = pars[0]
@@ -240,6 +285,7 @@ def forward(
             sigma=sigma,
             seed=seed_prob,
             report=report,
+            time_step=time_step,
             **params)
 
         # Isolate the analysis window
@@ -251,7 +297,8 @@ def forward(
         z = reduce_fn(budget_o['V_osc'])
 
         # Min. diff between targets and observed
-        return np.abs(y - y_bar), np.abs(z - z_bar)
+        # return np.abs(y - y_bar), np.abs(z - z_bar)
+        return (y_ref + delta - y), (z - z_ref - delta)
 
     # --------------------------------------------------------------
     if verbose:
@@ -317,6 +364,7 @@ def forward(
             budget=True,
             seed=seed_prob,
             report=report,
+            time_step=time_step,
             **params)
 
         # -
@@ -325,8 +373,8 @@ def forward(
             times,
             ns_m,
             ts_m, (budget_onset, budget_offset),
-            coincidence_t=1e-3,
-            coincidence_n=20)
+            coincidence_t=coincidence_t,
+            coincidence_n=coincidence_n)
         _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=False)
 
         # -
