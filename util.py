@@ -104,6 +104,7 @@ def read_modes(mode, json_path=None):
 
 
 def get_mode_names(json_path=None):
+    """List all modes"""
     if json_path is None:
         json_path = os.path.join(
             os.path.split(voltagebudget.__file__)[0], 'modes.json')
@@ -112,6 +113,17 @@ def get_mode_names(json_path=None):
         modes = json.load(data_file)
 
     return modes.keys()
+
+
+def get_default_modes():
+    """Get the default modes built into voltagebudget library"""
+    json_path = os.path.join(
+        os.path.split(voltagebudget.__file__)[0], 'modes.json')
+
+    with open(json_path, 'r') as data_file:
+        modes = json.load(data_file)
+
+    return modes
 
 
 def read_stim(stim):
