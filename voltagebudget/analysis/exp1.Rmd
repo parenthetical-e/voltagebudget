@@ -1,0 +1,71 @@
+---
+title: "Exp1 - Opt w_in and {A,phi)"
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+```
+
+# Load and process
+
+```{r, message=FALSE}
+results <- read_csv("../data/fwd_test.csv")
+```
+
+```{r, fig.width=1.8, fig.height=1.3}
+results %>% 
+  filter(computation_scores < 0.03) %>%
+  ggplot(aes(x=communication_scores)) +
+  geom_histogram(bins=50) + 
+  xlab("C") +
+  theme_classic() -> p1
+
+results %>% 
+  filter(computation_scores < 0.03) %>%
+  ggplot(aes(x=computation_scores)) +
+  geom_histogram(bins=50) + 
+  xlab("S") +
+  theme_classic() -> p2
+
+results %>% 
+  filter(computation_scores < 0.03) %>%
+  ggplot(aes(x=communication_voltages)) +
+  geom_histogram(bins=100) +
+  # geom_density(alpha=0.1) +
+  xlim(0, 0.003) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  filter(computation_scores < 0.03) %>%
+  ggplot(aes(x=computation_voltages)) +
+  geom_histogram(bins=100) +
+  xlab("Vo (volt)") +
+  xlim(0, 0.003) +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+```
+
+
+```{r, fig.width=2, fig.height=1}
+results %>% 
+    filter(computation_scores < 0.03) %>%
+  ggplot(aes(x=Opt_y, y=Opt_z, color=As)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=1.5, fig.height=1}
+results %>% 
+filter(computation_scores < 0.03) %>%
+  ggplot(aes(x=As, y=communication_scores/max(communication_scores))) +
+  geom_point(color="blue", alpha=0.5) + 
+  xlab("Osc. amplitude (amps)") +
+  ylab("Rel. scores (AU)") +
+  geom_point(aes(x=As, y=1-computation_scores/max(computation_scores)), color="black") + 
+  theme_classic()
+```
