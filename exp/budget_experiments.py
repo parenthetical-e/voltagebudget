@@ -298,6 +298,8 @@ def forward(name,
 
         # Min. diff between targets and observed
 
+        # TODO HOw to flag this???
+
         # 1. Max both
         # 2. Max both, favoring one or the other with a bias
         #    if delta is not zero
