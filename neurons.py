@@ -23,7 +23,7 @@ def adex(N,
          w_in=0.8e-9,
          tau_in=5e-3,
          bias=0.0e-9,
-         Et=-50.4e-3,
+         Et=-48.0e-3,
          f=0,
          A=1e-3,
          phi=0,
@@ -31,6 +31,8 @@ def adex(N,
          C=200e-12,
          g_l=10e-9,
          V_l=-70e-3,
+         V_reset=65e-3,
+         V_init=-47e-3,
          a=0e-9,
          b=10e-12,
          tau_w=30e-3,
@@ -88,8 +90,10 @@ def adex(N,
 
     # Other neuron params
     El = V_l * volt
+    E_reset = V_reset * volt
     Et *= volt
     E_rheo *= volt
+    E_init = V_init * volt
 
     # Comp vars
     w_in *= siemens
@@ -100,7 +104,7 @@ def adex(N,
     b *= amp
     delta_t *= volt
     tau_w *= second
-    E_cut = Et + 5 * delta_t  # how high should the spike go?
+    E_cut = Et + 8 * delta_t  # how high should the spike go?
 
     # osc injection?
     f *= Hz
@@ -133,7 +137,7 @@ def adex(N,
         model=eqs,
         refractory=2 * msecond,
         threshold='v > E_cut',
-        reset="v = E_rheo; w += b",
+        reset="v = E_reset; w += b",
         method='euler')
 
     # Init
@@ -181,27 +185,29 @@ def adex(N,
         E_leak = float(El)
         E_cut = float(E_cut)
         E_rheo = float(E_rheo)
+        E_init = float(E_init)
 
         V_m = np.asarray(traces_e.v_)
 
-        V_m_thesh = V_m.copy()
-        V_m_thesh[V_m_thesh > E_rheo] = E_rheo
+        V_m_thresh = V_m.copy()
+        V_m_thresh[V_m_thresh > E_init] = E_init
 
         # and analyze the budget.
         V_comp = V_m_thresh - V_osc
         V_osc = E_rheo - V_osc
-        V_free = E_rheo - V_m_thesh
+        V_free = E_rheo - V_m_thresh
 
         # Save it too.
         vs = dict(
             tau_m=float(C / g_l),
             times=np.asarray(traces_e.t_),
             V_m=V_m,
-            V_m_thresh=V_m_thesh,
+            V_m_thresh=V_m_thresh,
             V_comp=V_comp,
             V_osc=V_osc,
             V_free=V_free,
             E_leak=E_leak,
+            E_init=E_init,
             E_cut=E_cut,
             E_thresh=float(Et))
 

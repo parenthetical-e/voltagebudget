@@ -157,21 +157,22 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
 
 def forward(name,
             N=50,
-            t=0.8,
+            t=0.65,
             delta=0,
             stim_onset=0.6,
-            stim_offset=0.7,
-            budget_onset=None,
-            budget_offset=None,
-            stim_rate=20,
-            stim_number=20,
-            coincidence_t=5e-3,
+            stim_offset=0.63,
+            budget_onset=0.596,
+            budget_offset=0.6,
+            stim_rate=24,
+            stim_number=50,
+            coincidence_t=4e-3,
             coincidence_n=20,
             f=0,
             A=0.2e-9,
             phi=np.pi,
             mode='regular',
             reduce_fn='mean',
+            loss='max_both',
             M=100,
             fix_w=False,
             fix_A=False,
@@ -298,18 +299,22 @@ def forward(name,
 
         # Min. diff between targets and observed
 
-        # TODO HOw to flag this???
-
         # 1. Max both
         # 2. Max both, favoring one or the other with a bias
         #    if delta is not zero
-        loss = (-y + delta, -z - delta)
+        if loss == 'max_both':
+            return (-y + delta, -z - delta)
 
         # 3. Maintain y, max z
-        loss = (np.abs(y_ref - y), -z)
+        elif loss_mode == 'max_communication':
+            return (np.abs(y_ref - y), -z)
 
         # 4. Maintain y, target free
-        loss = (np.abs(y_ref - y), np.abs(z_free - z))
+        elif loss_mode == 'max_computation':
+            return (-y, np.abs(z_free - z))
+
+        else:
+            raise ValueError("loss_mode not understood.")
 
         return loss
 
@@ -318,9 +323,7 @@ def forward(name,
         print(">>> Building problem.")
     problem = Problem(3, 2)
     problem.types[:] = [
-        Real(0.0e-12, A),
-        Real(0.0e-12, phi),
-        Real(0.0e-12, w_in)
+        Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_in)
     ]
     problem.function = sim
     algorithm = NSGAII(problem)
