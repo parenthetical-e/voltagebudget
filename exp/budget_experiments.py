@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 import fire
 import json
@@ -253,7 +253,7 @@ def forward(name,
 
     # Move to short math-y variables.
     y_ref = reduce_fn(budget_ref['V_comp'])
-    z_ref = reduce_fn(budget_ref['V_free'])
+    z_free = reduce_fn(budget_ref['V_free'])
 
     def sim(pars):
         A_p = pars[0]
@@ -261,7 +261,7 @@ def forward(name,
         w_p = pars[2]
 
         # Turn off opt on a select
-        # parameter? 
+        # parameter?
         # Resorts to a default.
         if fix_w:
             w_p = w_in
@@ -289,23 +289,36 @@ def forward(name,
             **params)
 
         # Isolate the analysis window
-        budget_o = filter_budget(budget_o['times'], budget_o,
-                                 (budget_onset, budget_offset))
+        budget_o = filter_budget(budget_o['times'], budget_o, (budget_onset,
+                                                               budget_offset))
 
         # Reduce the voltages to measures...
         y = reduce_fn(budget_o['V_comp'])
         z = reduce_fn(budget_o['V_osc'])
 
         # Min. diff between targets and observed
-        # return np.abs(y - y_bar), np.abs(z - z_bar)
-        return (y_ref - y + delta), (z - z_ref - delta)
+
+        # 1. Max both
+        # 2. Max both, favoring one or the other with a bias
+        #    if delta is not zero
+        loss = (-y + delta, -z - delta)
+
+        # 3. Maintain y, max z
+        loss = (np.abs(y_ref - y), -z)
+
+        # 4. Maintain y, target free
+        loss = (np.abs(y_ref - y), np.abs(z_free - z))
+
+        return loss
 
     # --------------------------------------------------------------
     if verbose:
         print(">>> Building problem.")
     problem = Problem(3, 2)
     problem.types[:] = [
-        Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_in)
+        Real(0.0e-12, A),
+        Real(0.0e-12, phi),
+        Real(0.0e-12, w_in)
     ]
     problem.function = sim
     algorithm = NSGAII(problem)
