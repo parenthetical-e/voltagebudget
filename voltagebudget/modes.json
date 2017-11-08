@@ -12,7 +12,7 @@
       "initial_inputs": {
         "w_max": 3e-9,
         "bias": 5.8129317905916417e-11,
-        "sigma": 3.0e-9
+        "sigma": 1.5e-9
     }
   },
   "adaption": {
@@ -28,7 +28,7 @@
       "initial_inputs": {
         "w_max": 3e-9,
         "bias": 6.511601370010947e-11,
-        "sigma": 3.0e-9
+        "sigma": 1.5e-9
     }
   },
   "initial_burst": {
@@ -44,7 +44,7 @@
       "initial_inputs": {
         "w_max": 3e-9,
         "bias": -1.4718066130661974e-10,
-        "sigma": 3.0e-9
+        "sigma": 1.5e-9
     }
   },
   "regular_burst": {
@@ -60,7 +60,7 @@
       "initial_inputs": {
         "w_max": 3e-9,
         "bias": -8.081386790038521e-11,
-        "sigma": 3.0e-9
+        "sigma": 1.5e-9
     }
   },
   "delayed_accelerating": {
@@ -76,7 +76,7 @@
       "initial_inputs": {
         "w_max": 3e-9,
         "bias": 2.350007627876716e-11,
-        "sigma": 3.0e-9
+        "sigma": 1.5e-9
     }
   },
   "delayed_regular_bursting": {
@@ -92,7 +92,7 @@
       "initial_inputs": {
         "w_max": 3e-9,
         "bias": 3.650155871102366e-11,
-        "sigma": 3.0e-9
+        "sigma": 1.5e-9
     }
   },
   "transient_spiking": {
@@ -108,7 +108,7 @@
       "initial_inputs": {
         "w_max": 3e-9,
         "bias": 2.8630604931133964e-17,
-        "sigma": 3.0e-9
+        "sigma": 1.5e-9
     }
   }
 }
