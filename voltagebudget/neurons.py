@@ -6,6 +6,12 @@ from copy import deepcopy
 from voltagebudget.util import step_waves
 
 
+def shadow_ad(N, time, ns, ts, **adex_kwargs):
+    raise NotImplementedError(
+        "TODO: Shadow adex without the exponential rise.")
+    pass
+
+
 def shadow_adex(N, time, ns, ts, **adex_kwargs):
     """Est. the 'shadow voltage' of the AdEx membrane voltage."""
     # In the neuron can't fire, we're in the shadow realm!
