@@ -10,14 +10,15 @@ import voltagebudget
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import shadow_adex
 from voltagebudget.util import poisson_impulse
-from voltagebudget.util import filter_budget
 from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
-from voltagebudget.util import poisson_impulse
-from voltagebudget.util import estimate_communication
-from voltagebudget.util import precision
+
+from voltagebudget.budget import filter_budget
+from voltagebudget.budget import locate_first
+from voltagebudget.budget import estimate_communication
+from voltagebudget.budget import precision
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -155,11 +156,13 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
 def forward(name,
             N=50,
             t=0.65,
-            delta=0,
+            budget_bias=0,
+            budget_delay=1e-3,
+            budget_width=4e-3,
+            individual_budgets=True,
+            budget_reduce_fn='mean',
             stim_onset=0.6,
             stim_offset=0.63,
-            budget_onset=0.596,
-            budget_offset=0.6,
             stim_rate=12,
             stim_number=50,
             coincidence_t=4e-3,
@@ -168,8 +171,6 @@ def forward(name,
             A=0.2e-9,
             phi=np.pi,
             mode='regular',
-            reduce_fn='mean',
-            loss='max_both',
             M=100,
             fix_w=False,
             fix_A=False,
@@ -182,6 +183,9 @@ def forward(name,
             time_step=2.5e-5):
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
+
+    if individual_budgets:
+        combine = False
 
     # --------------------------------------------------------------
     # analysis windows...
@@ -196,9 +200,9 @@ def forward(name,
     # --------------------------------------------------------------
     # Lookup the reduce function
     try:
-        reduce_fn = getattr(np, reduce_fn)
+        budget_reduce_fn = getattr(np, budget_reduce_fn)
     except AttributeError:
-        raise ValueError("{} is not a numpy function".format(reduce_fn))
+        raise ValueError("{} is not a numpy function".format(budget_reduce_fn))
 
     # -
     if verbose:
@@ -250,8 +254,8 @@ def forward(name,
         print(">>> Setting up the problem function.")
 
     # Move to short math-y variables.
-    y_ref = reduce_fn(budget_ref['V_comp'])
-    z_free = reduce_fn(budget_ref['V_free'])
+    # TODO first passage budget 
+    # (leaving room for shadow?)
 
     def sim(pars):
         A_p = pars[0]
@@ -287,33 +291,14 @@ def forward(name,
             **params)
 
         # Isolate the analysis window
-        budget_o = filter_budget(budget_o['times'], budget_o, (budget_onset,
-                                                               budget_offset))
+        # TODO spike triggered budget analysis....
+        find_
 
         # Reduce the voltages to measures...
-        y = reduce_fn(budget_o['V_comp'])
-        z = reduce_fn(budget_o['V_osc'])
+        y = budget_reduce_fn(budget_o['V_comp'])
+        z = budget_reduce_fn(budget_o['V_osc'])
 
-        # Min. diff between targets and observed
-
-        # 1. Max both
-        # 2. Max both, favoring one or the other with a bias
-        #    if delta is not zero
-        if loss == 'max_both':
-            return (-y + delta, -z - delta)
-
-        # 3. Maintain y, max z
-        elif loss_mode == 'max_communication':
-            return (np.abs(y_ref - y), -z)
-
-        # 4. Maintain y, target free
-        elif loss_mode == 'max_computation':
-            return (-y, np.abs(z_free - z))
-
-        else:
-            raise ValueError("loss_mode not understood.")
-
-        return loss
+        return (-y + budget_bias, -z - budget_bias)
 
     # --------------------------------------------------------------
     if verbose:
@@ -390,13 +375,13 @@ def forward(name,
             ts_m, (stim_onset, stim_offset),
             coincidence_t=coincidence_t,
             coincidence_n=coincidence_n)
-        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=True)
+        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=combine)
 
         # -
         communication_scores.append(comm)
         computation_scores.append(np.mean(prec))
-        computation_voltages.append(reduce_fn(budget_m['V_comp']))
-        communication_voltages.append(reduce_fn(budget_m['V_osc']))
+        computation_voltages.append(budget_reduce_fn(budget_m['V_comp']))
+        communication_voltages.append(budget_reduce_fn(budget_m['V_osc']))
 
     results["communication_scores"] = communication_scores
     results["computation_scores"] = computation_scores
