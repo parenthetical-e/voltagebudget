@@ -64,8 +64,8 @@ def lif_brute(time,
 
     results = Parallel(
         n_jobs=n_jobs, verbose=1)(delayed(lif)(
-            time, 1, ns, ts, w_in=w_in, bias=bias, budget=False, report=None)
-                                  for (w_in, bias) in params)
+            time, 1, ns, ts, w_max=w_max, bias=bias, budget=False, report=None)
+                                  for (w_max, bias) in params)
 
     # Extract spike times
     ts_hats = [r[1] for r in results]
@@ -99,7 +99,7 @@ def lif_brute(time,
 
     # Predict with best
     w_best, b_best = params[lowest]
-    ts_best = lif(time, 1, ns, ts, w_in=w_best, bias=b_best, budget=False)[1]
+    ts_best = lif(time, 1, ns, ts, w_max=w_best, bias=b_best, budget=False)[1]
 
     if diagnostic:
         details = {"lowest": lowest, "errors": errors}

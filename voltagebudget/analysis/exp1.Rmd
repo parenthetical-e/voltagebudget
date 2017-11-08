@@ -1,5 +1,5 @@
 ---
-title: "Exp1 - Opt w_in and {A,phi)"
+title: "Exp1 - Opt w_max and {A,phi)"
 output: html_notebook
 ---
 

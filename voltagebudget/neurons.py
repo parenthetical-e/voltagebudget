@@ -10,7 +10,7 @@ def shadow_adex(N, time, ns, ts, **adex_kwargs):
     """Est. the 'shadow voltage' of the AdEx membrane voltage."""
     # In the neuron can't fire, we're in the shadow realm!
     Et = 1000  # 1000 volts is infinity, for neurons.
-    _, _, budget = adex(time, N, ns, ts, budget=True, Et=Et, **adex_kwargs)
+    _, _, budget = adex(N, time, ns, ts, budget=True, Et=Et, **adex_kwargs)
 
     return budget['V_m'], budget
 
@@ -20,7 +20,7 @@ def adex(N,
          time,
          ns,
          ts,
-         w_in=0.8e-9,
+         w_max=0.8e-9,
          tau_in=5e-3,
          bias=0.0e-9,
          Et=-48.0e-3,
@@ -96,7 +96,7 @@ def adex(N,
     E_init = V_init * volt
 
     # Comp vars
-    w_in *= siemens
+    w_max *= siemens
     tau_in *= second
     bias *= amp
     sigma *= siemens
@@ -120,7 +120,7 @@ def adex(N,
     I_noise = g_noise * (v - El) : amp
     dg_in/dt = -g_in / tau_in : siemens
     I_osc = A * sin((t + phi) * f * 2 * pi) : amp
-    dg_noise/dt = -(g_noise+ (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
+    dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     """
 
     # Step injection?
@@ -146,7 +146,7 @@ def adex(N,
 
     # Set up the 'network'
     P_stim = SpikeGeneratorGroup(np.max(ns) + 1, ns, ts * second)
-    C_stim = Synapses(P_stim, P_e, on_pre='g_in += w_in')
+    C_stim = Synapses(P_stim, P_e, on_pre='g_in += (w_max * rand())')
     C_stim.connect()
 
     # -----------------------------------------------------------------

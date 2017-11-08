@@ -1,5 +1,5 @@
 # Qs
-- Let adex take an N arg again; if w_in is fixed not stocastic there is no neeed to limit to 1
+- Let adex take an N arg again; if w_max is fixed not stocastic there is no neeed to limit to 1
 - define reverse
 
 - T def?

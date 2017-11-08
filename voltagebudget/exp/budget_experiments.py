@@ -5,11 +5,6 @@ import json
 import csv
 import os
 import numpy as np
-from fakespikes.util import spike_window_code
-from fakespikes.util import spike_time_code
-from fakespikes.util import levenshtein
-from fakespikes.util import estimate_communication
-from fakespikes.util import precision
 
 import voltagebudget
 from voltagebudget.neurons import adex
@@ -21,6 +16,8 @@ from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
 from voltagebudget.util import poisson_impulse
+from voltagebudget.util import estimate_communication
+from voltagebudget.util import precision
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -62,7 +59,7 @@ def autotune_w(mode,
             t,
             ns,
             ts,
-            w_in=w,
+            w_max=w,
             bias=bias,
             sigma=sigma,
             report=None,
@@ -86,7 +83,7 @@ def autotune_membrane(mode, bias_0, sigma_0, mean, std, t=1):
     # No input spikes
     ns = np.zeros(1)
     ts = np.zeros(1)
-    w_in = 0
+    w_max = 0
 
     # -
     def problem(p):
@@ -94,7 +91,7 @@ def autotune_membrane(mode, bias_0, sigma_0, mean, std, t=1):
         sigma = p[0]
 
         vm, _ = shadow_adex(
-            1, t, ns, ts, w_in=w_in, bias=bias, report=None, **params)
+            1, t, ns, ts, w_max=w_max, bias=bias, report=None, **params)
 
         return (np.mean(vm) - mean), (np.std(vm) - std)
 
@@ -115,7 +112,7 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
 
     # Construct a valid kawrgs for adex()
     exclude = [
-        'N', 'time', 'budget', 'report', 'save_args', 'phi', 'w_in', 'A'
+        'N', 'time', 'budget', 'report', 'save_args', 'phi', 'w_max', 'A'
     ]
     kwargs = {}
     for k, v in arg_data.items():
@@ -141,7 +138,7 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
         arg_data['time'],
         np.asarray(stim_data['ns']),
         np.asarray(stim_data['ts']),
-        w_in=w,
+        w_max=w,
         A=A,
         phi=phi,
         f=f,
@@ -163,7 +160,7 @@ def forward(name,
             stim_offset=0.63,
             budget_onset=0.596,
             budget_offset=0.6,
-            stim_rate=24,
+            stim_rate=12,
             stim_number=50,
             coincidence_t=4e-3,
             coincidence_n=20,
@@ -194,7 +191,7 @@ def forward(name,
         budget_offset = stim_offset
 
     # Get mode
-    params, w_in, bias, sigma = read_modes(mode)
+    params, w_max, bias, sigma = read_modes(mode)
 
     # --------------------------------------------------------------
     # Lookup the reduce function
@@ -235,7 +232,7 @@ def forward(name,
         t,
         ns,
         ts,
-        w_in=w_in,
+        w_max=w_max,
         bias=bias,
         f=0,
         A=0,
@@ -265,7 +262,7 @@ def forward(name,
         # parameter?
         # Resorts to a default.
         if fix_w:
-            w_p = w_in
+            w_p = w_max
         if fix_A:
             A_p = A
         if fix_phi:
@@ -278,7 +275,7 @@ def forward(name,
             t,
             ns,
             ts,
-            w_in=w_p,
+            w_max=w_p,
             bias=bias,
             f=f,
             A=A_p,
@@ -323,9 +320,7 @@ def forward(name,
         print(">>> Building problem.")
     problem = Problem(3, 2)
     problem.types[:] = [
-        Real(0.0e-12, A),
-        Real(0.0e-12, phi),
-        Real(0.0e-12, w_in)
+        Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_max)
     ]
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -352,7 +347,7 @@ def forward(name,
     if not fix_w:
         Ws = [s.variables[2] for s in algorithm.result]
     else:
-        Ws = [w_in] * M
+        Ws = [w_max] * M
     results['As'] = As
     results['Phis'] = Phis
     results['Ws'] = Ws
@@ -375,7 +370,7 @@ def forward(name,
             t,
             ns,
             ts,
-            w_in=w_m,
+            w_max=w_m,
             bias=bias,
             f=f,
             A=A_m,
@@ -392,7 +387,7 @@ def forward(name,
         comm = estimate_communication(
             times,
             ns_m,
-            ts_m, (budget_onset, budget_offset),
+            ts_m, (stim_onset, stim_offset),
             coincidence_t=coincidence_t,
             coincidence_n=coincidence_n)
         _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=True)
