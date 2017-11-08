@@ -36,18 +36,72 @@ def locate_first(ns, ts, combine=False):
     return np.asarray(ns_first), np.asarray(ts_first)
 
 
-def filter_budget(times, vs, window):
-    m = np.logical_and(times >= window[0], times <= window[1])
+def select_voltages(budget, select=None):
+    if select is None:
+        select = ["V_m", "V_m_thresh", "V_comp", "V_osc", "V_free"]
 
+    voltages = {}
+    for k, v in budget.items():
+        if k in select:
+            voltages[k] = v
+
+    return voltages
+
+
+def filter_voltages(budget,
+                    ns_first,
+                    ts_first,
+                    budget_delay=-4e-3,
+                    budget_width=4e-3,
+                    select=None,
+                    combine=False):
+
+    # Sanity
+    if budget_width < 0:
+        raise ValueError("budget width must be positive")
+    if np.abs(budget_delay) < budget_width:
+        raise ValueError("delay must be greater than width")
+
+    # Disassemble budget into voltages and times
+    times = np.squeeze(budget['times'])
+    voltages = select_voltages(budget, select=select)
+
+    # Filter based on first passage times
     filtered = {}
-    for k, v in vs.items():
-        try:
-            len(vs[k])  # error on scalar/float
-            filtered[k] = vs[k][:, m]
-        except IndexError:
-            filtered[k] = vs[k][m]
-        except TypeError:
-            filtered[k] = vs[k]  # copy over scalar values
+    for k, v in voltages.items():
+        if v.ndim > 2:
+            raise ValueError("{} is greater than 2d.".format(k))
+        elif v.ndim == 2:
+            if combine:
+                t = ts_first[0]
+                t_on = t + budget_delay
+                t_off = t_on + budget_width
+
+                window = (t_on, t_off)
+                m = np.logical_and(times >= window[0], times <= window[1])
+
+                filtered[k] = budget[k][:, m]
+                filtered['times'] = times[m]
+
+            else:
+                xs = []
+                x_times = []
+                for i, n in enumerate(ns_first):
+                    t = ts_first[i]
+                    t_on = t + budget_delay
+                    t_off = t_on + budget_width
+
+                    window = (t_on, t_off)
+                    m = np.logical_and(times >= window[0], times <= window[1])
+
+                    xs.append(budget[k][n, m])
+                    x_times.append(times[m])
+
+                filtered[k] = np.vstack(xs)
+                filtered['times'] = np.vstack(x_times)
+
+        else:
+            raise ValueError("{} is less than 2d".format(k))
 
     return filtered
 
