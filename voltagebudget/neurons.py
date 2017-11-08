@@ -73,12 +73,12 @@ def adex(N,
                 row = (arg, eval(arg))
                 args.append(row)
 
-        with open("{}.csv".format(save_args), "wb") as fi:
+        with open("{}.csv".format(save_args), "w") as fi:
             writer = csv.writer(fi, delimiter=",")
             writer.writerows(args)
 
     # -----------------------------------------------------------------
-    # If there's no input, return empty 
+    # If there's no input, return empty
     if ns.shape[0] == 0:
         return np.array([]), np.array([]), dict()
 
