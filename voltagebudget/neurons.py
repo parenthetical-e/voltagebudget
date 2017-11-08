@@ -59,6 +59,7 @@ def adex(N,
         The random seed
     """
     np.random.seed(seed)
+
     defaultclock.dt = time_step * second
     prefs.codegen.target = 'numpy'
 
