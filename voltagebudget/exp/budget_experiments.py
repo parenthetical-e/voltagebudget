@@ -218,7 +218,7 @@ def forward(name,
     if verbose:
         print(">>> {} spikes generated.".format(ns.size))
         print(">>> Saving input.")
-    with open("{}_stim.csv".format(name), "wb") as fi:
+    with open("{}_stim.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")
         writer.writerow(["ns", "ts"])
         writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
@@ -323,7 +323,9 @@ def forward(name,
         print(">>> Building problem.")
     problem = Problem(3, 2)
     problem.types[:] = [
-        Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_in)
+        Real(0.0e-12, A),
+        Real(0.0e-12, phi),
+        Real(0.0e-12, w_in)
     ]
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -411,7 +413,7 @@ def forward(name,
         print(">>> Saving results.")
 
     keys = sorted(results.keys())
-    with open("{}.csv".format(name), "wb") as fi:
+    with open("{}.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
