@@ -15,7 +15,7 @@ library(readr)
 results <- read_csv("../data/fwd_test.csv")
 ```
 
-```{r, fig.width=1.8, fig.height=1.3}
+```{r, fig.width=2.5, fig.height=1.3}
 results %>% 
   # filter(computation_scores < 0.03) %>%
   ggplot(aes(x=communication_scores)) +
@@ -32,7 +32,7 @@ results %>%
 
 results %>% 
   # filter(computation_scores < 0.03) %>%
-  ggplot(aes(x=1e3*communication_voltages)) +
+  ggplot(aes(x=communication_voltages)) +
   geom_histogram(bins=100) +
   # geom_density(alpha=0.1) +
   # xlim(0, 0.003) +
@@ -41,7 +41,7 @@ results %>%
 
 results %>% 
   # filter(computation_scores < 0.03) %>%
-  ggplot(aes(x=1e3*computation_voltages)) +
+  ggplot(aes(x=computation_voltages)) +
   geom_histogram(bins=100) +
   xlab("Vo (volt)") +
   # xlim(0, 0.003) +
@@ -51,7 +51,7 @@ grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 
 
-```{r, fig.width=2, fig.height=1}
+```{r, fig.width=2.5, fig.height=1}
 results %>% 
     # filter(computation_scores < 0.03) %>%
   ggplot(aes(x=Opt_y, y=Opt_z, color=As)) +
@@ -61,15 +61,15 @@ results %>%
 
 ```{r, fig.width=2, fig.height=1}
 results %>% 
-    filter(computation_scores < 0.6) %>%
-  ggplot(aes(x=1e3*computation_voltages, y=1e3*communication_voltages, color=As)) +
+    # filter(computation_scores < 0.6) %>%
+  ggplot(aes(x=computation_voltages, y=communication_voltages, color=As)) +
   geom_point() + 
   theme_classic()
 ```
 
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
-filter(computation_scores < 0.6) %>%
+# filter(computation_scores < 0.6) %>%
   ggplot(aes(x=As, y=communication_scores/max(communication_scores))) +
   geom_point(color="blue", alpha=0.5) + 
   xlab("Osc. amplitude (amps)") +
