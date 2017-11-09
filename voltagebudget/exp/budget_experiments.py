@@ -166,8 +166,7 @@ def forward(name,
             stim_offset=0.8,
             stim_rate=12,
             stim_number=50,
-            coincidence_t=2e-3,
-            coincidence_n=20,
+            coincidence_t=1e-3,
             f=0,
             A=0.2e-9,
             phi=np.pi,
@@ -391,10 +390,9 @@ def forward(name,
             ns_m,
             ts_m, (stim_onset, stim_offset),
             coincidence_t=coincidence_t,
-            coincidence_n=coincidence_n)
+            time_step=time_step)
         communication_scores.append(comm)
 
-        # -
         _, prec = precision(
             ns_m, ts_m, ns_ref, ts_ref, combine=combine_budgets)
         computation_scores.append(np.mean(prec))
