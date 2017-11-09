@@ -118,7 +118,16 @@ def estimate_communication(times,
     # Define overall analysis window 
     t0 = window[0]
     tn = window[1]
-    if tn + coincidence_t > times.max():
+
+    # If there are not spikes there is not communication.
+    if ns.size == 0:
+        out = 0
+        if return_all:
+            out = (0, [0])
+        return out
+
+    # -
+    if tn + coincidence_t >= ts.max():
         raise ValueError("Final window must be less than max value in times")
 
     m = np.logical_and(t0 <= ts, ts <= tn)
