@@ -16,7 +16,8 @@ from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
 
 from voltagebudget.budget import filter_voltages
-from voltagebudget.budget import locate_first
+from voltagebudget.budget import locate_firsts
+from voltagebudget.budget import locate_peaks
 from voltagebudget.budget import estimate_communication
 from voltagebudget.budget import precision
 
@@ -243,7 +244,7 @@ def forward(name,
         raise ValueError("The reference model didn't spike.")
 
     # Isolate the reference analysis window
-    ns_first, ts_first = locate_first(ns_ref, ts_ref, combine=combine_budgets)
+    ns_first, ts_first = locate_firsts(ns_ref, ts_ref, combine=combine_budgets)
     voltages_ref = filter_voltages(
         budget_ref,
         ns_first,
@@ -290,26 +291,28 @@ def forward(name,
             **params)
 
         # -
-        # Punish models that do not spike.
-        # With huge defaults
-        y = -9999999
-        z = -9999999
-
+        # Locate either spikes or vm max values in the stim_window
         if ns_o.size > 0:
-            # Isolate the analysis window
-            ns_first, ts_first = locate_first(
+            ns_first, ts_first = locate_firsts(
                 ns_o, ts_o, combine=combine_budgets)
-            voltages_ref = filter_voltages(
-                budget_o,
-                ns_first,
-                ts_first,
-                budget_delay=budget_delay,
-                budget_width=budget_width,
-                combine=combine_budgets)
+        else:
+            ns_first, ts_first = locate_peaks(
+                budget_o, stim_onset, stim_offset, combine=combine_budgets)
 
-            # Reduce the voltages to measures...
-            y = budget_reduce_fn(budget_o['V_comp'])
-            z = budget_reduce_fn(budget_o['V_osc'])
+        # Extract voltages based on spikes/max
+        voltages_ref = filter_voltages(
+            budget_o,
+            ns_first,
+            ts_first,
+            budget_delay=budget_delay,
+            budget_width=budget_width,
+            combine=combine_budgets)
+
+        # Reduce the voltages
+        y = budget_o['V_comp']
+        z = budget_o['V_osc']
+        y = budget_reduce_fn(y)
+        z = budget_reduce_fn(z)
 
         return (-y + budget_bias, -z - budget_bias)
 
@@ -398,20 +401,22 @@ def forward(name,
 
         # -
         if ns_m.size > 0:
-            ns_first, ts_first = locate_first(
+            ns_first, ts_first = locate_firsts(
                 ns_m, ts_m, combine=combine_budgets)
-            voltages_m = filter_voltages(
-                budget_m,
-                ns_first,
-                ts_first,
-                budget_delay=budget_delay,
-                budget_width=budget_width,
-                combine=combine_budgets)
-
-            comp = budget_reduce_fn(voltages_m['V_comp'])
-            comm = budget_reduce_fn(voltages_m['V_osc'])
         else:
-            comp, comm = 0, 0
+            ns_first, ts_first = locate_peaks(
+                budget_m, stim_onset, stim_offset, combine=combine_budgets)
+
+        voltages_m = filter_voltages(
+            budget_m,
+            ns_first,
+            ts_first,
+            budget_delay=budget_delay,
+            budget_width=budget_width,
+            combine=combine_budgets)
+
+        comp = budget_reduce_fn(voltages_m['V_comp'])
+        comm = budget_reduce_fn(voltages_m['V_osc'])
 
         computation_voltages.append(comp)
         communication_voltages.append(comm)
