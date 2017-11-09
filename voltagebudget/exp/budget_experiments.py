@@ -156,7 +156,7 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
 
 def forward(name,
             N=50,
-            t=0.65,
+            t=0.9,
             budget_bias=0,
             budget_delay=-10e-3,
             budget_width=2e-3,
