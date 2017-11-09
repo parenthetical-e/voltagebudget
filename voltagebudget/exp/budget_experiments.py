@@ -15,7 +15,7 @@ from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
 
-from voltagebudget.budget import filter_budget
+from voltagebudget.budget import filter_voltages
 from voltagebudget.budget import locate_first
 from voltagebudget.budget import estimate_communication
 from voltagebudget.budget import precision
@@ -157,15 +157,15 @@ def forward(name,
             N=50,
             t=0.65,
             budget_bias=0,
-            budget_delay=1e-3,
-            budget_width=4e-3,
-            individual_budgets=True,
+            budget_delay=-10e-3,
+            budget_width=2e-3,
+            combine_budgets=False,
             budget_reduce_fn='mean',
             stim_onset=0.6,
-            stim_offset=0.63,
+            stim_offset=0.8,
             stim_rate=12,
             stim_number=50,
-            coincidence_t=4e-3,
+            coincidence_t=2e-3,
             coincidence_n=20,
             f=0,
             A=0.2e-9,
@@ -184,16 +184,7 @@ def forward(name,
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
 
-    if individual_budgets:
-        combine = False
-
     # --------------------------------------------------------------
-    # analysis windows...
-    if budget_onset is None:
-        budget_onset = stim_onset
-    if budget_offset is None:
-        budget_offset = stim_offset
-
     # Get mode
     params, w_max, bias, sigma = read_modes(mode)
 
@@ -204,7 +195,7 @@ def forward(name,
     except AttributeError:
         raise ValueError("{} is not a numpy function".format(budget_reduce_fn))
 
-    # -
+    # --------------------------------------------------------------
     if verbose:
         print(">>> Building input.")
     ns, ts = poisson_impulse(
@@ -225,9 +216,8 @@ def forward(name,
         writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
 
     # --------------------------------------------------------------
-    # Define ideal targt computation (no oscillation)
-    # (Make sure and explain this breakdown well in th paper)
-    # (it would be an easy point of crit otherwise)
+    # Define target computation (i.e., no oscillation)
+    # (TODO Make sure and explain this breakdown well in th paper)
     if verbose:
         print(">>> Creating reference.")
 
@@ -249,13 +239,22 @@ def forward(name,
         time_step=time_step,
         **params)
 
+    if ns_ref.size == 0:
+        raise ValueError("The reference model didn't spike.")
+
+    # Isolate the reference analysis window
+    ns_first, ts_first = locate_first(ns_ref, ts_ref, combine=combine_budgets)
+    voltages_ref = filter_voltages(
+        budget_ref,
+        ns_first,
+        ts_first,
+        budget_delay=budget_delay,
+        budget_width=budget_width,
+        combine=combine_budgets)
+
     # --------------------------------------------------------------
     if verbose:
         print(">>> Setting up the problem function.")
-
-    # Move to short math-y variables.
-    # TODO first passage budget 
-    # (leaving room for shadow?)
 
     def sim(pars):
         A_p = pars[0]
@@ -290,13 +289,27 @@ def forward(name,
             time_step=time_step,
             **params)
 
-        # Isolate the analysis window
-        # TODO spike triggered budget analysis....
-        find_
+        # -
+        # Punish models that do not spike.
+        # With huge defaults
+        y = -9999999
+        z = -9999999
 
-        # Reduce the voltages to measures...
-        y = budget_reduce_fn(budget_o['V_comp'])
-        z = budget_reduce_fn(budget_o['V_osc'])
+        if ns_o.size > 0:
+            # Isolate the analysis window
+            ns_first, ts_first = locate_first(
+                ns_o, ts_o, combine=combine_budgets)
+            voltages_ref = filter_voltages(
+                budget_o,
+                ns_first,
+                ts_first,
+                budget_delay=budget_delay,
+                budget_width=budget_width,
+                combine=combine_budgets)
+
+            # Reduce the voltages to measures...
+            y = budget_reduce_fn(budget_o['V_comp'])
+            z = budget_reduce_fn(budget_o['V_osc'])
 
         return (-y + budget_bias, -z - budget_bias)
 
@@ -333,6 +346,7 @@ def forward(name,
         Ws = [s.variables[2] for s in algorithm.result]
     else:
         Ws = [w_max] * M
+
     results['As'] = As
     results['Phis'] = Phis
     results['Ws'] = Ws
@@ -375,14 +389,34 @@ def forward(name,
             ts_m, (stim_onset, stim_offset),
             coincidence_t=coincidence_t,
             coincidence_n=coincidence_n)
-        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=combine)
+        communication_scores.append(comm)
 
         # -
-        communication_scores.append(comm)
+        _, prec = precision(
+            ns_m, ts_m, ns_ref, ts_ref, combine=combine_budgets)
         computation_scores.append(np.mean(prec))
-        computation_voltages.append(budget_reduce_fn(budget_m['V_comp']))
-        communication_voltages.append(budget_reduce_fn(budget_m['V_osc']))
 
+        # -
+        if ns_m.size > 0:
+            ns_first, ts_first = locate_first(
+                ns_m, ts_m, combine=combine_budgets)
+            voltages_m = filter_voltages(
+                budget_m,
+                ns_first,
+                ts_first,
+                budget_delay=budget_delay,
+                budget_width=budget_width,
+                combine=combine_budgets)
+
+            comp = budget_reduce_fn(voltages_m['V_comp'])
+            comm = budget_reduce_fn(voltages_m['V_osc'])
+        else:
+            comp, comm = 0, 0
+
+        computation_voltages.append(comp)
+        communication_voltages.append(comm)
+
+    # -
     results["communication_scores"] = communication_scores
     results["computation_scores"] = computation_scores
     results["communication_voltages"] = communication_voltages
