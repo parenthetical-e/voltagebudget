@@ -18,7 +18,7 @@ def select_n(n, ns, ts):
     return ns[m], ts[m]
 
 
-def locate_first(ns, ts, combine=False):
+def locate_firsts(ns, ts, combine=False):
     # Recode neurons as coming from one neuron,
     # i.e. a hack to examine the network
     if combine:
@@ -46,6 +46,34 @@ def select_voltages(budget, select=None):
             voltages[k] = v
 
     return voltages
+
+
+def locate_peaks(budget, onset=None, offset=None, combine=False, select=None):
+    # Extract
+    vm = budget["V_m"]
+    times = budget['times']
+
+    # Window?
+    if onset is not None:
+        m = np.logical_and(times > onset, times <= offset)
+        vm = vm[:, m]
+        times = times[m]
+
+    # Create ns
+    ns = np.arange(vm.shape[0])
+
+    # Find ts
+    idx = np.argmax(vm, axis=1)
+    ts = []
+    for i in idx:
+        ts.append(times[i])
+    ts = np.asarray(ts)
+
+    if combine:
+        ns = np.zeros(1)
+        ts = np.asarray([np.min(ts)])
+
+    return ns, ts
 
 
 def filter_voltages(budget,
@@ -125,10 +153,6 @@ def estimate_communication(times,
         if return_all:
             out = (0, [0])
         return out
-
-    # -
-    if tn + coincidence_t >= ts.max():
-        raise ValueError("Final window must be less than max value in times")
 
     m = np.logical_and(t0 <= ts, ts <= tn)
     ts = ts[m]
