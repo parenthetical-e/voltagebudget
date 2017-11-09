@@ -139,8 +139,6 @@ def estimate_communication(times,
                            ts,
                            window,
                            coincidence_t=1e-3,
-                           coincidence_n=20,
-                           return_all=False,
                            time_step=1e-4):
 
     # Define overall analysis window 
@@ -170,18 +168,15 @@ def estimate_communication(times,
         C_t = 0
         if ts[m].size > 0:
             n_spikes = ts[m].size
-            C_t = max(n_spikes - coincidence_n, 0) / coincidence_n
+            C_t = n_spikes
+            # C_t = max(n_spikes - coincidence_n, 0) / coincidence_n
 
         Cs.append(C_t)
 
     # Find avg C
     C = np.max(Cs)
-    out = C
 
-    if return_all:
-        out = (C, Cs)
-
-    return out
+    return C
 
 
 def precision(ns, ts, ns_ref, ts_ref, combine=True):
