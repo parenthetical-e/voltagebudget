@@ -142,9 +142,9 @@ def adex(N,
     P_e = NeuronGroup(
         N,
         model=eqs,
-        refractory=2 * msecond,
+        # refractory=2 * msecond,
         threshold='v > E_cut',
-        reset="v = E_reset; w += b",
+        reset="v = E_rheo; w += b",
         method='euler')
 
     # Init
@@ -159,7 +159,8 @@ def adex(N,
     # -----------------------------------------------------------------
     # Define variables
     spikes_e = SpikeMonitor(P_e)
-    traces_e = StateMonitor(P_e, ['v'], record=True)
+    record = ['v', 'I_ext']
+    traces_e = StateMonitor(P_e, record, record=True)
 
     # -----------------------------------------------------------------
     # Define basic net
@@ -208,6 +209,7 @@ def adex(N,
         vs = dict(
             tau_m=float(C / g_l),
             times=np.asarray(traces_e.t_),
+            I_ext=np.asarray(traces_e.I_ext_),
             V_m=V_m,
             V_m_thresh=V_m_thresh,
             V_comp=V_comp,
