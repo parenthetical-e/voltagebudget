@@ -10,6 +10,21 @@ from fakespikes import neurons, rates
 from fakespikes import util as fsutil
 
 
+def create_times(tspan, dt):
+    """Define time
+    
+    Params
+    ------
+    tspan : tuple (float, float)
+        Start and stop times (seconds)
+    dt : numeric
+        Time step lengthå
+    """
+    t0 = tspan[0]
+    t1 = tspan[1]
+    return np.linspace(t0, t1, np.int(np.round((t1 - t0) / dt)))
+
+
 def step_waves(I, f, duty, t, dt):
     times = fsutil.create_times(t, dt)
 
