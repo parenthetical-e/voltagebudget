@@ -5,6 +5,7 @@ import numpy as np
 
 from fakespikes import neurons, rates
 from fakespikes import util as fsutil
+from voltagebudget.util import create_times
 
 
 def filter_spikes(ns, ts, window):
@@ -134,23 +135,15 @@ def filter_voltages(budget,
     return filtered
 
 
-def estimate_communication(times,
-                           ns,
-                           ts,
-                           window,
-                           coincidence_t=1e-3,
-                           time_step=1e-4):
-
-    # Define overall analysis window 
+def estimate_communication(ns, ts, window, coincidence_t=1e-3, time_step=1e-4):
+    # Define overall analysis window
     t0 = window[0]
     tn = window[1]
+    times = create_times(window, time_step)
 
     # If there are not spikes there is not communication.
     if ns.size == 0:
-        out = 0
-        if return_all:
-            out = (0, [0])
-        return out
+        return 0
 
     m = np.logical_and(t0 <= ts, ts <= tn)
     ts = ts[m]
@@ -173,7 +166,7 @@ def estimate_communication(times,
 
         Cs.append(C_t)
 
-    # Find avg C
+    # Find highest C
     C = np.max(Cs)
 
     return C
