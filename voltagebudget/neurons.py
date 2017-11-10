@@ -126,7 +126,7 @@ def adex(N,
     I_in = g_in * (v - El) : amp
     I_noise = g_noise * (v - El) : amp
     dg_in/dt = -g_in / tau_in : siemens
-    I_osc = A * sin((t + phi) * f * 2 * pi) : amp
+    I_osc = A/2 * (1 + sin((t + phi) * f * 2 * pi)) : amp
     dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     """
 
