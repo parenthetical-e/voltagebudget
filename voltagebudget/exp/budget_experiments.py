@@ -149,9 +149,181 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
         **kwargs)
 
     if save_npy is not None:
-        np.savez(save, ns=ns, ts=ts, budget=budget)
+        np.savez(save_npy, ns=ns, ts=ts, budget=budget)
     else:
         return ns, ts, budget
+
+
+def sweep_power(name,
+                N=50,
+                t=1,
+                budget_delay=-10e-3,
+                budget_width=2e-3,
+                combine_budgets=False,
+                budget_reduce_fn='mean',
+                stim_onset=0.6,
+                stim_offset=0.8,
+                stim_rate=12,
+                stim_number=50,
+                coincidence_t=1e-3,
+                f=10,
+                A_intial=0.1e-9,
+                A_final=0.2e-9,
+                M=20,
+                phi=np.pi,
+                mode='regular',
+                report=None,
+                save_only=False,
+                verbose=False,
+                seed_stim=7525,
+                time_step=2.5e-5):
+
+    # --------------------------------------------------------------
+    # Get mode
+    params, w_max, bias, sigma = read_modes(mode)
+
+    # --------------------------------------------------------------
+    # Lookup the reduce function
+    try:
+        budget_reduce_fn = getattr(np, budget_reduce_fn)
+    except AttributeError:
+        raise ValueError("{} is not a numpy function".format(budget_reduce_fn))
+
+    # --------------------------------------------------------------
+    if verbose:
+        print(">>> Building input.")
+    ns, ts = poisson_impulse(
+        t,
+        stim_onset,
+        stim_offset - stim_onset,
+        stim_rate,
+        dt=0.5e-4,
+        n=stim_number,
+        seed=seed_stim)
+
+    if verbose:
+        print(">>> {} spikes generated.".format(ns.size))
+        print(">>> Saving input.")
+    with open("{}_stim.csv".format(name), "w") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(["ns", "ts"])
+        writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
+
+    # --------------------------------------------------------------
+    # Define target computation (i.e., no oscillation)
+    # (TODO Make sure and explain this breakdown well in th paper)
+    if verbose:
+        print(">>> Creating reference.")
+
+    ns_ref, ts_ref, budget_ref = adex(
+        N,
+        t,
+        ns,
+        ts,
+        w_max=w_max,
+        bias=bias,
+        f=0,
+        A=0,
+        phi=0,
+        sigma=sigma,
+        seed=seed_stim,
+        budget=True,
+        report=report,
+        save_args="{}_ref_args".format(name),
+        time_step=time_step,
+        **params)
+
+    if ns_ref.size == 0:
+        raise ValueError("The reference model didn't spike.")
+
+    # Isolate the reference analysis window
+    ns_first, ts_first = locate_firsts(ns_ref, ts_ref, combine=combine_budgets)
+    voltages_ref = filter_voltages(
+        budget_ref,
+        ns_first,
+        ts_first,
+        budget_delay=budget_delay,
+        budget_width=budget_width,
+        combine=combine_budgets)
+
+    # --------------------------------------------------------------
+    As = np.linspace(A_intial, A_final, M)
+    if verbose:
+        print(">>> Sweeping over {} powers.".format(len(As)))
+
+    # -
+    communication_scores = []
+    computation_scores = []
+    communication_voltages = []
+    computation_voltages = []
+    for A in As:
+        ns_o, ts_o, budget_o = adex(
+            N,
+            t,
+            ns,
+            ts,
+            w_max=w_max,
+            bias=bias,
+            f=f,
+            A=A,
+            phi=phi,
+            sigma=sigma,
+            seed=seed_stim,
+            budget=True,
+            report=report,
+            save_args=None,
+            time_step=time_step,
+            **params)
+
+        # Isolate the reference analysis window
+        ns_first, ts_first = locate_firsts(ns_o, ts_o, combine=combine_budgets)
+        voltages_o = filter_voltages(
+            budget_o,
+            ns_first,
+            ts_first,
+            budget_delay=budget_delay,
+            budget_width=budget_width,
+            combine=combine_budgets)
+
+        # --------------------------------------------------------------
+        # Extract stats, both voltages and scores
+        comm = estimate_communication(
+            ns_o,
+            ts_o, (stim_onset, stim_offset),
+            coincidence_t=coincidence_t,
+            time_step=time_step)
+
+        _, prec = precision(
+            ns_o, ts_o, ns_ref, ts_ref, combine=combine_budgets)
+
+        communication_scores.append(comm)
+        computation_scores.append(np.mean(prec))
+
+        # --------------------------------------------------------------
+        V_comp = budget_reduce_fn(voltages_o['V_comp'])
+        V_comm = budget_reduce_fn(voltages_o['V_osc'])
+        computation_voltages.append(V_comp)
+        communication_voltages.append(V_comm)
+
+    results = {}
+    results["power"] = As
+    results["communication_scores"] = communication_scores
+    results["computation_scores"] = computation_scores
+    results["communication_voltages"] = communication_voltages
+    results["computation_voltages"] = computation_voltages
+
+    # --------------------------------------------------------------
+    if verbose:
+        print(">>> Saving results.")
+
+    keys = sorted(results.keys())
+    with open("{}.csv".format(name), "w") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(keys)
+        writer.writerows(zip(* [results[key] for key in keys]))
+
+    if not save_only:
+        return results
 
 
 def forward(name,
@@ -320,7 +492,9 @@ def forward(name,
         print(">>> Building problem.")
     problem = Problem(3, 2)
     problem.types[:] = [
-        Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_max)
+        Real(0.0e-12, A),
+        Real(0.0e-12, phi),
+        Real(0.0e-12, w_max)
     ]
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -384,9 +558,7 @@ def forward(name,
             **params)
 
         # -
-        times = budget_m['times']
         comm = estimate_communication(
-            times,
             ns_m,
             ts_m, (stim_onset, stim_offset),
             coincidence_t=coincidence_t,
@@ -445,4 +617,9 @@ def reverse():
 
 
 if __name__ == "__main__":
-    fire.Fire({'forward': forward, 'reverse': reverse, 'replay': replay})
+    fire.Fire({
+        'forward': forward,
+        'sweep_power': sweep_power,
+        'reverse': reverse,
+        'replay': replay
+    })
