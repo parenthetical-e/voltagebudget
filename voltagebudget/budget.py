@@ -107,7 +107,7 @@ def filter_voltages(budget,
                 t_off = t_on + budget_width
 
                 window = (t_on, t_off)
-                m = np.logical_and(times >= window[0], times <= window[1])
+                m = np.logical_and(times > window[0], times < window[1])
 
                 filtered[k] = budget[k][:, m]
                 filtered['times'] = times[m]
@@ -121,13 +121,28 @@ def filter_voltages(budget,
                     t_off = t_on + budget_width
 
                     window = (t_on, t_off)
-                    m = np.logical_and(times >= window[0], times <= window[1])
+                    m = np.logical_and(times > window[0], times < window[1])
 
                     xs.append(budget[k][n, m])
                     x_times.append(times[m])
 
-                filtered[k] = np.vstack(xs)
-                filtered['times'] = np.vstack(x_times)
+                # Sometimes for baffling reasons xs,times are ragged.
+                # Keep the shortest len
+                min_l = np.min([len(x) for x in xs])
+
+                xs_f = []
+                for x in xs:
+                    x_f = x[0:min_l]
+                    xs_f.append(x_f)
+
+                x_times_f = []
+                for x in x_times:
+                    x_t = x[0:min_l]
+                    x_times_f.append(x_t)
+
+                # Save, finally....
+                filtered[k] = np.vstack(xs_f)
+                filtered['times'] = np.vstack(x_times_f)
 
         else:
             raise ValueError("{} is less than 2d".format(k))
