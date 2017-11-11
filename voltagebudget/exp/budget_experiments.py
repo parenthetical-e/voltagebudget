@@ -156,27 +156,27 @@ def replay(args, stim, results, i, f, save_npy=None, verbose=False):
 
 def sweep_power(name,
                 N=50,
-                t=1,
+                t=0.4,
                 budget_delay=-10e-3,
                 budget_width=2e-3,
                 combine_budgets=False,
                 budget_reduce_fn='mean',
-                stim_onset=0.6,
-                stim_offset=0.8,
-                stim_rate=12,
-                stim_number=50,
+                stim_number=40,
+                stim_onset=0.2,
+                stim_offset=0.250,
+                stim_rate=8,
                 coincidence_t=1e-3,
                 f=10,
-                A_intial=0.1e-9,
-                A_final=0.2e-9,
+                A_intial=0.0e-9,
+                A_final=.05e-9,
                 M=20,
                 phi=np.pi,
                 mode='regular',
                 report=None,
                 save_only=False,
                 verbose=False,
-                seed_stim=7525,
-                time_step=2.5e-5):
+                seed_stim=1,
+                time_step=1e-5):
 
     # --------------------------------------------------------------
     # Get mode
@@ -197,7 +197,7 @@ def sweep_power(name,
         stim_onset,
         stim_offset - stim_onset,
         stim_rate,
-        dt=0.5e-4,
+        dt=time_step,
         n=stim_number,
         seed=seed_stim)
 
@@ -276,7 +276,6 @@ def sweep_power(name,
             **params)
 
         # Isolate the reference analysis window
-        ns_first, ts_first = locate_firsts(ns_o, ts_o, combine=combine_budgets)
         voltages_o = filter_voltages(
             budget_o,
             ns_first,
@@ -328,31 +327,29 @@ def sweep_power(name,
 
 def forward(name,
             N=50,
-            t=0.9,
+            t=0.4,
             budget_bias=0,
             budget_delay=-10e-3,
             budget_width=2e-3,
             combine_budgets=False,
             budget_reduce_fn='mean',
-            stim_onset=0.6,
-            stim_offset=0.8,
-            stim_rate=12,
-            stim_number=50,
+            stim_number=40,
+            stim_onset=0.2,
+            stim_offset=0.250,
+            stim_rate=8,
             coincidence_t=1e-3,
             f=0,
-            A=0.2e-9,
+            A=.05e-9,
             phi=np.pi,
             mode='regular',
             M=100,
             fix_w=False,
-            fix_A=False,
-            fix_phi=False,
             seed_prob=42,
             seed_stim=7525,
             report=None,
             save_only=False,
             verbose=False,
-            time_step=2.5e-5):
+            time_step=1e-5):
     """Optimize using the voltage budget."""
     np.random.seed(seed_prob)
 
@@ -375,7 +372,7 @@ def forward(name,
         stim_onset,
         stim_offset - stim_onset,
         stim_rate,
-        dt=0.5e-4,
+        dt=time_step,
         n=stim_number,
         seed=seed_stim)
 
@@ -431,17 +428,14 @@ def forward(name,
     def sim(pars):
         A_p = pars[0]
         phi_p = pars[1]
-        w_p = pars[2]
 
-        # Turn off opt on a select
-        # parameter?
-        # Resorts to a default.
         if fix_w:
             w_p = w_max
-        if fix_A:
-            A_p = A
-        if fix_phi:
-            phi_p = phi
+        else:
+            w_p = pars[2]
+
+        if verbose:
+            print("(A, phi, w) : ({}, {}, {})".format(A_p, phi_p, w_p))
 
         # Run N simulations for mode
         # differing only by noise?
@@ -461,17 +455,9 @@ def forward(name,
             time_step=time_step,
             **params)
 
-        # -
-        # Locate either spikes or vm max values in the stim_window
-        if ns_o.size > 0:
-            ns_first, ts_first = locate_firsts(
-                ns_o, ts_o, combine=combine_budgets)
-        else:
-            ns_first, ts_first = locate_peaks(
-                budget_o, stim_onset, stim_offset, combine=combine_budgets)
-
-        # Extract voltages based on spikes/max
-        voltages_ref = filter_voltages(
+        # Extract voltages are same time points
+        # as the ref
+        voltages_o = filter_voltages(
             budget_o,
             ns_first,
             ts_first,
@@ -480,22 +466,27 @@ def forward(name,
             combine=combine_budgets)
 
         # Reduce the voltages
-        y = budget_o['V_comp']
-        z = budget_o['V_osc']
+        y = voltages_o['V_comp']
+        z = voltages_o['V_osc']
         y = budget_reduce_fn(y)
         z = budget_reduce_fn(z)
 
-        return (-y + budget_bias, -z - budget_bias)
+        if verbose:
+            print("(y, z) : ({}, {})".format(y, z))
+        return (y + budget_bias, z - budget_bias)
 
     # --------------------------------------------------------------
     if verbose:
         print(">>> Building problem.")
-    problem = Problem(3, 2)
-    problem.types[:] = [
-        Real(0.0e-12, A),
-        Real(0.0e-12, phi),
-        Real(0.0e-12, w_max)
-    ]
+
+    if fix_w:
+        problem = Problem(2, 2)
+        problem.types[:] = [Real(0.0e-12, A), Real(0.0e-12, phi)]
+    else:
+        problem = Problem(3, 2)
+        problem.types[:] = [
+            Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_max)
+        ]
     problem.function = sim
     algorithm = NSGAII(problem)
 
@@ -510,18 +501,14 @@ def forward(name,
         Opt_y=[s.objectives[0] for s in algorithm.result],
         Opt_z=[s.objectives[1] for s in algorithm.result])
 
-    if not fix_A:
-        As = [s.variables[0] for s in algorithm.result]
-    else:
-        As = [A] * M
-    if not fix_phi:
-        Phis = [s.variables[1] for s in algorithm.result]
-    else:
-        Phis = [phi] * M
-    if not fix_w:
-        Ws = [s.variables[2] for s in algorithm.result]
-    else:
+    # Add vars
+    As = [s.variables[0] for s in algorithm.result]
+    Phis = [s.variables[1] for s in algorithm.result]
+
+    if fix_w:
         Ws = [w_max] * M
+    else:
+        Ws = [s.variables[2] for s in algorithm.result]
 
     results['As'] = As
     results['Phis'] = Phis
@@ -568,14 +555,6 @@ def forward(name,
         _, prec = precision(
             ns_m, ts_m, ns_ref, ts_ref, combine=combine_budgets)
         computation_scores.append(np.mean(prec))
-
-        # -
-        if ns_m.size > 0:
-            ns_first, ts_first = locate_firsts(
-                ns_m, ts_m, combine=combine_budgets)
-        else:
-            ns_first, ts_first = locate_peaks(
-                budget_m, stim_onset, stim_offset, combine=combine_budgets)
 
         voltages_m = filter_voltages(
             budget_m,

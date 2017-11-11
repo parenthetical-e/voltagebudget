@@ -29,22 +29,21 @@ def adex(N,
          w_max=0.8e-9,
          tau_in=5e-3,
          bias=0.0e-9,
-         Et=-48.0e-3,
+         Et=-50.0e-3,
          f=0,
-         A=1e-3,
+         A=.1e-9,
          phi=0,
          sigma=0,
          C=200e-12,
          g_l=10e-9,
          V_l=-70e-3,
          V_reset=65e-3,
-         V_init=-47e-3,
          a=0e-9,
          b=10e-12,
          tau_w=30e-3,
          E_rheo=-48e-3,
          delta_t=2e-3,
-         time_step=1e-4,
+         time_step=1e-5,
          budget=True,
          report='text',
          save_args=None,
@@ -100,7 +99,6 @@ def adex(N,
     E_reset = V_reset * volt
     Et *= volt
     E_rheo *= volt
-    E_init = V_init * volt
 
     # Comp vars
     w_max *= siemens
@@ -143,7 +141,7 @@ def adex(N,
         N,
         model=eqs,
         # refractory=2 * msecond,
-        threshold='v > E_cut',
+        threshold='v > Et',
         reset="v = E_rheo; w += b",
         method='euler')
 
@@ -193,17 +191,21 @@ def adex(N,
         E_leak = float(El)
         E_cut = float(E_cut)
         E_rheo = float(E_rheo)
-        E_init = float(E_init)
+        E_t = float(Et)
 
         V_m = np.asarray(traces_e.v_)
 
         V_m_thresh = V_m.copy()
-        V_m_thresh[V_m_thresh > E_init] = E_init
+        V_m_thresh[V_m_thresh > E_t] = E_t
+        V_osc[V_osc > E_t] = E_t
 
         # and analyze the budget.
-        V_comp = V_m_thresh - V_osc
-        V_osc = E_rheo - V_osc
-        V_free = E_rheo - V_m_thresh
+        V_comp = V_osc - V_m_thresh  # swtiched
+        V_comp[V_comp > 0] = 0
+
+        V_osc = V_osc
+
+        V_free = E_t - V_m_thresh
 
         # Save it too.
         vs = dict(
@@ -216,7 +218,6 @@ def adex(N,
             V_osc=V_osc,
             V_free=V_free,
             E_leak=E_leak,
-            E_init=E_init,
             E_cut=E_cut,
             E_thresh=float(Et))
 
