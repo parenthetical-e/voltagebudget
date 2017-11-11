@@ -1,5 +1,5 @@
 ---
-title: "Exp1 - Opt w_max and {A,phi)"
+title: "Sweep1 - Opt w_max and {A,phi)"
 output: html_notebook
 ---
 
@@ -12,7 +12,7 @@ library(readr)
 # Load and process
 
 ```{r, message=FALSE}
-results <- read_csv("../data/fwd_test_8.csv")
+results <- read_csv("../data/test_pow_10.csv")
 ```
 
 ```{r, fig.width=2.5, fig.height=1.5}
@@ -48,29 +48,21 @@ grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 
 
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=Opt_y, y=Opt_z, color=As)) +
-  geom_point() + 
-  theme_classic()
-```
-
 ```{r, fig.width=2, fig.height=1}
 results %>% 
-  # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=computation_voltages, y=communication_voltages, color=As)) +
+  filter(computation_scores < 0.6, communication_scores > 0) %>%
+  ggplot(aes(x=computation_voltages, y=communication_voltages, color=power)) +
   geom_point() + 
   theme_classic()
 ```
 
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
-  filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=As, y=communication_scores/max(communication_scores))) +
+  # filter(computation_scores < 0.6, communication_scores > 0) %>%
+  ggplot(aes(x=power*1e9, y=communication_scores/max(communication_scores))) +
   geom_point(color="red", alpha=0.5) + 
-  xlab("Osc. amplitude (amps)") +
+  xlab("Osc. amplitude (namps)") +
   ylab("Rel. scores (AU)") +
-  geom_point(aes(x=As, y=1-computation_scores/max(computation_scores)), color="purple") + 
+  geom_point(aes(x=power*1e9, y=1-computation_scores/max(computation_scores)), color="purple") + 
   theme_classic()
 ```
