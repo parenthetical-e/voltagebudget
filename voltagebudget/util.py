@@ -18,7 +18,7 @@ def create_times(tspan, dt):
     tspan : tuple (float, float)
         Start and stop times (seconds)
     dt : numeric
-        Time step lengthå
+        Time step length
     """
     t0 = tspan[0]
     t1 = tspan[1]
