@@ -33,7 +33,7 @@ def create_stim(name,
                 stim_rate=8,
                 seed_stim=7525,
                 time_step=1e-5,
-                verbose=True):
+                verbose=False):
     if verbose:
         print(">>> Building input.")
 
