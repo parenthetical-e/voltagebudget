@@ -77,6 +77,67 @@ def locate_peaks(budget, onset=None, offset=None, combine=False, select=None):
     return ns, ts
 
 
+def budget_window(budget, t, budget_width, select=None, combine=False):
+    if budget_width < 0:
+        raise ValueError("budget_width must be positive")
+
+    # Disassemble budget into voltages and times
+    times = np.squeeze(budget['times'])
+    voltages = select_voltages(budget, select=select)
+
+    # Filter based on first passage times
+    filtered = {}
+    for k, v in voltages.items():
+        if v.ndim > 2:
+            raise ValueError("{} is greater than 2d.".format(k))
+        elif v.ndim == 2:
+            if combine:
+                t_on = t
+                t_off = t_on + budget_width
+
+                window = (t_on, t_off)
+                m = np.logical_and(times > window[0], times < window[1])
+
+                filtered[k] = budget[k][:, m]
+                filtered['times'] = times[m]
+
+            else:
+                xs = []
+                x_times = []
+                for i, n in enumerate(ns_first):
+                    t_on = t
+                    t_off = t_on + budget_width
+
+                    window = (t_on, t_off)
+                    m = np.logical_and(times > window[0], times < window[1])
+
+                    xs.append(budget[k][n, m])
+                    x_times.append(times[m])
+
+                # Sometimes for baffling reasons xs,times are ragged.
+                # Keep the shortest len
+                min_l = np.min([len(x) for x in xs])
+
+                xs_f = []
+                for x in xs:
+                    x_f = x[0:min_l]
+                    xs_f.append(x_f)
+
+                x_times_f = []
+                for x in x_times:
+                    x_t = x[0:min_l]
+                    x_times_f.append(x_t)
+
+                # Save, finally....
+                filtered[k] = np.vstack(xs_f)
+                filtered['times'] = np.vstack(x_times_f)
+
+        else:
+            raise ValueError("{} is less than 2d".format(k))
+
+    return filtered
+
+
 def filter_voltages(budget,
                     ns_first,
                     ts_first,
