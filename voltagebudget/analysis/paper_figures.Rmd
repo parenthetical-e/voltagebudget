@@ -16,13 +16,13 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-results <- read_csv("../data/sfn6.csv")
+results <- read_csv("../exp/paper2.csv")
 ```
 
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(y=computation_voltages*1e4, x=communication_voltages*1e2, color=As)) +
+  ggplot(aes(y=computation_voltages, x=communication_voltages, color=As)) +
   scale_color_gradient(low="mediumpurple", high="red3", name="A") +
   xlab("Vo (mvolt)") + ylab("Vc (mvolt)") +
   geom_point(alpha=0.3) + 
@@ -30,23 +30,23 @@ results %>%
 ```
 
 
-```{r, fig.width=.85, fig.height=.75}
+```{r, fig.width=1.85, fig.height=.75}
 results %>% 
   # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=1e2*communication_voltages, y=communication_scores)) +
+  ggplot(aes(x=computation_voltages, y=communication_scores)) +
   geom_point(color="red3", alpha=0.6) + 
-  xlab("Vo (mvolt)") +
+  xlab("Vc (mvolt)") +
   ylab("C (counts)") +
   ylim(0, 20) +
   theme_classic() -> p1
 print(p1)
 ```
 
-```{r, fig.width=.85, fig.height=.75}
+```{r, fig.width=1.85, fig.height=.75}
 results %>% 
-  ggplot(aes(x=1e4*computation_voltages, y=30e-3-computation_scores)) +
+  ggplot(aes(x=computation_voltages, y=computation_scores)) +
   geom_point(color="mediumpurple", alpha=0.6) + 
-  xlab("Vc (mvolt)") +
+  xlab("Vf (mvolt)") +
   ylab("S (sec)") +
   ylim(0, 0.030) +
   theme_classic() -> p2
@@ -57,14 +57,14 @@ print(p2)
 ```{r, fig.width=.95, fig.height=.75}
 results %>% 
   filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=20+1e2*communication_voltages + 1e4*computation_voltages, y=normalize(communication_scores))) +
+  ggplot(aes(x=communication_voltages + computation_voltages, y=normalize(communication_scores))) +
   geom_smooth(method = "glm",  method.args = list(family = "binomial"), color="red3", alpha=0.5, se=FALSE) + 
   geom_point(color="red3", alpha=0.2) + 
   xlab("Vf (mvolt)") +
   ylab("Norm. scores") +
-  geom_smooth(aes(x=20+1e2*communication_voltages + 1e4*computation_voltages, y=normalize(30e-3-computation_scores)), 
+  geom_smooth(aes(x=communication_voltages + computation_voltages, y=normalize(computation_scores)), 
               method = "glm",  method.args = list(family = "binomial"), color="mediumpurple", se=FALSE) + 
-  geom_point(aes(x=20+1e2*communication_voltages+ 1e4*computation_voltages, y=normalize(30e-3-computation_scores)), color="mediumpurple", alpha=0.2) + 
+  geom_point(aes(x=communication_voltages+ computation_voltages, y=normalize(computation_scores)), color="mediumpurple", alpha=0.2) + 
   # geom_vline(xintercept = 8.8373, color="black")+
   theme_classic() -> p3
 print(p3)
