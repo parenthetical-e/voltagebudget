@@ -161,7 +161,7 @@ def adex(N,
     net.store('no_stim')
 
     # If budgets are desired, run the net without
-    # any stimululation. (This strictly speaking isn't
+    # any stimulation. (This strictly speaking isn't
     # necessary, but I can't get Brian to express the needed
     # diff eq to get the osc budget term in one pass.)
     if budget:
