@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-import fire
 import json
 import csv
 import os
@@ -26,22 +23,33 @@ from voltagebudget.exp import forward_shadow
 from voltagebudget.exp import sweep_power
 from voltagebudget.exp import replay
 from voltagebudget.exp import reverse
-from voltagebudget.exp import create_stim
-from voltagebudget.exp import autotune_membrane
-from voltagebudget.exp import autotune_w
 
-from platypus.algorithms import NSGAII
-from platypus.core import Problem
-from platypus.types import Real
 
-from scipy.optimize import least_squares
+def create_stim(name,
+                t,
+                stim_number=40,
+                stim_onset=0.2,
+                stim_offset=0.250,
+                stim_rate=8,
+                seed_stim=7525,
+                time_step=1e-5,
+                verbose=True):
+    if verbose:
+        print(">>> Building input.")
 
-if __name__ == "__main__":
-    fire.Fire({
-        'create_stim': create_stim,
-        'forward': forward,
-        'forward_shadow': forward_shadow,
-        'sweep_power': sweep_power,
-        'reverse': reverse,
-        'replay': replay
-    })
+    ns, ts = poisson_impulse(
+        t,
+        stim_onset,
+        stim_offset - stim_onset,
+        stim_rate,
+        dt=time_step,
+        n=stim_number,
+        seed=seed_stim)
+
+    if verbose:
+        print(">>> {} spikes generated.".format(ns.size))
+        print(">>> Saving input.")
+    with open("{}.csv".format(name), "w") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(["ns", "ts"])
+        writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
