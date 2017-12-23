@@ -6,19 +6,13 @@ from copy import deepcopy
 from voltagebudget.util import step_waves
 
 
-def shadow_ad(N, time, ns, ts, **adex_kwargs):
-    raise NotImplementedError(
-        "TODO: Shadow adex without the exponential rise.")
-    pass
-
-
 def shadow_adex(N, time, ns, ts, **adex_kwargs):
     """Est. the 'shadow voltage' of the AdEx membrane voltage."""
     # In the neuron can't fire, we're in the shadow realm!
     Et = 1000  # 1000 volts is infinity, for neurons.
     _, _, budget = adex(N, time, ns, ts, budget=True, Et=Et, **adex_kwargs)
 
-    return budget['V_m'], budget
+    return budget
 
 
 # TODO: add sigma
@@ -38,6 +32,7 @@ def adex(N,
          g_l=10e-9,
          V_l=-70e-3,
          V_reset=65e-3,
+         V_max=-50e-3,
          a=0e-9,
          b=10e-12,
          tau_w=30e-3,
@@ -193,21 +188,27 @@ def adex(N,
         E_rheo = float(E_rheo)
         E_t = float(Et)
 
+        V_max = float(V_max)
         V_m = np.asarray(traces_e.v_)
 
+        # Rectify Vm
         V_m_thresh = V_m.copy()
-        V_m_thresh[V_m_thresh > E_t] = E_t
-        V_osc[V_osc > E_t] = E_t
+        V_m_thresh[V_m_thresh > V_max] = V_max
 
-        # and analyze the budget.
+        # Rectify V_osc
+        V_osc[V_osc > V_max] = V_max
+
+        # Est. Comp; 0 rectify
         V_comp = V_osc - V_m_thresh  # swtiched
         V_comp[V_comp > 0] = 0
 
-        V_osc = V_osc
+        # Recenter osc so unit scale matches comp
+        V_osc = E_leak - V_osc
 
-        V_free = E_t - V_m_thresh
+        # Est free.
+        V_free = V_max - V_m_thresh
 
-        # Save it too.
+        # Build vs
         vs = dict(
             tau_m=float(C / g_l),
             times=np.asarray(traces_e.t_),
@@ -217,10 +218,14 @@ def adex(N,
             V_comp=V_comp,
             V_osc=V_osc,
             V_free=V_free,
+            V_max=V_max,
+            E_reset=E_reset,
+            E_rheo=E_rheo,
             E_leak=E_leak,
             E_cut=E_cut,
-            E_thresh=float(Et))
+            E_thresh=E_t)
 
+        # Add the budget to the return var, result
         result.append(vs)
 
     return result
