@@ -47,3 +47,45 @@ sfn9:
 
 sfn10:
 	python budget_experiments.py forward $(DATADIR)/sfn10 --f=8 --save_only --verbose --M=50 --combine_budgets --mode=regular --fix_w --budget_delay=-2e-3
+
+
+# ---------------------------------------------------------------------------
+# Testing of shadow mode....
+# Which should be the focus of the first paper draft? 
+# 
+# Leave handling spiking hard resets to another day? This comes with a limit of
+# the approach no longer bieng compatible with network simulations
+# and limits it's immediate applicibility to emperical testing, without
+# a VG Na block that is.
+#
+# Still, it makes it easier to study coordination tradeoffs over whatever T
+# and is a clear theoretical extension of prior work in the shadows.
+# ---------------------------------------------------------------------------
+
+# --
+# Stimuli...
+# high rate, short duration
+# TODO same as sfn
+stim1:
+	python budget_experiments.py create_stim $(DATADIR)/stim1 0.4 \
+	--stim_number=40 --stim_onset=0.2 --stim_offset=0.250 --stim_rate=8 \
+	--seed_stim=7525 --time_step=1e-5 --verbose
+            
+
+# low rate, continous
+# TODO - 1-2 hz..., no specific stim onset.
+stim2:
+	python budget_experiments.py create_stim $(DATADIR)/stim2 0.4 \
+	--stim_number=40 --stim_onset=0.0 --stim_offset=0.4 --stim_rate=2 \
+	--seed_stim=7525 --time_step=1e-5 --verbose
+
+
+# --
+# Stim onset with high rate (stim1)
+# Delays and bounds
+paper1:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/paper1.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward_shadow $(DATADIR)/paper1 $(DATADIR)/stim1 --M=500 --t=0.4 --f=8 --T_onset=0.2 --T_offset=0.25 --d={1} --budget_reduce_fb={2} --save_only --verbose --combine_budgets --fix_w' ::: 0 2e-3 4e-3 -6e-3 -8e-3 -9e-3 -10e-3 ::: min max mean
+ 
