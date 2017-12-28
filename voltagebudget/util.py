@@ -89,11 +89,11 @@ def read_modes(mode, json_path=None):
 
     # And default input
     initial_inputs = params.pop('initial_inputs')
-    w_max = initial_inputs['w_max']
-    bias = initial_inputs['bias']
+    w_in = initial_inputs['w_in']
+    bias_in = initial_inputs['bias_in']
     sigma = initial_inputs['sigma']
 
-    return params, w_max, bias, sigma
+    return params, w_in, bias_in, sigma
 
 
 def get_mode_names(json_path=None):
