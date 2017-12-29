@@ -44,7 +44,6 @@ def adex(N,
          C=200e-12,
          g_l=10e-9,
          V_l=-70e-3,
-         V_reset=65e-3,
          V_max=-50e-3,
          a=0e-9,
          b=10e-12,
@@ -53,7 +52,7 @@ def adex(N,
          delta_t=2e-3,
          time_step=1e-5,
          budget=True,
-         report='text',
+         report=None,
          save_args=None,
          step_params=None,
          seed_value=42):
@@ -132,11 +131,11 @@ def adex(N,
     eqs = """
     dv/dt = (g_l * (V_l - v) + g_l * delta_t * exp((v - V_t) / delta_t) + I_in + I_osc + I_noise + I_ext + bias_in - w) / C : volt
     dw/dt = (a * (v - V_l) - w) / tau_w : amp
+    dg_in/dt = -g_in / tau_in : siemens
+    dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     I_in = g_in * (v - V_l) : amp
     I_noise = g_noise * (v - V_l) : amp
-    dg_in/dt = -g_in / tau_in : siemens
     I_osc = A/2 * (1 + sin((t + phi) * f * 2 * pi)) : amp
-    dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     C : farad
     g_l : siemens 
     a : siemens
@@ -167,7 +166,6 @@ def adex(N,
     # Init adex params
     # Fixed voltages neuron params
     V_l *= volt
-    V_reset *= volt
     V_t *= volt
     V_cut *= volt
 
@@ -182,7 +180,8 @@ def adex(N,
     P_n.tau_in = tau_in * second
 
     # Init V0, w0
-    P_n.v = V_l
+    V_rest = V_l + ((bias_in / g_l) * volt)
+    P_n.v = V_rest
     P_n.w = P_n.a * (P_n.v - V_l)
 
     # -----------------------------------------------------------------
@@ -234,10 +233,11 @@ def adex(N,
     if budget:
         V_leak = float(V_l)
         V_cut = float(V_cut)
-        V_rheo = float(V_rheo)
         V_t = float(V_t)
-
         V_max = float(V_max)
+        V_rheo = np.asarray(V_rheo)
+
+        # Get Vm
         V_m = np.asarray(traces_n.v_)
 
         # Rectify Vm
@@ -257,18 +257,21 @@ def adex(N,
         # Est free.
         V_free = V_max - V_m_thresh
 
+        # Budget
+        V_budget = V_max - np.asarray(V_rest)
+
         # Build budget dict
         vs = dict(
-            tau_m=float(C / g_l),
+            tau_m=np.asarray(C / g_l),
             times=np.asarray(traces_n.t_),
             I_ext=np.asarray(traces_n.I_ext_),
+            V_budget=V_budget,
             V_m=V_m,
             V_m_thresh=V_m_thresh,
             V_comp=V_comp,
             V_osc=V_osc,
             V_free=V_free,
             V_max=V_max,
-            V_reset=V_reset,
             V_rheo=V_rheo,
             V_leak=V_leak,
             V_cut=V_cut,
