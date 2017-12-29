@@ -91,7 +91,7 @@ def adex(N,
                 args.append(row)
 
         with open("{}.csv".format(save_args), "w") as fi:
-            writer = csv.writer(fi, dV_limiter=",")
+            writer = csv.writer(fi, delimiter=",")
             writer.writerows(args)
 
     # -----------------------------------------------------------------
