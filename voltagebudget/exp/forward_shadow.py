@@ -11,8 +11,10 @@ from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
-# from voltagebudget.budget import filter_voltages
+from voltagebudget.util import nearest_spike
+
 from voltagebudget.budget import locate_firsts
+from voltagebudget.budget import filter_spikes
 from voltagebudget.budget import budget_window
 from voltagebudget.budget import locate_peaks
 from voltagebudget.budget import estimate_communication
@@ -21,9 +23,9 @@ from voltagebudget.exp.autotune import autotune_V_osc
 
 
 def forward_shadow(name,
-                   N,
                    stim,
-                   E,
+                   E0,
+                   N=10,
                    t=0.4,
                    d=-5e-3,
                    w=2e-3,
@@ -32,6 +34,7 @@ def forward_shadow(name,
                    A0=.05e-9,
                    phi0=np.pi,
                    mode='regular',
+                   opt_f=False,
                    noise=False,
                    save_only=False,
                    verbose=False,
@@ -48,13 +51,13 @@ def forward_shadow(name,
     if verbose:
         print(">>> Setting mode.")
 
-    params, w_max, bias, sigma = read_modes(mode)
+    params, w_in, bias_in, sigma = read_modes(mode)
     if not noise:
         sigma = 0
 
     # --------------------------------------------------------------
     if verbose:
-        print(">>> Importing stimulus.")
+        print(">>> Importing stimulus from {}.".format(stim))
 
     stim_data = read_stim(stim)
     ns = np.asarray(stim_data['ns'])
@@ -76,7 +79,6 @@ def forward_shadow(name,
         f=0,
         A=0,
         phi=0,
-        opt_f=False,
         sigma=sigma,
         seed_value=seed_value,
         budget=True,
@@ -86,6 +88,12 @@ def forward_shadow(name,
 
     if ns_ref.size == 0:
         raise ValueError("The reference model didn't spike.")
+
+    # Find the ref spike closest to E0
+    # and set that as E
+    E = nearest_spike(ts_ref, E0)
+    if verbose:
+        print(">>> E0 was {}, using closest at {}.".format(E0, E))
 
     # -
     if verbose:
@@ -103,9 +111,6 @@ def forward_shadow(name,
         phi=0,
         sigma=sigma,
         seed_value=seed_value,
-        budget=True,
-        save_args=False,
-        time_step=time_step,
         **params)
 
     # --------------------------------------------------------------
@@ -116,8 +121,8 @@ def forward_shadow(name,
         t,
         E,
         d,
-        w,
-        stim,
+        ns,
+        ts,
         A0=A0,
         phi0=phi0,
         f0=f0,
@@ -145,37 +150,40 @@ def forward_shadow(name,
             print(">>> Running analysis for neuron {}/{}.".format(n + 1, N))
 
         # !
-        ns_n, ts_n, budget_n = adex(
+        ns_n, ts_n, voltage_n = adex(
             N,
             t,
             ns,
             ts,
-            w_max=w_m,
-            bias=bias,
-            f=f,
-            A=A_m,
-            phi=phi_m,
+            w_in=w_in,
+            bias_in=bias_in,
+            f=f_opt,
+            A=A_opt,
+            phi=phi_opt,
             sigma=sigma,
             budget=True,
-            seed=seed_prob,
-            report=report,
+            seed_value=seed_value,
             time_step=time_step,
             save_args="{}_n_{}_opt_args".format(name, n),
             **params)
 
         # Analyze spikes
+        # Coincidences
         comm = estimate_communication(
             ns_n,
-            ts_n, (E + d, T),
+            ts_n, (E, E + T),
             coincidence_t=coincidence_t,
             time_step=time_step)
 
-        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=True)
+        # Precision
+        ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
+        ns_n, ts_n = filter_spikes(ns_n, ts_n, (E, E + T))
+        _, prec = precision(ns_n, ts_n, ns_ref, ts_ref, combine=True)
 
-        # Extract budgets values
-        voltages_m = budget_window(budget_m, E + d, w, select=None)
-        V_comp = budget_reduce_fn(voltages_m['V_comp'])
-        V_osc = budget_reduce_fn(voltages_m['V_osc'])
+        # Extract budget values
+        budget_n = budget_window(voltage_n, E + d, w, select=None)
+        V_osc = np.abs(np.mean(budget_n['V_osc'][n, :]))
+        V_comp = np.abs(np.mean(budget_n['V_comp'][n, :]))
 
         # Store all stats for n
         communication_scores.append(comm)
