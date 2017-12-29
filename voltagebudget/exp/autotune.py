@@ -28,7 +28,8 @@ def autotune_V_osc(N,
                    t,
                    E,
                    d,
-                   stim,
+                   ns,
+                   ts,
                    w=2e-3,
                    A0=0.1e-9,
                    phi0=0,
@@ -46,23 +47,11 @@ def autotune_V_osc(N,
         A list of N least_squares solution objects
     """
     # -
-    if verbose:
-        print(">>> Setting the mode.")
     params, w_in, bias_in, sigma = read_modes(mode)
 
     # -
-    if verbose:
-        print(">>> Reading input spikes.")
-    stim_data = read_stim(stim)
-    ns = np.asarray(stim_data['ns'])
-    ts = np.asarray(stim_data['ts'])
-
-    # -
-    if verbose:
-        print(">>> Starting optimization.")
     solutions = []
     for n in range(N):
-
         # Initialize opt params
         if opt_f:
             p0 = (A0, phi0, f0)
