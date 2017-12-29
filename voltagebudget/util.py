@@ -9,6 +9,18 @@ from scipy.signal import square
 from fakespikes import neurons, rates
 from fakespikes import util as fsutil
 
+import numpy as np
+
+
+def index_nearest_spike(ts, t):
+    idx = (np.abs(ts - t)).argmin()
+    return idx
+
+
+def nearest_spike(ts, t):
+    idx = index_nearest_spike(ts, t)
+    return ts[idx]
+
 
 def create_times(tspan, dt):
     """Define time
