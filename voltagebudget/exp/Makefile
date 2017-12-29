@@ -61,7 +61,7 @@ sfn10:
 # Still, it makes it easier to study coordination tradeoffs over whatever T
 # and is a clear theoretical extension of prior work in the shadows.
 # ---------------------------------------------------------------------------
-
+ 
 # --
 # Stimuli...
 # high rate, short duration
