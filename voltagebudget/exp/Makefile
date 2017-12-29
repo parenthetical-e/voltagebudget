@@ -77,15 +77,26 @@ stim1:
 stim2:
 	python budget_experiments.py create_stim $(DATADIR)/stim2 0.4 \
 	--stim_number=40 --stim_onset=0.0 --stim_offset=0.4 --stim_rate=2 \
-	--seed_stim=7525 --time_step=1e-5 --verbose
+	--seed_stim=754 --time_step=1e-5 --verbose
 
 
-# --
-# Stim onset with high rate (stim1)
-# Delays and bounds
-paper1:
+# -
+# Budgets locked to stim1 (stim onset design), and first population spike
+# regular firing mode
+exp1:
 	parallel -j 10 -v \
-		--joblog '$(DATADIR)/paper1.log' \
+		--joblog '$(DATADIR)/exp1.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py forward_shadow $(DATADIR)/paper1 $(DATADIR)/stim1 --M=500 --t=0.4 --f=8 --T_onset=0.2 --T_offset=0.25 --d={1} --budget_reduce_fb={2} --save_only --verbose --combine_budgets --fix_w' ::: 0 2e-3 4e-3 -6e-3 -8e-3 -9e-3 -10e-3 ::: min max mean
+		'python budget_experiments.py forward_shadow $(DATADIR)/exp1_d{}_f{} $(DATADIR)/stim1.csv 0.2086 --mode=regular --N=100 --verbose --d={1} --f0=2 ::: \
+		2e-3 4e-3 -6e-3 -8e-3 -10e-3 ::: 4 10 20 40 60 80
+ 
+ # -
+# Budgets locked to stim2 (ongoing sparse firing design), arb. middle of the sequence
+# regular firing mode
+exp2:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp2.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward_shadow $(DATADIR)/exp2_d{}_f{} $(DATADIR)/stim2.csv 0.1999 --mode=regular --N=100 --verbose --d={1} --f0=2 ::: \
+		2e-3 4e-3 -6e-3 -8e-3 -10e-3 ::: 4 10 20 40 60 80
  
