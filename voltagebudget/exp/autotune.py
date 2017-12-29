@@ -33,6 +33,8 @@ from voltagebudget.exp import create_stim
 def autotune_V_osc(N,
                    t,
                    E,
+                   d,
+                   w,
                    stim,
                    A0=0.1e-9,
                    phi0=0,
@@ -86,7 +88,7 @@ def autotune_V_osc(N,
                 f = f0
 
             # Run into the shadow! realm!
-            voltages = shadow_adex(
+            voltage = shadow_adex(
                 N,
                 t,
                 ns,
@@ -100,12 +102,13 @@ def autotune_V_osc(N,
                 **params)
 
             # Select window
-            budgets = budget_window(voltages, E, w, select=None, combine=False)
+            budget = budget_window(
+                voltage, E + d, w, select=None, combine=False)
 
             # Get budget terms for opt
-            V_b = np.mean(voltages['V_budget'][n])
-            V_c = np.mean(budgets['V_comp'][n, :])
-            V_o = np.mean(budgets['V_osc'][n, :])
+            V_b = np.abs(np.mean(voltage['V_budget'][n]))
+            V_c = np.abs(np.mean(budget['V_comp'][n, :]))
+            V_o = np.abs(np.mean(budget['V_osc'][n, :]))
 
             return V_b - (V_o + V_c)
 
