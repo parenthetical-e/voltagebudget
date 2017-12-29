@@ -9,6 +9,7 @@ from scipy.optimize import least_squares
 
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import shadow_adex
+
 from voltagebudget.util import poisson_impulse
 from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
@@ -22,25 +23,17 @@ from voltagebudget.budget import locate_peaks
 from voltagebudget.budget import estimate_communication
 from voltagebudget.budget import precision
 
-from voltagebudget.exp import forward
-from voltagebudget.exp import forward_shadow
-from voltagebudget.exp import sweep_power
-from voltagebudget.exp import replay
-from voltagebudget.exp import reverse
-from voltagebudget.exp import create_stim
-
 
 def autotune_V_osc(N,
                    t,
                    E,
                    d,
-                   w,
                    stim,
+                   w=2e-3,
                    A0=0.1e-9,
                    phi0=0,
                    f0=8,
                    mode='regular',
-                   w=2e-3,
                    max_mult=2,
                    seed_value=42,
                    opt_f=False,
