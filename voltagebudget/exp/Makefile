@@ -1,7 +1,5 @@
 SHELL=/bin/bash -O expand_aliases
-# DATADIR=/Users/erikpeterson/Code/fluxen/data
-# DATADIR=/Users/type/Code/fluxen/data
-# DATADIR=/home/ubuntu/src/fluxen/data
+# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
 DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # 8 Hz
