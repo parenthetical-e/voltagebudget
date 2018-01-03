@@ -12,7 +12,7 @@ library(readr)
 # Load and process
 
 ```{r, message=FALSE}
-results <- read_csv("../data/fwd_test_21.csv")
+results <- read_csv("../data/exp1_d4e-3_f10.csv")
 ```
 
 ```{r, fig.width=2.5, fig.height=1.5}
