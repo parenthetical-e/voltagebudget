@@ -22,8 +22,6 @@ from voltagebudget.budget import estimate_communication
 from voltagebudget.budget import precision
 
 from voltagebudget.exp import forward
-from voltagebudget.exp import forward_shadow
-from voltagebudget.exp import sweep_power
 from voltagebudget.exp import replay
 from voltagebudget.exp import reverse
 from voltagebudget.exp import create_stim
@@ -40,8 +38,6 @@ if __name__ == "__main__":
     fire.Fire({
         'create_stim': create_stim,
         'forward': forward,
-        'forward_shadow': forward_shadow,
-        'sweep_power': sweep_power,
         'reverse': reverse,
         'replay': replay
     })
