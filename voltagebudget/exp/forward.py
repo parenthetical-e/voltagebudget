@@ -1,7 +1,6 @@
-import fire
+import os
 import json
 import csv
-import os
 import numpy as np
 
 import voltagebudget
@@ -12,93 +11,83 @@ from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
+from voltagebudget.util import nearest_spike
+from voltagebudget.util import write_spikes
 
-from voltagebudget.budget import filter_voltages
 from voltagebudget.budget import locate_firsts
+from voltagebudget.budget import filter_spikes
+from voltagebudget.budget import budget_window
 from voltagebudget.budget import locate_peaks
 from voltagebudget.budget import estimate_communication
 from voltagebudget.budget import precision
+from voltagebudget.exp.autotune import autotune_V_osc
 
 
 def forward(name,
-            N=50,
+            stim,
+            E_0,
+            N=10,
             t=0.4,
-            budget_bias=0,
-            budget_delay=-10e-3,
-            budget_width=2e-3,
-            combine_budgets=False,
-            budget_reduce_fn='mean',
-            stim_number=40,
-            stim_onset=0.2,
-            stim_offset=0.250,
-            stim_rate=8,
-            coincidence_t=1e-3,
-            f=0,
-            A=.05e-9,
-            phi=np.pi,
+            d=-5e-3,
+            w=2e-3,
+            T=0.0625,
+            f=8,
+            A_0=.05e-9,
+            A_max=0.5e-9,
+            phi_0=np.pi,
             mode='regular',
-            M=100,
-            fix_w=False,
-            seed_prob=42,
-            seed_stim=7525,
-            report=None,
+            opt_f=False,
+            noise=False,
+            shadow=False,
             save_only=False,
             verbose=False,
-            time_step=1e-5):
-    """Optimize using the voltage budget."""
-    np.random.seed(seed_prob)
+            seed_value=42):
+    """Optimize using the shadow voltage budget.
+    
+    TODO: add shadow mode?
+    """
+    np.random.seed(seed_value)
 
     # --------------------------------------------------------------
-    # Get mode
-    params, w_max, bias, sigma = read_modes(mode)
-
-    # --------------------------------------------------------------
-    # Lookup the reduce function
-    try:
-        budget_reduce_fn = getattr(np, budget_reduce_fn)
-    except AttributeError:
-        raise ValueError("{} is not a numpy function".format(budget_reduce_fn))
+    # Temporal params
+    time_step = 1e-5
+    coincidence_t = 1e-3
 
     # --------------------------------------------------------------
     if verbose:
-        print(">>> Building input.")
-    ns, ts = poisson_impulse(
-        t,
-        stim_onset,
-        stim_offset - stim_onset,
-        stim_rate,
-        dt=time_step,
-        n=stim_number,
-        seed=seed_stim)
+        print(">>> Setting mode.")
 
+    params, w_in, bias_in, sigma = read_modes(mode)
+    if not noise:
+        sigma = 0
+
+    # --------------------------------------------------------------
     if verbose:
-        print(">>> {} spikes generated.".format(ns.size))
-        print(">>> Saving input.")
-    with open("{}_stim.csv".format(name), "w") as fi:
-        writer = csv.writer(fi, delimiter=",")
-        writer.writerow(["ns", "ts"])
-        writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
+        print(">>> Importing stimulus from {}.".format(stim))
+
+    stim_data = read_stim(stim)
+    ns = np.asarray(stim_data['ns'])
+    ts = np.asarray(stim_data['ts'])
 
     # --------------------------------------------------------------
     # Define target computation (i.e., no oscillation)
     # (TODO Make sure and explain this breakdown well in th paper)
     if verbose:
-        print(">>> Creating reference.")
+        print(">>> Creating reference spikes.")
 
-    ns_ref, ts_ref, budget_ref = adex(
+    ns_ref, ts_ref, voltages_ref = adex(
         N,
         t,
         ns,
         ts,
-        w_max=w_max,
-        bias=bias,
+        w_in=w_in,
+        bias_in=bias_in,
         f=0,
         A=0,
         phi=0,
         sigma=sigma,
-        seed=seed_prob,
+        seed_value=seed_value,
         budget=True,
-        report=report,
         save_args="{}_ref_args".format(name),
         time_step=time_step,
         **params)
@@ -106,108 +95,57 @@ def forward(name,
     if ns_ref.size == 0:
         raise ValueError("The reference model didn't spike.")
 
-    # Isolate the reference analysis window
-    ns_first, ts_first = locate_firsts(ns_ref, ts_ref, combine=combine_budgets)
-    voltages_ref = filter_voltages(
-        budget_ref,
-        ns_first,
-        ts_first,
-        budget_delay=budget_delay,
-        budget_width=budget_width,
-        combine=combine_budgets)
-
-    # --------------------------------------------------------------
-    if verbose:
-        print(">>> Setting up the problem function.")
-
-    def sim(pars):
-        A_p = pars[0]
-        phi_p = pars[1]
-
-        if fix_w:
-            w_p = w_max
-        else:
-            w_p = pars[2]
-
-        if verbose:
-            print("(A, phi, w) : ({}, {}, {})".format(A_p, phi_p, w_p))
-
-        # Run N simulations for mode
-        # differing only by noise?
-        ns_o, ts_o, budget_o = adex(
+    # If in shadow mode, replace ref voltages
+    if shadow:
+        voltages_ref = shadow_adex(
             N,
             t,
             ns,
             ts,
-            w_max=w_p,
-            bias=bias,
-            f=f,
-            A=A_p,
-            phi=phi_p,
+            w_in=w_in,
+            bias_in=bias_in,
+            f=0,
+            A=0,
+            phi=0,
             sigma=sigma,
-            seed=seed_prob,
-            report=report,
+            seed_value=seed_value,
+            budget=True,
+            save_args="{}_ref_args".format(name),
             time_step=time_step,
             **params)
 
-        # Extract voltages are same time points
-        # as the ref
-        voltages_o = filter_voltages(
-            budget_o,
-            ns_first,
-            ts_first,
-            budget_delay=budget_delay,
-            budget_width=budget_width,
-            combine=combine_budgets)
+    # Find the ref spike closest to E_0
+    # and set that as E
+    E = nearest_spike(ts_ref, E_0)
+    if verbose:
+        print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
 
-        # Reduce the voltages
-        y = voltages_o['V_comp']
-        z = voltages_o['V_osc']
-        y = budget_reduce_fn(y)
-        z = budget_reduce_fn(z)
+    # Filter ref spikes into the window of interest
+    ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
+    write_spikes("{}_ref_spks.csv".format(name), ns_ref, ts_ref)
 
-        if verbose:
-            print("(y, z) : ({}, {})".format(y, z))
-        return (y + budget_bias, z - budget_bias)
+    if verbose:
+        print(">>> {} spikes in the analysis window.".format(ns_ref.size))
 
     # --------------------------------------------------------------
     if verbose:
-        print(">>> Building problem.")
+        print(">>> Begining budget estimates:")
 
-    if fix_w:
-        problem = Problem(2, 2)
-        problem.types[:] = [Real(0.0e-12, A), Real(0.0e-12, phi)]
-    else:
-        problem = Problem(3, 2)
-        problem.types[:] = [
-            Real(0.0e-12, A), Real(0.0e-12, phi), Real(0.0e-12, w_max)
-        ]
-    problem.function = sim
-    algorithm = NSGAII(problem)
-
-    if verbose:
-        print(">>> Running problem.")
-    algorithm.run(M)
-
-    # Build results
-    if verbose:
-        print(">>> Building results.")
-    results = dict(
-        Opt_y=[s.objectives[0] for s in algorithm.result],
-        Opt_z=[s.objectives[1] for s in algorithm.result])
-
-    # Add vars
-    As = [s.variables[0] for s in algorithm.result]
-    Phis = [s.variables[1] for s in algorithm.result]
-
-    if fix_w:
-        Ws = [w_max] * M
-    else:
-        Ws = [s.variables[2] for s in algorithm.result]
-
-    results['As'] = As
-    results['Phis'] = Phis
-    results['Ws'] = Ws
+    solutions = autotune_V_osc(
+        N,
+        t,
+        E,
+        d,
+        ns,
+        ts,
+        voltages_ref,
+        A_0=A_0,
+        A_max=A_max,
+        phi_0=phi_0,
+        f=f,
+        shadow=shadow,
+        noise=noise,
+        verbose=verbose)
 
     # --------------------------------------------------------------
     if verbose:
@@ -217,69 +155,88 @@ def forward(name,
     computation_scores = []
     communication_voltages = []
     computation_voltages = []
-    for m in range(M):
-        A_m = results['As'][m]
-        phi_m = results['Phis'][m]
-        w_m = results['Ws'][m]
+    As = []
+    phis = []
+    for n, sol in enumerate(solutions):
+        A_opt, phi_opt, _ = sol
 
-        ns_m, ts_m, budget_m = adex(
+        # Run 
+        if verbose:
+            print(">>> Running analysis for neuron {}/{}.".format(n + 1, N))
+
+        ns_n, ts_n, voltage_n = adex(
             N,
             t,
             ns,
             ts,
-            w_max=w_m,
-            bias=bias,
+            w_in=w_in,
+            bias_in=bias_in,
             f=f,
-            A=A_m,
-            phi=phi_m,
+            A=A_opt,
+            phi=phi_opt,
             sigma=sigma,
             budget=True,
-            seed=seed_prob,
-            report=report,
+            seed_value=seed_value,
             time_step=time_step,
+            save_args="{}_n_{}_opt_args".format(name, n),
             **params)
 
-        # -
+        # Analyze spikes
+        # Coincidences
         comm = estimate_communication(
-            ns_m,
-            ts_m, (stim_onset, stim_offset),
+            ns_n,
+            ts_n, (E, E + T),
             coincidence_t=coincidence_t,
             time_step=time_step)
-        communication_scores.append(comm)
 
-        _, prec = precision(
-            ns_m, ts_m, ns_ref, ts_ref, combine=combine_budgets)
+        # Precision
+        ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
+        ns_n, ts_n = filter_spikes(ns_n, ts_n, (E, E + T))
+        _, prec = precision(ns_n, ts_n, ns_ref, ts_ref, combine=True)
+
+        # Extract budget values
+        budget_n = budget_window(voltage_n, E + d, w, select=None)
+        V_osc = np.abs(np.mean(budget_n['V_osc'][n, :]))
+        V_comp = np.abs(np.mean(budget_n['V_comp'][n, :]))
+
+        # Store all stats for n
+        communication_scores.append(comm)
         computation_scores.append(np.mean(prec))
 
-        voltages_m = filter_voltages(
-            budget_m,
-            ns_first,
-            ts_first,
-            budget_delay=budget_delay,
-            budget_width=budget_width,
-            combine=combine_budgets)
+        communication_voltages.append(V_osc)
+        computation_voltages.append(V_comp)
 
-        comp = budget_reduce_fn(voltages_m['V_comp'])
-        comm = budget_reduce_fn(voltages_m['V_osc'])
+        As.append(A_opt)
+        phis.append(phi_opt)
 
-        computation_voltages.append(comp)
-        communication_voltages.append(comm)
-
-    # -
-    results["communication_scores"] = communication_scores
-    results["computation_scores"] = computation_scores
-    results["communication_voltages"] = communication_voltages
-    results["computation_voltages"] = computation_voltages
+        if verbose:
+            print(
+                ">>> (A {:0.12f}, phi {:0.3f})  ->  (prec {:0.5f}, comm, {})".
+                format(A_opt, phi_opt, prec, comm))
 
     # --------------------------------------------------------------
     if verbose:
         print(">>> Saving results.")
 
+    # Build a dict of results,
+    results = {}
+    results["N"] = list(range(N))
+    results["communication_scores"] = communication_scores
+    results["computation_scores"] = computation_scores
+    results["communication_voltages"] = communication_voltages
+    results["computation_voltages"] = computation_voltages
+    results["A"] = As
+    results["phi"] = phis
+
+    # then write it out.
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
         writer.writerows(zip(* [results[key] for key in keys]))
 
+    # If running in a CL, returns are line noise?
     if not save_only:
         return results
+    else:
+        return None

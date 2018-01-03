@@ -30,38 +30,28 @@ def autotune_V_osc(N,
                    d,
                    ns,
                    ts,
+                   voltage_ref,
                    w=2e-3,
                    A_0=0.1e-9,
                    A_max=0.5e-9,
                    phi_0=0,
                    f=8,
                    mode='regular',
+                   noise=False,
                    seed_value=42,
+                   shadow=True,
                    verbose=False):
     """Find the optimal oscillatory voltage at W, over w, for each neuron.
     
     Returns
     ------
-    solutions : list(sol_n, sol_n+1, ...)
-        A list of N least_squares solution objects
+    solutions : list((A, phi, sol), ...)
+        A list of N 3-tuples 
     """
     # -
     params, w_in, bias_in, sigma = read_modes(mode)
-
-    # -
-    # Run reference, with no oscillation
-    voltage_ref = shadow_adex(
-        N,
-        t,
-        ns,
-        ts,
-        A=0,
-        phi=0,
-        f=0,
-        w_in=w_in,
-        bias_in=bias_in,
-        seed_value=seed_value,
-        **params)
+    if not noise:
+        sigma = 0
 
     budget_ref = budget_window(
         voltage_ref, E + d, w, select=None, combine=False)
@@ -84,18 +74,35 @@ def autotune_V_osc(N,
             phi = p[1]
 
             # Run into the shadow! realm!
-            voltage = shadow_adex(
-                N,
-                t,
-                ns,
-                ts,
-                A=A,
-                phi=phi,
-                f=f,
-                w_in=w_in,
-                bias_in=bias_in,
-                seed_value=seed_value,
-                **params)
+            if shadow:
+                voltage = shadow_adex(
+                    N,
+                    t,
+                    ns,
+                    ts,
+                    A=A,
+                    phi=phi,
+                    f=f,
+                    w_in=w_in,
+                    bias_in=bias_in,
+                    sigma=sigma,
+                    seed_value=seed_value,
+                    **params)
+            else:
+                _, _, voltage = adex(
+                    N,
+                    t,
+                    ns,
+                    ts,
+                    A=A,
+                    phi=phi,
+                    f=f,
+                    w_in=w_in,
+                    bias_in=bias_in,
+                    sigma=sigma,
+                    seed_value=seed_value,
+                    budget=True,
+                    **params)
 
             # Select window
             budget = budget_window(
@@ -118,8 +125,10 @@ def autotune_V_osc(N,
         if verbose:
             print(">>> Optimizing neuron {}/{}.".format(n + 1, N))
 
-        sol = least_squares(problem, p0, bounds=bounds)
-        solutions.append(sol)
+        sol = least_squares(problem, p0, bounds=bounds, ftol=1e-4)
+        A_opt, phi_opt = sol.x
+
+        solutions.append((A_opt / rescale, phi_opt, sol))
 
     return solutions
 
