@@ -1,0 +1,122 @@
+{
+  "regular": {
+    "C": [
+      190e-12,
+      210e-12
+    ],
+    "g_l": 10e-9,
+    "V_l": -70e-3,
+    "a": [
+      1.9e-09,
+      2.1e-9
+    ],
+    "tau_w": 30e-3,
+    "b": 0e-12,
+    "V_rheo": -58e-3,
+    "delta_t": 2e-3,
+    "initial_inputs": {
+      "w_in": [
+        0.77e-08,
+        0.84e-08
+      ],
+      "bias_in": [
+        5.5222852010620595e-11,
+        6.103578380121224e-11
+      ],
+      "sigma": 3.0e-9
+    }
+  },
+  "adaption": {
+    "C": 200e-12,
+    "g_l": 12e-9,
+    "V_l": -70e-3,
+    "a": 2e-9,
+    "tau_w": 300e-3,
+    "b": 60e-12,
+    "V_rheo": -58e-3,
+    "delta_t": 2e-3,
+    "initial_inputs": {
+      "w_in": 16.0e-09,
+      "bias_in": 6.511601370010947e-11,
+      "sigma": 3.0e-9
+    }
+  },
+  "initial_burst": {
+    "C": 130e-12,
+    "g_l": 18e-9,
+    "V_l": -58e-3,
+    "V_reset": -53e-3,
+    "a": 4e-9,
+    "tau_w": 150e-3,
+    "b": 120e-12,
+    "V_rheo": -50e-3,
+    "delta_t": 2e-3,
+    "initial_inputs": {
+      "w_in": 3.2000000000000003e-08,
+      "bias_in": -1.4718066130661974e-10,
+      "sigma": 3.0e-9
+    }
+  },
+  "regular_burst": {
+    "C": 200e-12,
+    "g_l": 10e-9,
+    "V_l": -58e-3,
+    "V_reset": -53e-3,
+    "a": 2e-9,
+    "tau_w": 120e-3,
+    "b": 100e-12,
+    "V_rheo": -46e-3,
+    "delta_t": 2e-3,
+    "initial_inputs": {
+      "w_in": 3.2000000000000003e-08,
+      "bias_in": -8.081386790038521e-11,
+      "sigma": 3.0e-9
+    }
+  },
+  "delayed_accelerating": {
+    "C": 200e-12,
+    "g_l": 12e-9,
+    "V_l": -70e-3,
+    "a": -10e-9,
+    "tau_w": 300e-3,
+    "b": 0e-12,
+    "V_rheo": -58e-3,
+    "delta_t": 2e-3,
+    "initial_inputs": {
+      "w_in": 16.0e-09,
+      "bias_in": 2.350007627876716e-11,
+      "sigma": 3.0e-9
+    }
+  },
+  "delayed_regular_bursting": {
+    "C": 200e-12,
+    "g_l": 12e-9,
+    "V_l": -70e-3,
+    "a": -6e-9,
+    "tau_w": 300e-3,
+    "b": 0e-12,
+    "V_rheo": -58e-3,
+    "delta_t": 2e-3,
+    "initial_inputs": {
+      "w_in": 16.0e-09,
+      "bias_in": 3.650155871102366e-11,
+      "sigma": 3.0e-9
+    }
+  },
+  "transient_spiking": {
+    "C": 100e-12,
+    "g_l": 10e-9,
+    "V_l": -65e-3,
+    "V_reset": -60e-3,
+    "a": -10e-9,
+    "tau_w": 90e-3,
+    "b": 30e-12,
+    "V_rheo": -47e-3,
+    "delta_t": 2e-3,
+    "initial_inputs": {
+      "w_in": 16.0e-09,
+      "bias_in": 2.8630604931133964e-17,
+      "sigma": 3.0e-9
+    }
+  }
+}
