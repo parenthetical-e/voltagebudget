@@ -11,6 +11,7 @@ from voltagebudget.util import read_results
 from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
+from voltagebudget.util import write_spikes
 
 from voltagebudget.budget import filter_voltages
 from voltagebudget.budget import locate_firsts
@@ -49,7 +50,5 @@ def create_stim(name,
     if verbose:
         print(">>> {} spikes generated.".format(ns.size))
         print(">>> Saving input.")
-    with open("{}.csv".format(name), "w") as fi:
-        writer = csv.writer(fi, delimiter=",")
-        writer.writerow(["ns", "ts"])
-        writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
+
+    write_spikes("{}.csv".format(name), ns, ts)

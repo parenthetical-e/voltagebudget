@@ -131,6 +131,13 @@ def get_default_modes():
     return modes
 
 
+def write_spikes(name, ns, ts):
+    with open("{}.csv".format(name), "w") as fi:
+        writer = csv.writer(fi, delimiter=",")
+        writer.writerow(["ns", "ts"])
+        writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
+
+
 def read_stim(stim):
     """Read in budget_experiment stimulation, as a dict"""
     return _read_csv_cols_into_dict(stim)
