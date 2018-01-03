@@ -32,4 +32,4 @@ def create_stim(name,
         print(">>> {} spikes generated.".format(ns.size))
         print(">>> Saving input.")
 
-    write_spikes("{}.csv".format(name), ns, ts)
+    write_spikes("{}".format(name), ns, ts)
