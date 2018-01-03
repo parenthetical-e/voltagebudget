@@ -12,6 +12,7 @@ from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
 from voltagebudget.util import nearest_spike
+from voltagebudget.util import write_spikes
 
 from voltagebudget.budget import locate_firsts
 from voltagebudget.budget import filter_spikes
@@ -24,15 +25,16 @@ from voltagebudget.exp.autotune import autotune_V_osc
 
 def forward_shadow(name,
                    stim,
-                   E0,
+                   E_0,
                    N=10,
                    t=0.4,
                    d=-5e-3,
                    w=2e-3,
                    T=0.0625,
-                   f0=8,
-                   A0=.05e-9,
-                   phi0=np.pi,
+                   f=8,
+                   A_0=.05e-9,
+                   A_max=0.5e-9,
+                   phi_0=np.pi,
                    mode='regular',
                    opt_f=False,
                    noise=False,
@@ -89,11 +91,18 @@ def forward_shadow(name,
     if ns_ref.size == 0:
         raise ValueError("The reference model didn't spike.")
 
-    # Find the ref spike closest to E0
+    # Find the ref spike closest to E_0
     # and set that as E
-    E = nearest_spike(ts_ref, E0)
+    E = nearest_spike(ts_ref, E_0)
     if verbose:
-        print(">>> E0 was {}, using closest at {}.".format(E0, E))
+        print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
+
+    # Filter ref spikes into the window of interest
+    ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
+    write_spikes("{}_ref_spks.csv".format(name), ns_ref, ts_ref)
+
+    if verbose:
+        print(">>> {} spikes in the analysis window.".format(ns_ref.size))
 
     # -
     if verbose:
@@ -123,10 +132,10 @@ def forward_shadow(name,
         d,
         ns,
         ts,
-        A0=A0,
-        phi0=phi0,
-        f0=f0,
-        opt_f=opt_f,
+        A_0=A_0,
+        A_max=A_max,
+        phi_0=phi_0,
+        f=f,
         verbose=verbose)
 
     # --------------------------------------------------------------
@@ -138,18 +147,12 @@ def forward_shadow(name,
     communication_voltages = []
     computation_voltages = []
     for n, sol in enumerate(solutions):
-        # Unpack
-        if opt_f:
-            A_opt, phi_opt, f_opt = sol.x
-        else:
-            A_opt, phi_opt = sol.x
-            f_opt = f0
+        A_opt, phi_opt = sol.x
 
         # Run 
         if verbose:
             print(">>> Running analysis for neuron {}/{}.".format(n + 1, N))
 
-        # !
         ns_n, ts_n, voltage_n = adex(
             N,
             t,
@@ -157,7 +160,7 @@ def forward_shadow(name,
             ts,
             w_in=w_in,
             bias_in=bias_in,
-            f=f_opt,
+            f=f,
             A=A_opt,
             phi=phi_opt,
             sigma=sigma,

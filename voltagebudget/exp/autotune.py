@@ -31,13 +31,12 @@ def autotune_V_osc(N,
                    ns,
                    ts,
                    w=2e-3,
-                   A0=0.1e-9,
-                   phi0=0,
-                   f0=8,
+                   A_0=0.1e-9,
+                   A_max=0.5e-9,
+                   phi_0=0,
+                   f=8,
                    mode='regular',
-                   max_mult=2,
                    seed_value=42,
-                   opt_f=False,
                    verbose=False):
     """Find the optimal oscillatory voltage at W, over w, for each neuron.
     
@@ -50,24 +49,39 @@ def autotune_V_osc(N,
     params, w_in, bias_in, sigma = read_modes(mode)
 
     # -
+    # Run reference, with no oscillation
+    voltage_ref = shadow_adex(
+        N,
+        t,
+        ns,
+        ts,
+        A=0,
+        phi=0,
+        f=0,
+        w_in=w_in,
+        bias_in=bias_in,
+        seed_value=seed_value,
+        **params)
+
+    budget_ref = budget_window(
+        voltage_ref, E + d, w, select=None, combine=False)
+
+    # least_squares() was struggling with small A, so boost it
+    # for param search purposes, then divide it back out in the 
+    # problem definition
+    rescale = 1e10
+
+    p0 = (A_0 * rescale, phi_0)
+    bounds = ([0, 0], [A_max * rescale, np.pi])
+
+    # -
     solutions = []
     for n in range(N):
-        # Initialize opt params
-        if opt_f:
-            p0 = (A0, phi0, f0)
-            bounds = ([0, 0, 1], [A0 * max_mult, np.pi, 80])
-        else:
-            p0 = (A0, phi0)
-            bounds = ([0, 0], [A0 * max_mult, np.pi])
 
         def problem(p):
             """A new problem for each neuron"""
-            A = p[0]
+            A = p[0] / rescale
             phi = p[1]
-            if opt_f:
-                f = p[2]
-            else:
-                f = f0
 
             # Run into the shadow! realm!
             voltage = shadow_adex(
@@ -88,11 +102,17 @@ def autotune_V_osc(N,
                 voltage, E + d, w, select=None, combine=False)
 
             # Get budget terms for opt
-            V_b = np.abs(np.mean(voltage['V_budget'][n]))
-            V_c = np.abs(np.mean(budget['V_comp'][n, :]))
-            V_o = np.abs(np.mean(budget['V_osc'][n, :]))
+            V_free = np.abs(np.mean(budget_ref['V_free'][n, :]))
+            V_osc = np.abs(np.mean(budget['V_osc'][n, :]))
 
-            return V_b - (V_o + V_c)
+            loss = V_free - V_osc
+
+            if verbose:
+                print(
+                    ">>> (A {:0.12f}, phi {:0.3f})  ->  (V_free {:0.5f}, V_osc {:0.5f} loss {:0.5f})".
+                    format(A, phi, V_free, V_osc, loss))
+
+            return loss
 
         # !
         if verbose:
