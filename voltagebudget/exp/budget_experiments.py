@@ -22,6 +22,7 @@ from voltagebudget.util import precision
 
 from voltagebudget.exp import forward
 from voltagebudget.exp import replay
+from voltagebudget.exp import pareto
 from voltagebudget.exp import create_stim
 from voltagebudget.exp import autotune_membrane
 from voltagebudget.exp import autotune_w
@@ -36,5 +37,6 @@ if __name__ == "__main__":
     fire.Fire({
         'create_stim': create_stim,
         'forward': forward,
+        'pareto': pareto,
         'replay': replay
     })
