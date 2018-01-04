@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # 8 Hz
 sfn1:
