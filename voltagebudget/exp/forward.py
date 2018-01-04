@@ -151,10 +151,10 @@ def forward(name,
     if verbose:
         print(">>> Analyzing results.")
 
-    communication_scores = []
-    computation_scores = []
-    communication_voltages = []
-    computation_voltages = []
+    coincidence_counts = []
+    precisions = []
+    V_oscs = []
+    V_comps = []
     As = []
     phis = []
     for n, sol in enumerate(solutions):
@@ -183,7 +183,7 @@ def forward(name,
 
         # Analyze spikes
         # Coincidences
-        comm = estimate_communication(
+        cc = estimate_communication(
             ns_n,
             ts_n, (E, E + T),
             coincidence_t=coincidence_t,
@@ -198,21 +198,22 @@ def forward(name,
         budget_n = budget_window(voltage_n, E + d, w, select=None)
         V_osc = np.abs(np.mean(budget_n['V_osc'][n, :]))
         V_comp = np.abs(np.mean(budget_n['V_comp'][n, :]))
+        V_free = np.abs(np.mean(budget_n['V_free'][n, :]))
 
         # Store all stats for n
-        communication_scores.append(comm)
-        computation_scores.append(np.mean(prec))
+        coincidence_counts.append(cc)
+        precisions.append(np.mean(prec))
 
-        communication_voltages.append(V_osc)
-        computation_voltages.append(V_comp)
+        V_oscs.append(V_osc)
+        V_comps.append(V_comp)
+        V_frees.append(V_free)
 
         As.append(A_opt)
         phis.append(phi_opt)
 
         if verbose:
-            print(
-                ">>> (A {:0.12f}, phi {:0.3f})  ->  (prec {:0.5f}, comm, {})".
-                format(A_opt, phi_opt, prec, comm))
+            print(">>> (A {:0.12f}, phi {:0.3f})  ->  (prec {:0.5f}, cc, {})".
+                  format(A_opt, phi_opt, prec, cc))
 
     # --------------------------------------------------------------
     if verbose:
@@ -221,10 +222,11 @@ def forward(name,
     # Build a dict of results,
     results = {}
     results["N"] = list(range(N))
-    results["communication_scores"] = communication_scores
-    results["computation_scores"] = computation_scores
-    results["communication_voltages"] = communication_voltages
-    results["computation_voltages"] = computation_voltages
+    results["coincidence_count"] = coincidence_counts
+    results["precision"] = precisions
+    results["V_osc"] = V_oscs
+    results["V_comp"] = V_comps
+    results["V_free"] = V_frees
     results["A"] = As
     results["phi"] = phis
 
