@@ -27,6 +27,7 @@ from platypus.types import Real
 
 def pareto(name,
            stim,
+           E_0,
            N=10,
            t=0.4,
            d=-5e-3,
@@ -71,7 +72,7 @@ def pareto(name,
     if verbose:
         print(">>> Creating reference.")
 
-    ns_ref, ts_ref = adex(
+    ns_ref, ts_ref, _ = adex(
         N,
         t,
         ns,
@@ -82,7 +83,7 @@ def pareto(name,
         A=0,
         phi=0,
         sigma=sigma,
-        budget=False,
+        budget=True,
         save_args="{}_ref_args".format(name),
         time_step=time_step,
         seed_value=seed_value,
@@ -91,11 +92,17 @@ def pareto(name,
     if ns_ref.size == 0:
         raise ValueError("The reference model didn't spike.")
 
+    # Find E
     # Find the ref spike closest to E_0
     # and set that as E
-    _, E = locate_firsts(ns_ref, ts_ref, combine=True)
-    if verbose:
-        print(">>> E was {}.".format(E))
+    if np.isclose(E_0, 0.0):
+        _, E = locate_firsts(ns_ref, ts_ref, combine=True)
+        if verbose:
+            print(">>> Locking on first spike. E was {}.".format(E))
+    else:
+        E = nearest_spike(ts_ref, E_0)
+        if verbose:
+            print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
