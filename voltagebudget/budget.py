@@ -207,8 +207,9 @@ def estimate_communication(ns, ts, window, coincidence_t=1e-3, time_step=1e-4):
 
         Cs.append(C_t)
 
-    # Find highest C
-    C = np.max(Cs)
+    # Find C
+    # C = np.max(Cs)
+    C = np.sum(Cs)
 
     return C
 
