@@ -206,13 +206,12 @@ def adex(N,
     net = Network(P_n, traces_n)
     net.store('no_stim')
 
-    # If budgets are desired, run the net without
-    # any stimulation. (This strictly speaking isn't
+    # Run the net without any stimulation. 
+    # (This strictly speaking isn't
     # necessary, but I can't get Brian to express the needed
-    # diff eq to get the osc budget term in one pass.)
-    if budget:
-        net.run(time * second, report=report)
-        V_osc = deepcopy(np.asarray(traces_n.v_))
+    # diff eq to get the osc budget term in one pass...)
+    net.run(time * second, report=report)
+    V_osc = deepcopy(np.asarray(traces_n.v_))
 
     net.restore('no_stim')
     net.add([P_stim, C_stim, spikes_n])
