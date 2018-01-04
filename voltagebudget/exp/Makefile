@@ -86,16 +86,14 @@ exp1:
 		--joblog '$(DATADIR)/exp1.log' \
 		--nice 19 --delay 2 \
 		'python budget_experiments.py forward $(DATADIR)/exp1_d{1}_f{2} $(DATADIR)/stim1.csv 0.2086 --mode=regular --A_0=0.1e-9 --A_max=1e-9 --N=25 --verbose --d={1} --f={2}' \
-		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 10 20 30
+		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
  
 
- # -
-# Budgets locked to stim2 (ongoing sparse firing design), arb. middle of the sequence
-# regular firing mode
+# regular firing mode, in the shadow realm
 exp2:
 	parallel -j 12 -v \
 		--joblog '$(DATADIR)/exp2.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py forward $(DATADIR)/exp2_d{1}_f{2} $(DATADIR)/stim2.csv 0.1999 --mode=regular --A_0=0.1e-9 --A_max=1e-9 --N=25 --verbose --d={1} --f={2}' ::: \
-		-2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 10 20 30
-
+		'python budget_experiments.py forward $(DATADIR)/exp2_d{1}_f{2} $(DATADIR)/stim1.csv 0.2086 --mode=regular --shadow --A_0=0.1e-9 --A_max=1e-9 --N=25 --verbose --d={1} --f={2}' \
+		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
+ 
