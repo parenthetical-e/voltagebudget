@@ -36,7 +36,6 @@ def forward(name,
             A_max=0.5e-9,
             phi_0=np.pi,
             mode='regular',
-            opt_f=False,
             noise=False,
             shadow=False,
             save_only=False,
@@ -144,6 +143,7 @@ def forward(name,
         f=f,
         shadow=shadow,
         noise=noise,
+        seed_value=seed_value,
         verbose=verbose)
 
     # --------------------------------------------------------------

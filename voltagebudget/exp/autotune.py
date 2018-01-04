@@ -53,8 +53,7 @@ def autotune_V_osc(N,
     if not noise:
         sigma = 0
 
-    budget_ref = budget_window(
-        voltage_ref, E + d, w, select=None, combine=False)
+    budget_ref = budget_window(voltage_ref, E + d, w, select=None)
 
     # least_squares() was struggling with small A, so boost it
     # for param search purposes, then divide it back out in the 
@@ -105,8 +104,7 @@ def autotune_V_osc(N,
                     **params)
 
             # Select window
-            budget = budget_window(
-                voltage, E + d, w, select=None, combine=False)
+            budget = budget_window(voltage, E + d, w, select=None)
 
             # Get budget terms for opt
             V_free = np.abs(np.mean(budget_ref['V_free'][n, :]))

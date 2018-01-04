@@ -81,7 +81,7 @@ def locate_peaks(budget, onset=None, offset=None, combine=False, select=None):
     return ns, ts
 
 
-def budget_window(budget, t, budget_width, select=None, combine=False):
+def budget_window(budget, t, budget_width, select=None):
     if budget_width < 0:
         raise ValueError("budget_width must be positive")
 
