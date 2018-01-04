@@ -13,11 +13,11 @@ from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
 
-from voltagebudget.budget import filter_voltages
-from voltagebudget.budget import locate_firsts
-from voltagebudget.budget import locate_peaks
-from voltagebudget.budget import estimate_communication
-from voltagebudget.budget import precision
+from voltagebudget.util import filter_voltages
+from voltagebudget.util import locate_firsts
+from voltagebudget.util import locate_peaks
+from voltagebudget.util import estimate_communication
+from voltagebudget.util import precision
 
 
 def replay(args, stim, results, i, f, save_npy=None, verbose=False):

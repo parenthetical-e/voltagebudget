@@ -10,9 +10,9 @@ def shadow_adex(N, time, ns, ts, **adex_kwargs):
     """Est. the 'shadow voltage' of the AdEx membrane voltage."""
     # In the neuron can't fire, we're in the shadow realm!
     V_t = 1000  # 1000 volts is infinity, for neurons.
-    _, _, budget = adex(N, time, ns, ts, budget=True, V_t=V_t, **adex_kwargs)
+    _, _, voltages = adex(N, time, ns, ts, budget=True, V_t=V_t, **adex_kwargs)
 
-    return budget
+    return voltages
 
 
 def _parse_membrane_param(x, N, prng):

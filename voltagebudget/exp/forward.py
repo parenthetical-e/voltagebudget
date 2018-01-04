@@ -14,12 +14,12 @@ from voltagebudget.util import read_modes
 from voltagebudget.util import nearest_spike
 from voltagebudget.util import write_spikes
 
-from voltagebudget.budget import locate_firsts
-from voltagebudget.budget import filter_spikes
-from voltagebudget.budget import budget_window
-from voltagebudget.budget import locate_peaks
-from voltagebudget.budget import estimate_communication
-from voltagebudget.budget import precision
+from voltagebudget.util import locate_firsts
+from voltagebudget.util import filter_spikes
+from voltagebudget.util import budget_window
+from voltagebudget.util import locate_peaks
+from voltagebudget.util import estimate_communication
+from voltagebudget.util import precision
 from voltagebudget.exp.autotune import autotune_V_osc
 
 
@@ -155,6 +155,7 @@ def forward(name,
     precisions = []
     V_oscs = []
     V_comps = []
+    V_frees = []
     As = []
     phis = []
     for n, sol in enumerate(solutions):
@@ -184,10 +185,7 @@ def forward(name,
         # Analyze spikes
         # Coincidences
         cc = estimate_communication(
-            ns_n,
-            ts_n, (E, E + T),
-            coincidence_t=coincidence_t,
-            time_step=time_step)
+            ns_n, ts_n, (E, E + T), coincidence_t=coincidence_t)
 
         # Precision
         ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
@@ -212,8 +210,9 @@ def forward(name,
         phis.append(phi_opt)
 
         if verbose:
-            print(">>> (A {:0.12f}, phi {:0.3f})  ->  (prec {:0.5f}, cc, {})".
-                  format(A_opt, phi_opt, prec, cc))
+            print(
+                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, prec {:0.5f}, cc, {})".
+                format(A_opt, phi_opt, ns_n.size, prec, cc))
 
     # --------------------------------------------------------------
     if verbose:
