@@ -85,10 +85,10 @@ def forward(name,
         A=0,
         phi=0,
         sigma=sigma,
-        seed_value=seed_value,
         budget=True,
         save_args="{}_ref_args".format(name),
         time_step=time_step,
+        seed_value=seed_value,
         **params)
 
     if ns_ref.size == 0:
@@ -114,9 +114,14 @@ def forward(name,
 
     # Find the ref spike closest to E_0
     # and set that as E
-    E = nearest_spike(ts_ref, E_0)
-    if verbose:
-        print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
+    if np.isclose(E_0, 0.0):
+        _, E = locate_firsts(ns_ref, ts_ref, combine=True)
+        if verbose:
+            print(">>> Locking on first spike. E was {}.".format(E))
+    else:
+        E = nearest_spike(ts_ref, E_0)
+        if verbose:
+            print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
