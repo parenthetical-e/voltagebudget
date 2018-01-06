@@ -37,7 +37,6 @@ DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
 # sfn6:
 # 	python budget_experiments.py forward $(DATADIR)/sfn6 --f=8 --save_only --verbose --M=50 --combine_budgets --mode=delayed_accelerating --fix_w
 
-# # --------------------------
 # # Delays, with regular firing, 8 Hz
 # sfn7:
 # 	python budget_experiments.py forward $(DATADIR)/sfn7 --f=8 --save_only --verbose --M=50 --combine_budgets --mode=regular --fix_w --budget_delay=-8e-3
@@ -83,7 +82,7 @@ stim2:
 	--seed_stim=754 --time_step=1e-5 --verbose
 
 
-# -
+# ---------------------------------------------------------------------------
 # Budgets locked to stim1 (stim onset design), and first population spike
 # regular firing mode
 exp1:
@@ -92,7 +91,6 @@ exp1:
 		--nice 19 --delay 2 \
 		'python budget_experiments.py forward $(DATADIR)/exp1_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.1e-9 --A_max=1e-9 --N=20 --d={1} --T=0.25 --f={2} --verbose' \
 		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
- 
 
 # regular firing mode, in the shadow realm
 exp2:
@@ -111,3 +109,5 @@ exp3:
 		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
  
  # TODO: stim 2, continous sparse input exps...
+
+# ---------------------------------------------------------------------------
