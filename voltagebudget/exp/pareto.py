@@ -189,7 +189,7 @@ def pareto(name,
 
         # Run 
         if verbose:
-            print(">>> Running analysis for neuron {}/{}.".format(n + 1, N))
+            print(">>> Running analysis for neuron {}/{}.".format(m + 1, M))
 
         ns_m, ts_m, voltage_m = adex(
             N,
@@ -242,14 +242,12 @@ def pareto(name,
         print(">>> Saving results.")
 
     # Add the analysis to the results
-    results["N"] = list(range(N))
+    results["N"] = list(range(M))
     results["coincidence_count"] = coincidence_counts
     results["precision"] = precisions
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
-    results["A"] = As
-    results["phi"] = phis
 
     # ...and write it out.
     keys = sorted(results.keys())
