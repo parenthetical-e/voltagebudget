@@ -205,7 +205,7 @@ def pareto(name,
             budget=True,
             seed_value=seed_value,
             time_step=time_step,
-            save_args="{}_m_{}_opt_args".format(name, n),
+            save_args="{}_m_{}_opt_args".format(name, m),
             **params)
 
         # Analyze spikes
@@ -242,7 +242,7 @@ def pareto(name,
         print(">>> Saving results.")
 
     # Add the analysis to the results
-    results["N"] = list(range(M))
+    results["M"] = list(range(M))
     results["coincidence_count"] = coincidence_counts
     results["precision"] = precisions
     results["V_osc"] = V_oscs
