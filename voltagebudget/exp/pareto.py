@@ -169,13 +169,20 @@ def pareto(name,
     if verbose:
         print(">>> Analyzing results.")
 
+    # Extract opt params
+    As = [s.variables[0] for s in algorithm.result]
+    phis = [s.variables[1] for s in algorithm.result]
+
+    results = {}
+    results['A'] = As
+    results['phis'] = phis
+
+    # Iterate over opt params, analyzing the result
     coincidence_counts = []
     precisions = []
     V_oscs = []
     V_comps = []
     V_frees = []
-    As = []
-    phis = []
     for m in range(M):
         A_m = results['A'][m]
         phi_m = results['phis'][m]
@@ -225,9 +232,6 @@ def pareto(name,
         V_comps.append(V_comp)
         V_frees.append(V_free)
 
-        As.append(A_m)
-        phis.append(phi_m)
-
         if verbose:
             print(
                 ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, prec {:0.5f}, cc, {})".
@@ -237,8 +241,7 @@ def pareto(name,
     if verbose:
         print(">>> Saving results.")
 
-    # Build a dict of results,
-    results = {}
+    # Add the analysis to the results
     results["N"] = list(range(N))
     results["coincidence_count"] = coincidence_counts
     results["precision"] = precisions
@@ -248,7 +251,7 @@ def pareto(name,
     results["A"] = As
     results["phi"] = phis
 
-    # then write it out.
+    # ...and write it out.
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")
