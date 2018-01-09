@@ -105,7 +105,7 @@ exp3:
 	parallel -j 8 -v \
 		--joblog '$(DATADIR)/exp3.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py pareto $(DATADIR)/exp3_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=1e-9 --N=20 --d={1} --T=0.25 --f={2} --verbose' \
+		'python budget_experiments.py pareto $(DATADIR)/exp3_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=20 --d={1} --T=0.25 --f={2} --verbose' \
 		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
  
  # TODO: stim 2, continous sparse input exps...
