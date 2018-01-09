@@ -180,7 +180,7 @@ def filter_voltages(budget,
     return filtered
 
 
-def estimate_communication(ns, ts, window, coincidence_t=1e-3):
+def estimate_communication(ns, ts, window, coincidence_t=1e-3, min_spikes=2):
     # Define overall analysis window
     t0 = window[0]
     tn = window[1]
@@ -196,8 +196,9 @@ def estimate_communication(ns, ts, window, coincidence_t=1e-3):
     ts = ts[m]
     ns = ns[m]
 
-    # Calculate C for every possible coincidence (CC) window, for all time
-    Cs = []
+    # Calculate # coincidences C for every possible
+    # coincidence (CC) window, for all time.
+    C = 0
     for i in range(n_steps - 1):
 
         # Get CC window
@@ -206,17 +207,8 @@ def estimate_communication(ns, ts, window, coincidence_t=1e-3):
         m = np.logical_and(cc0 <= ts, ts <= ccn)
 
         # Count spikes in the window
-        C_t = 0
-        if ts[m].size > 0:
-            n_spikes = ts[m].size
-            C_t = n_spikes
-            # C_t = max(n_spikes - coincidence_n, 0) / coincidence_n
-
-        Cs.append(C_t)
-
-    # Find C
-    # C = np.max(Cs)
-    C = np.sum(Cs)
+        if ts[m].size >= min_spikes:
+            C += 1
 
     return C
 
