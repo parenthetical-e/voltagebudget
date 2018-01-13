@@ -125,7 +125,7 @@ def forward(name,
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
-    write_spikes("{}_ref_spks.csv".format(name), ns_ref, ts_ref)
+    write_spikes("{}_ref_spks".format(name), ns_ref, ts_ref)
 
     if verbose:
         print(">>> {} spikes in the analysis window.".format(ns_ref.size))
@@ -156,6 +156,7 @@ def forward(name,
         print(">>> Analyzing results.")
 
     coincidence_counts = []
+    deviations = []
     precisions = []
     V_oscs = []
     V_comps = []
@@ -187,13 +188,21 @@ def forward(name,
             **params)
 
         # Analyze spikes
+        # Filter spikes in E    
+        ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
+        ns_n, ts_n = filter_spikes(ns_n, ts_n, (E, E + T))
+
+        # Save
+        write_spikes("{}_n_{}_spks".format(n).format(name), ns_n, ts_n)
+
         # Coincidences
         cc = estimate_communication(
             ns_n, ts_n, (E, E + T), coincidence_t=coincidence_t)
 
+        # MAD
+        dev = mad(ts_n)
+
         # Precision
-        ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
-        ns_n, ts_n = filter_spikes(ns_n, ts_n, (E, E + T))
         _, prec = precision(ns_n, ts_n, ns_ref, ts_ref, combine=True)
 
         # Extract budget values
@@ -203,6 +212,7 @@ def forward(name,
         V_free = np.abs(np.mean(budget_n['V_free'][n, :]))
 
         # Store all stats for n
+        deviations.append(dev)
         coincidence_counts.append(cc)
         precisions.append(np.mean(prec))
 
@@ -225,6 +235,7 @@ def forward(name,
     # Build a dict of results,
     results = {}
     results["N"] = list(range(N))
+    results["deviations"] = deviations
     results["coincidence_count"] = coincidence_counts
     results["precision"] = precisions
     results["V_osc"] = V_oscs

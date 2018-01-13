@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # ------------------------------------------------------------------------
 # SFN runs are all deprecated. 
@@ -109,5 +109,15 @@ exp3:
 		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
  
  # TODO: stim 2, continous sparse input exps...
+
+
+# repeat exp1, returning MAD as well this time (run on a later commit)
+# and scanning fewer (f, d); T adj for f=8.
+exp4:
+	parallel -j 12 -v \
+		--joblog '$(DATADIR)/exp4.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp4_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=20 --d={1} --T=0.125 --f={2} --verbose' \
+		::: -2e-3 -4e-3 -6e-3 ::: 8 
 
 # ---------------------------------------------------------------------------
