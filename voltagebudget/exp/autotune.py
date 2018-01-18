@@ -22,6 +22,8 @@ from voltagebudget.util import locate_firsts
 from voltagebudget.util import locate_peaks
 from voltagebudget.util import estimate_communication
 from voltagebudget.util import precision
+from voltagebudget.util import mad
+from pyswarm import pso
 
 
 def autotune_V_osc(N,
@@ -32,7 +34,7 @@ def autotune_V_osc(N,
                    ts,
                    voltage_ref,
                    w=2e-3,
-                   A_0=0.1e-9,
+                   A_0=0.05e-9,
                    A_max=0.5e-9,
                    phi_0=0,
                    f=8,
@@ -48,7 +50,7 @@ def autotune_V_osc(N,
     solutions : list((A, phi, sol), ...)
         A list of N 3-tuples 
     """
-    # -
+    # ---------------------------------------------------------------
     params, w_in, bias_in, sigma = read_modes(mode)
     if not noise:
         sigma = 0
@@ -60,73 +62,105 @@ def autotune_V_osc(N,
     # problem definition
     rescale = 1e10
 
-    p0 = (A_0 * rescale, phi_0)
-    bounds = ([0, 0], [A_max * rescale, np.pi])
+    # ---------------------------------------------------------------
+    # Define a loss func (closing several locals)
+    def est_loss(n, voltage):
+        # Select window
+        budget = budget_window(voltage, E + d, w, select=None)
+
+        # Get budget terms for opt
+        V_free = np.abs(budget_ref['V_free'][n, :])
+        V_osc = np.abs(budget['V_osc'][n, :])
+
+        # loss = np.mean(V_free - V_osc)
+        loss = V_free - V_osc
+
+        return loss
 
     # -
     solutions = []
     for n in range(N):
 
-        def problem(p):
+        # ---------------------------------------------------------------
+        def phi_problem(p, A):
             """A new problem for each neuron"""
-            A = p[0] / rescale
-            phi = p[1]
 
-            # Run into the shadow! realm!
-            if shadow:
-                voltage = shadow_adex(
-                    N,
-                    t,
-                    ns,
-                    ts,
-                    A=A,
-                    phi=phi,
-                    f=f,
-                    w_in=w_in,
-                    bias_in=bias_in,
-                    sigma=sigma,
-                    seed_value=seed_value,
-                    **params)
-            else:
-                _, _, voltage = adex(
-                    N,
-                    t,
-                    ns,
-                    ts,
-                    A=A,
-                    phi=phi,
-                    f=f,
-                    w_in=w_in,
-                    bias_in=bias_in,
-                    sigma=sigma,
-                    seed_value=seed_value,
-                    budget=True,
-                    **params)
+            phi = p[0]
+            _, _, voltage = adex(
+                N,
+                t,
+                ns,
+                ts,
+                A=A / rescale,
+                phi=phi,
+                f=f,
+                w_in=w_in,
+                bias_in=bias_in,
+                sigma=sigma,
+                seed_value=seed_value,
+                budget=True,
+                **params)
 
-            # Select window
-            budget = budget_window(voltage, E + d, w, select=None)
-
-            # Get budget terms for opt
-            V_free = np.abs(np.mean(budget_ref['V_free'][n, :]))
-            V_osc = np.abs(np.mean(budget['V_osc'][n, :]))
-
-            loss = V_free - V_osc
+            loss = est_loss(n, voltage)
 
             if verbose:
-                print(
-                    ">>> (A {:0.12f}, phi {:0.3f})  ->  (V_free {:0.5f}, V_osc {:0.5f} loss {:0.5f})".
-                    format(A, phi, V_free, V_osc, loss))
+                print(">>> (A {:0.12f}, phi {:0.3f})  ->  (loss {})".format(
+                    A / rescale, phi, np.sum(loss)))
 
             return loss
 
-        # !
+        def A_problem(p, phi):
+            """A new problem for each neuron"""
+
+            A = p[0] / rescale
+
+            _, _, voltage = adex(
+                N,
+                t,
+                ns,
+                ts,
+                A=A,
+                phi=phi,
+                f=f,
+                w_in=w_in,
+                bias_in=bias_in,
+                sigma=sigma,
+                seed_value=seed_value,
+                budget=True,
+                **params)
+
+            loss = est_loss(n, voltage)
+
+            if verbose:
+                print(">>> (A {:0.12f}, phi {:0.3f})  ->  (loss {})".format(
+                    A / rescale, phi, np.sum(loss)))
+
+            return loss
+
+        # ---------------------------------------------------------------
+
+        # Opt phi
         if verbose:
-            print(">>> Optimizing neuron {}/{}.".format(n + 1, N))
+            print(">>> Optimizing phi, neuron {}/{}.".format(n + 1, N))
 
-        sol = least_squares(problem, p0, bounds=bounds, ftol=1e-4)
-        A_opt, phi_opt = sol.x
+        p0 = [phi_0]
+        bounds = (0, np.pi)
+        sol = least_squares(
+            lambda p: phi_problem(p, A_0 * rescale), p0, bounds=bounds)
 
-        solutions.append((A_opt / rescale, phi_opt, sol))
+        phi_hat = sol.x[0]
+
+        # Opt A
+        if verbose:
+            print(">>> Optimizing A, neuron {}/{}.".format(n + 1, N))
+
+        p0 = [A_0 * rescale]
+        bounds = (0, A_max * rescale)
+        sol = least_squares(lambda p: A_problem(p, phi_hat), p0, bounds=bounds)
+
+        A_hat = sol.x[0]
+
+        solutions.append((A_hat / rescale, phi_hat, sol))
 
     return solutions
 
