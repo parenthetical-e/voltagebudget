@@ -180,6 +180,12 @@ def filter_voltages(budget,
     return filtered
 
 
+def mad(x, axis=None):
+    """Mean absolute deviation"""
+
+    return np.mean(np.absolute(x - np.mean(x, axis)), axis)
+
+
 def estimate_communication(ns, ts, window, coincidence_t=1e-3, min_spikes=2):
     # Define overall analysis window
     t0 = window[0]

@@ -20,6 +20,7 @@ from voltagebudget.util import budget_window
 from voltagebudget.util import locate_peaks
 from voltagebudget.util import estimate_communication
 from voltagebudget.util import precision
+from voltagebudget.util import mad
 from voltagebudget.exp.autotune import autotune_V_osc
 
 
@@ -34,7 +35,8 @@ def forward(name,
             f=8,
             A_0=.05e-9,
             A_max=0.5e-9,
-            phi_0=np.pi,
+            phi_0=0,
+            opt_phi=False,
             mode='regular',
             noise=False,
             shadow=False,
@@ -106,6 +108,7 @@ def forward(name,
             f=0,
             A=0,
             phi=0,
+            opt_phi=opt_phi,
             sigma=sigma,
             seed_value=seed_value,
             save_args=None,
@@ -193,7 +196,7 @@ def forward(name,
         ns_n, ts_n = filter_spikes(ns_n, ts_n, (E, E + T))
 
         # Save
-        write_spikes("{}_n_{}_spks".format(n).format(name), ns_n, ts_n)
+        write_spikes("{}_n_{}_spks".format(name, n), ns_n, ts_n)
 
         # Coincidences
         cc = estimate_communication(
