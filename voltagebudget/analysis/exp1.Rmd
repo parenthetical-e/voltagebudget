@@ -7,39 +7,43 @@ output: html_notebook
 library(tidyverse)
 library(gridExtra)
 library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
 ```
 
 # Load and process
 
 ```{r, message=FALSE}
-results <- read_csv("../data/exp1_d4e-3_f10.csv")
+results <- read_csv("../data/exp1_d-2e-3_f4.csv")
 ```
 
 ```{r, fig.width=2.5, fig.height=1.5}
 results %>% 
-  filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=communication_scores)) +
+  filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=coincidence_count)) +
   geom_histogram(bins=50) + 
   xlab("C") +
   theme_classic() -> p1
 
 results %>% 
-  filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=computation_scores)) +
+  filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=precision)) +
   geom_histogram(bins=50) + 
   xlab("S") +
   theme_classic() -> p2
 
 results %>% 
-  filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=communication_voltages)) +
+  filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc)) +
   geom_histogram(bins=100) +
   xlab("Vc (volt)") +
   theme_classic() -> p3
 
 results %>% 
-  filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=computation_voltages)) +
+  filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_comp)) +
   geom_histogram(bins=100) +
   xlab("Vo (volt)") +
   theme_classic() -> p4
@@ -50,27 +54,68 @@ grid.arrange(p1, p2, p3, p4, nrow=2)
 
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
-  # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=Opt_y, y=Opt_z, color=As)) +
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=precision)) +
   geom_point() + 
   theme_classic()
 ```
 
-```{r, fig.width=2, fig.height=1}
+```{r, fig.width=2.5, fig.height=1}
 results %>% 
-  # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=computation_voltages, y=communication_voltages, color=As)) +
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=coincidence_count)) +
   geom_point() + 
   theme_classic()
 ```
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=phi)) +
+  geom_point() + 
+  theme_classic()
+```
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_comp, y=precision)) +
+  ylim(0, 0.01) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=coincidence_count)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=N, y=sort(precision))) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_comp, y=coincidence_count, color=A)) +
+  geom_point() + 
+  # ylim(0, 20) +
+  theme_classic()
+```
+
 
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
-  filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=As, y=communication_scores/max(communication_scores))) +
+  # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_comp, y=normalize(coincidence_count))) +
   geom_point(color="red", alpha=0.5) + 
-  xlab("Osc. amplitude (amps)") +
+  xlab("Vc (mvolt)") +
   ylab("Rel. scores (AU)") +
-  geom_point(aes(x=As, y=1-computation_scores/max(computation_scores)), color="purple") + 
+  geom_point(aes(x=V_comp, y=1-normalize(precision)), color="purple") + 
   theme_classic()
 ```
