@@ -41,7 +41,7 @@ def autotune_V_osc(N,
                    mode='regular',
                    noise=False,
                    seed_value=42,
-                   shadow=True,
+                   shadow=False,
                    verbose=False):
     """Find the optimal oscillatory voltage at W, over w, for each neuron.
     
@@ -50,6 +50,8 @@ def autotune_V_osc(N,
     solutions : list((A, phi, sol), ...)
         A list of N 3-tuples 
     """
+    if shadow:
+        raise NotImplementedError("shadow need to be re-implemented")
     # ---------------------------------------------------------------
     params, w_in, bias_in, sigma = read_modes(mode)
     if not noise:
