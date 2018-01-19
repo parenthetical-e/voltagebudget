@@ -84,40 +84,37 @@ stim2:
 
 # ---------------------------------------------------------------------------
 # Budgets locked to stim1 (stim onset design), and first population spike
-# regular firing mode
+
+# regular firing mode:
+# f=4
 exp1:
-	parallel -j 12 -v \
+	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp1.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py forward $(DATADIR)/exp1_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=20 --d={1} --T=0.25 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
+		'python budget_experiments.py forward $(DATADIR)/exp1_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose' \
+		::: -2e-3 -4e-3 -6e-3 ::: 4
 
-# regular firing mode, in the shadow realm
+# f=8
 exp2:
-	parallel -j 12 -v \
+	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp2.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py forward $(DATADIR)/exp2_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --shadow --A_0=0.05e-9 --A_max=0.2e-9 --N=20 --d={1} --T=0.25 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
+		'python budget_experiments.py forward $(DATADIR)/exp2_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.125 --f={2} --verbose' \
+		::: -2e-3 -4e-3 -6e-3 ::: 8 
  
- # regular firing mode, in the shadow realm
+# f=30
 exp3:
-	parallel -j 8 -v \
+	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp3.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py pareto $(DATADIR)/exp3_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=20 --d={1} --T=0.25 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 4 8 20 30
- 
- # TODO: stim 2, continous sparse input exps...
+		'python budget_experiments.py forward $(DATADIR)/exp3_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.033 --f={2} --verbose' \
+		::: -2e-3 -4e-3 -6e-3 ::: 30
 
-
-# repeat exp1, returning MAD as well this time (run on a later commit)
-# and scanning fewer (f, d); T adj for f=8.
+# Pareto
 exp4:
-	parallel -j 12 -v \
+	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp4.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py forward $(DATADIR)/exp4_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=20 --d={1} --T=0.125 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 ::: 8 
-
-# ---------------------------------------------------------------------------
+		'python budget_experiments.py pareto $(DATADIR)/exp4_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T=0.125 --f={2} --verbose' \
+		::: -2e-3 -4e-3 -6e-3 ::: 30
+ 
