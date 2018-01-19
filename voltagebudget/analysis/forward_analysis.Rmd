@@ -1,5 +1,5 @@
 ---
-title: "Exp1 - Opt w_max and {A,phi)"
+title: "General analysis notebook for `forward` budget models."
 output: html_notebook
 ---
 
@@ -16,33 +16,29 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-results <- read_csv("../data/exp3_d-2e-3_f4.csv")
+results <- read_csv("../data/exp3_d-2e-3_f30.csv")
 ```
 
 ```{r, fig.width=2.5, fig.height=1.5}
 results %>% 
-  filter(precision < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=coincidence_count)) +
+  ggplot(aes(x=deviations)) +
   geom_histogram(bins=50) + 
   xlab("C") +
   theme_classic() -> p1
 
 results %>% 
-  filter(precision < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=precision)) +
   geom_histogram(bins=50) + 
   xlab("S") +
   theme_classic() -> p2
 
 results %>% 
-  filter(precision < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=V_osc)) +
   geom_histogram(bins=100) +
   xlab("Vc (volt)") +
   theme_classic() -> p3
 
 results %>% 
-  filter(precision < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=V_comp)) +
   geom_histogram(bins=100) +
   xlab("Vo (volt)") +
@@ -63,6 +59,13 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(precision < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=deviations)) +
+  geom_point() + 
+  theme_classic()
+```
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(precision < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=V_osc, y=V_comp, color=A)) +
   geom_point() + 
   theme_classic()
@@ -70,15 +73,7 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(precision < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=phis)) +
-  geom_point() + 
-  theme_classic()
-```
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(precision < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=V_comp, y=precision)) +
-  # ylim(0, 0.01) +
   geom_point() + 
   theme_classic()
 ```
@@ -86,33 +81,22 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(precision < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_comp, y=coincidence_count)) +
+  ggplot(aes(x=V_comp, y=deviations)) +
   geom_point() + 
   theme_classic()
 ```
 
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
-  # filter(precision < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=M, y=sort(precision))) +
+  ggplot(aes(x=N, y=sort(precision))) +
   geom_point() + 
   theme_classic()
 ```
 
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
-  # filter(precision < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=M, y=sort(coincidence_count))) +
+  ggplot(aes(x=N, y=sort(deviations))) +
   geom_point() + 
-  theme_classic()
-```
-
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(precision < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_comp, y=coincidence_count, color=A)) +
-  geom_point() + 
-  # ylim(0, 20) +
   theme_classic()
 ```
 
@@ -120,7 +104,7 @@ results %>%
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(precision < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_comp, y=normalize(coincidence_count))) +
+  ggplot(aes(x=V_comp, y=1-normalize(deviations))) +
   geom_point(color="red", alpha=0.5) + 
   xlab("Vc (mvolt)") +
   ylab("Rel. scores (AU)") +
