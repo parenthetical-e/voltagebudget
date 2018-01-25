@@ -23,7 +23,6 @@ from voltagebudget.util import locate_peaks
 from voltagebudget.util import estimate_communication
 from voltagebudget.util import precision
 from voltagebudget.util import mad
-from pyswarm import pso
 
 
 def autotune_V_osc(N,
@@ -141,16 +140,17 @@ def autotune_V_osc(N,
 
         # ---------------------------------------------------------------
 
-        # Opt phi
-        if verbose:
-            print(">>> Optimizing phi, neuron {}/{}.".format(n + 1, N))
+        # Opt phi, only do the first neuron.
+        if n == 0:
+            if verbose:
+                print(">>> Optimizing phi (neuron {}).".format(n))
 
-        p0 = [phi_0]
-        bounds = (0, np.pi)
-        sol = least_squares(
-            lambda p: phi_problem(p, A_0 * rescale), p0, bounds=bounds)
+            p0 = [phi_0]
+            bounds = (0, np.pi)
+            sol = least_squares(
+                lambda p: phi_problem(p, A_0 * rescale), p0, bounds=bounds)
 
-        phi_hat = sol.x[0]
+            phi_hat = sol.x[0]
 
         # Opt A
         if verbose:

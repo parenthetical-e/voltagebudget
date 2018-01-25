@@ -19,7 +19,7 @@ from voltagebudget.util import filter_spikes
 from voltagebudget.util import budget_window
 from voltagebudget.util import locate_peaks
 from voltagebudget.util import estimate_communication
-from voltagebudget.util import precision
+from voltagebudget.util import mae
 from voltagebudget.util import mad
 from voltagebudget.exp.autotune import autotune_V_osc
 
@@ -159,8 +159,8 @@ def forward(name,
         print(">>> Analyzing results.")
 
     coincidence_counts = []
-    deviations = []
-    precisions = []
+    variances = []
+    errors = []
     V_oscs = []
     V_comps = []
     V_frees = []
@@ -195,18 +195,13 @@ def forward(name,
         ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
         ns_n, ts_n = filter_spikes(ns_n, ts_n, (E, E + T))
 
-        # Save
         write_spikes("{}_n_{}_spks".format(name, n), ns_n, ts_n)
 
-        # Coincidences
-        cc = estimate_communication(
-            ns_n, ts_n, (E, E + T), coincidence_t=coincidence_t)
+        # Variance
+        var = mad(ts_n)
 
-        # MAD
-        dev = mad(ts_n)
-
-        # Precision
-        _, prec = precision(ns_n, ts_n, ns_ref, ts_ref, combine=True)
+        # Error
+        error = mae(ts_n, ts_ref)
 
         # Extract budget values
         budget_n = budget_window(voltage_n, E + d, w, select=None)
@@ -215,21 +210,17 @@ def forward(name,
         V_free = np.abs(np.mean(budget_n['V_free'][n, :]))
 
         # Store all stats for n
-        deviations.append(dev)
-        coincidence_counts.append(cc)
-        precisions.append(np.mean(prec))
+        variances.append(var)
+        errors.append(np.mean(error))
 
         V_oscs.append(V_osc)
         V_comps.append(V_comp)
         V_frees.append(V_free)
 
-        As.append(A_opt)
-        phis.append(phi_opt)
-
         if verbose:
             print(
-                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, prec {:0.5f}, cc, {})".
-                format(A_opt, phi_opt, ns_n.size, prec, cc))
+                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {})".
+                format(A_opt, phi_opt, ns_n.size, error, var))
 
     # --------------------------------------------------------------
     if verbose:
@@ -238,14 +229,12 @@ def forward(name,
     # Build a dict of results,
     results = {}
     results["N"] = list(range(N))
-    results["deviations"] = deviations
-    results["coincidence_count"] = coincidence_counts
-    results["precision"] = precisions
+    results["variances"] = variances
+    results["errors"] = errors
+
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
-    results["A"] = As
-    results["phi"] = phis
 
     # then write it out.
     keys = sorted(results.keys())
