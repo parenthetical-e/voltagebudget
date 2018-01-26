@@ -138,7 +138,7 @@ exp6:
 		'python budget_experiments.py forward $(DATADIR)/exp6_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.083 --f={2} --verbose' \
 		::: -2e-3 ::: 12
 
-# f=30
+# f=20
 exp7:
 	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp7.log' \
