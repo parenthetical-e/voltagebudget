@@ -17,8 +17,8 @@ from voltagebudget.util import locate_firsts
 from voltagebudget.util import filter_spikes
 from voltagebudget.util import budget_window
 from voltagebudget.util import locate_peaks
-from voltagebudget.util import estimate_communication
-from voltagebudget.util import precision
+from voltagebudget.util import mad
+from voltagebudget.util import mae
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -178,11 +178,13 @@ def pareto(name,
     results['phis'] = phis
 
     # Iterate over opt params, analyzing the result
-    coincidence_counts = []
-    precisions = []
+    variances = []
+    errors = []
     V_oscs = []
     V_comps = []
     V_frees = []
+    As = []
+    phis = []
     for m in range(M):
         A_m = results['A'][m]
         phi_m = results['phis'][m]
@@ -209,14 +211,17 @@ def pareto(name,
             **params)
 
         # Analyze spikes
-        # Coincidences
-        cc = estimate_communication(
-            ns_m, ts_m, (E, E + T), coincidence_t=coincidence_t)
-
-        # Precision
+        # Filter spikes in E    
         ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
         ns_m, ts_m = filter_spikes(ns_m, ts_m, (E, E + T))
-        _, prec = precision(ns_m, ts_m, ns_ref, ts_ref, combine=True)
+
+        write_spikes("{}_m_{}_spks".format(name, m), ns_m, ts_m)
+
+        # Variance
+        var = mad(ts_m)
+
+        # Error
+        error = mae(ts_m, ts_ref)
 
         # Extract budget values
         budget_m = budget_window(voltage_m, E + d, w, select=None)
@@ -225,31 +230,39 @@ def pareto(name,
         V_free = np.abs(np.mean(budget_m['V_free']))
 
         # Store all stats for n
-        coincidence_counts.append(cc)
-        precisions.append(np.mean(prec))
+        variances.append(var)
+        errors.append(np.mean(error))
 
         V_oscs.append(V_osc)
         V_comps.append(V_comp)
         V_frees.append(V_free)
 
+        As.append(A_m)
+        phis.append(phi_m)
+
         if verbose:
             print(
-                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, prec {:0.5f}, cc, {})".
-                format(A_m, phi_m, ns_m.size, prec, cc))
+                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
+                format(A_m, phi_m, ns_m.size, error, var))
 
     # --------------------------------------------------------------
     if verbose:
         print(">>> Saving results.")
 
-    # Add the analysis to the results
-    results["M"] = list(range(M))
-    results["coincidence_count"] = coincidence_counts
-    results["precision"] = precisions
+    # Build a dict of results,
+    results = {}
+    results["N"] = list(range(N))
+    results["variances"] = variances
+    results["errors"] = errors
+
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
 
-    # ...and write it out.
+    results["As"] = As
+    results["phis"] = phis
+
+    # then write it out.
     keys = sorted(results.keys())
     with open("{}.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")

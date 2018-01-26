@@ -158,7 +158,6 @@ def forward(name,
     if verbose:
         print(">>> Analyzing results.")
 
-    coincidence_counts = []
     variances = []
     errors = []
     V_oscs = []
@@ -217,9 +216,12 @@ def forward(name,
         V_comps.append(V_comp)
         V_frees.append(V_free)
 
+        As.append(A_opt)
+        phis.append(phi_opt)
+
         if verbose:
             print(
-                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {})".
+                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
                 format(A_opt, phi_opt, ns_n.size, error, var))
 
     # --------------------------------------------------------------
@@ -235,6 +237,9 @@ def forward(name,
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
+
+    results["As"] = As
+    results["phis"] = phis
 
     # then write it out.
     keys = sorted(results.keys())
