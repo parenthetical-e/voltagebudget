@@ -13,6 +13,110 @@ normalize <- function(x) {
 }
 ```
 
+# Voltage budget timecourse
+
+```{r}
+vms <- read_csv("vm_comp_timecourse.csv")
+```
+
+```{r, fig.width=1.5, fig.height=1.3}
+vms %>% 
+  filter(t > 0.15, t < 0.35) %>%
+  ggplot(aes(x=t, ymin=-70e-3, ymax=vm)) +
+  geom_ribbon(fill="blue", alpha=0.5) +
+  geom_hline(yintercept=-50e-3, color="black", linetype="dotted", size=0.5) +
+  geom_hline(yintercept=-70e-3, color="black", linetype="dotted", size=0.5) +
+  labs(x="", y="Vm") +
+  theme_classic() -> p1
+
+vms %>% 
+  filter(t > 0.15, t < 0.35) %>%
+  ggplot(aes(x=t, ymin=-70e-3, ymax=osc)) +
+  geom_ribbon(fill="red", alpha=0.5) +
+  geom_ribbon(aes(x=t, ymin=osc, ymax=comp), fill="purple", alpha=0.5) +
+  geom_hline(yintercept=-50e-3, color="black", linetype="dotted", size=0.5) +
+  geom_hline(yintercept=-70e-3, color="black", linetype="dotted", size=0.5) +
+  geom_rect(aes(xmin=0.23652 - 8e-3, xmax=0.23652 + 2e-3 + 0.03333333 + 8e-3, ymin=-70e-3, ymax=-50e-3),  fill=NA, color="black", alpha=0.01, size=.2) +
+  # geom_hline(yintercept=-70e-3, color="black", size=1.5) +
+  # geom_rect(aes(xmin=0.23652 - 2e-3, xmax=0.23652, ymin=-70e-3, ymax=-50e-3), color="grey", alpha=0.5) +
+  # geom_rect(aes(xmin=0.23652 + 2e-3, xmax=0.23652 + 2e-3 + 0.03333333, ymin=-70e-3, ymax=-50e-3), fill=NA, color="grey", alpha=0.1) +
+  labs(x="Times (s)", y="") +
+  theme_classic() -> p2
+
+vms %>% 
+  filter(t > 0.23652 - 8e-3, t < 0.23652 + 2e-3 + 0.03333333 + 8e-3) %>%
+  ggplot(aes(x=t, ymin=-70e-3, ymax=osc)) +
+  geom_ribbon(fill="red", alpha=0.5) +
+  geom_ribbon(aes(x=t, ymin=osc, ymax=comp), fill="purple", alpha=0.5) +
+  geom_hline(yintercept=-50e-3, color="black", linetype="dotted", size=0.5) +
+  geom_hline(yintercept=-70e-3, color="black", linetype="dotted", size=0.5) +
+  geom_rect(aes(xmin=0.23652 - 2e-3, xmax=0.23652, ymin=-70e-3, ymax=-50e-3), fill="grey", alpha=0.01) +
+  geom_rect(aes(xmin=0.23652 + 2e-3, xmax=0.23652 + 2e-3 + 0.03333333, ymin=-70e-3, ymax=-50e-3),  fill="grey", alpha=0.01) +
+  geom_rect(aes(xmin=0.23652 - 8e-3, xmax=0.23652 + 2e-3 + 0.03333333 + 8e-3, ymin=-70e-3, ymax=-50e-3),  fill=NA, color="black", alpha=0.01, size=.2) +
+  labs(x="", y="") +
+  theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      # axis.title.x=element_blank(),
+      # axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.background=element_blank()) -> p3
+
+plot_grid <- rbind(c(1 , 1, NA), c(2, 2, 3))
+grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
+```
+           
+# Voltage timecourses many neurons
+
+```{r}
+vms <- read_csv("vm_full_examples.csv")
+vms <- gather(vms, "neuron", "vm", 2:21)
+wins <- read_csv("vm_window_examples_d2_w2.csv")
+wins <- gather(wins, "neuron", "vm", 2:21)
+```
+
+```{r, fig.width=1.5, fig.height=1}
+vms %>% 
+  filter(t > 0.15, t < 0.35) %>%
+  ggplot(aes(x=t, y=vm, group=neuron)) +
+  geom_line(color="black", alpha=0.3, size=0.2) +
+  geom_line(data=wins, aes(x=t, y=vm), color="blue", alpha=0.5, size=1) +
+  labs(x="Time (s)", y="Vm (mV)") +
+  geom_hline(yintercept=-50e-3, color="black", linetype="dotted", size=0.25) +
+  geom_hline(yintercept=-70e-3, color="black", size=2) +
+  geom_vline(xintercept = 0.25719 + 2e-3, color="darkgreen", alpha=0.5, size=0.2) +
+  geom_vline(xintercept = 0.25719 + 2e-3 +  0.03333333, color="darkgreen", alpha=0.5, size=0.2) +
+  theme_classic()
+```
+```{r, fig.width=0.4, fig.height=0.8}
+vms %>% 
+  filter(t > 0.25, t < 0.27) %>%
+  ggplot(aes(x=t, y=vm, group=neuron)) +
+  geom_line(color="black", alpha=0.3, size=0.2) +
+  geom_line(data=wins, aes(x=t, y=vm), color="blue", alpha=0.5, size=1) +
+  labs(x="Time (s)", y="Vm (mV)") +
+  geom_hline(yintercept=-50e-3, color="black", linetype="dashed", size=1) +
+  geom_hline(yintercept=-70e-3, color="black", size=2) +
+  theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      axis.title.x=element_blank(),
+      axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.background=element_blank())
+  # theme_classic()
+```
+
 # Load and process
 
 ```{r, message=FALSE}
