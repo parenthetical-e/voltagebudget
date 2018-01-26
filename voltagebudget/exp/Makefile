@@ -92,7 +92,7 @@ exp1:
 		--joblog '$(DATADIR)/exp1.log' \
 		--nice 19 --delay 2 \
 		'python budget_experiments.py forward $(DATADIR)/exp1_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 ::: 4
+		::: -2e-3 ::: 4
 
 # f=8
 exp2:
@@ -100,7 +100,7 @@ exp2:
 		--joblog '$(DATADIR)/exp2.log' \
 		--nice 19 --delay 2 \
 		'python budget_experiments.py forward $(DATADIR)/exp2_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.125 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 ::: 8 
+		::: -2e-3 ::: 8 
  
 # f=30
 exp3:
@@ -108,13 +108,40 @@ exp3:
 		--joblog '$(DATADIR)/exp3.log' \
 		--nice 19 --delay 2 \
 		'python budget_experiments.py forward $(DATADIR)/exp3_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.033 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 ::: 30
+		::: -2e-3 ::: 30
+
 
 # Pareto
+# TODO set f based on exp1-3
 exp4:
 	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp4.log' \
 		--nice 19 --delay 2 \
 		'python budget_experiments.py pareto $(DATADIR)/exp4_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T=0.125 --f={2} --verbose' \
-		::: -2e-3 -4e-3 -6e-3 ::: 30
+		::: -2e-3 ::: 12 20 30
  
+ # Explore single neuron models, by ranks
+ # TODO set f based on exp1-3
+ exp5:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp5.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py ranked $(DATADIR)/exp5_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={3} --d={1} --T=0.125 --f={2} --verbose' \
+		::: -2e-3 ::: 8 ::: 1 2 3 48 49 50
+
+# Run forward on more freqs
+# f=12
+exp6:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp6.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp6_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.083 --f={2} --verbose' \
+		::: -2e-3 ::: 12
+
+# f=30
+exp7:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp7.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp7_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.05 --f={2} --verbose' \
+		::: -2e-3 ::: 20
