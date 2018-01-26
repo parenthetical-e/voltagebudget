@@ -186,6 +186,17 @@ def mad(x, axis=None):
     return np.mean(np.absolute(x - np.mean(x, axis)), axis)
 
 
+def mae(x, y, axis=None):
+    """Mean absolute deviation"""
+
+    min_l = min(len(x), len(y))
+
+    x = np.sort(x, axis)
+    y = np.sort(y, axis)
+
+    return np.mean(np.absolute(x[:min_l] - y[:min_l]), axis)
+
+
 def estimate_communication(ns, ts, window, coincidence_t=1e-3, min_spikes=2):
     # Define overall analysis window
     t0 = window[0]
