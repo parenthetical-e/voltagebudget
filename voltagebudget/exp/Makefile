@@ -197,6 +197,7 @@ exp13:
 		'python budget_experiments.py forward $(DATADIR)/exp13_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.04 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 25 
 
+# ------------------------------------------------------------------
 # 1-26-2018
 # More single unit models
 # Explore f space (adj T to match)
@@ -204,28 +205,28 @@ exp13:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp14.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py ranked $(DATADIR)/exp14_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --rank={3} --d={1} --T=0.25 --f={2} --verbose --save_only' \
+		'python budget_experiments.py ranked $(DATADIR)/exp14_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={3} --d={1} --T=0.25 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 4 ::: 1 2 3 48 49 50
 
 exp15:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp15.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py ranked $(DATADIR)/exp15_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --rank={3} --d={1} --T=0.05 --f={2} --verbose --save_only' \
+		'python budget_experiments.py ranked $(DATADIR)/exp15_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50--rank={3} --d={1} --T=0.05 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 20 ::: 1 2 3 48 49 50
 
 exp16:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp16.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py ranked $(DATADIR)/exp16_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --rank={3} --d={1} --T=0.033 --f={2} --verbose --save_only' \
+		'python budget_experiments.py ranked $(DATADIR)/exp16_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={3} --d={1} --T=0.033 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 30 ::: 1 2 3 48 49 50
 
 exp17:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp17.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py ranked $(DATADIR)/exp17_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --rank={3} --d={1} --T=0.016 --f={2} --verbose --save_only' \
+		'python budget_experiments.py ranked $(DATADIR)/exp17_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={3} --d={1} --T=0.016 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 60 ::: 1 2 3 48 49 50
 
 # Explore multi-F using a small window T (eq to 60 Hz)
@@ -233,7 +234,7 @@ exp18:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp18.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py ranked $(DATADIR)/exp18_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --rank={3} --d={1} --T=0.016 --f={2} --verbose --save_only' \
+		'python budget_experiments.py ranked $(DATADIR)/exp18_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={3} --d={1} --T=0.016 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 4 8 12 20 30 60 ::: 1 3 48 50
 
 # Explore multi-F using a big window T (eq to 4 Hz)
@@ -241,5 +242,24 @@ exp19:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp18.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py ranked $(DATADIR)/exp19_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --rank={3} --d={1} --T=0.25 --f={2} --verbose --save_only' \
+		'python budget_experiments.py ranked $(DATADIR)/exp19_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={3} --d={1} --T=0.25 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 4 8 12 20 30 60 ::: 1 3 48 50
+
+# ------------------------------------------------------------------
+# 1-26-2018
+# More pareto - F search, with big and small T
+# small T
+exp20:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp20.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py pareto $(DATADIR)/exp20_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T=0.016 --f={2} --verbose' \
+		::: -2e-3 ::: 4 8 12 20 30 60
+
+# big T
+exp21:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp21.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py pareto $(DATADIR)/exp21_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose' \
+		::: -2e-3 ::: 4 8 12 20 30 60
