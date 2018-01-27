@@ -16,7 +16,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp13_d-2e-3_f25.csv"
+name <- "../data/exp4_d-2e-3_f30.csv"
 results <- read_csv(paste(name, sep=""))
 ```
 
@@ -56,24 +56,6 @@ results %>%
   geom_point() + 
   theme_classic()
 ```
-
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=As, y=V_comp, color=errors)) +
-  geom_point() + 
-  theme_classic()
-```
-
-
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=As, y=phis, color=errors)) +
-  geom_point() + 
-  theme_classic()
-```
-
 
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
@@ -131,3 +113,37 @@ results %>%
   theme_classic()
 ```
 
+
+```{r}
+idx <- order(results$V_osc)
+
+all_spks <- NULL
+j <- 1
+for(i in idx){
+  n <- results$N[i]
+  V_comp <- results$V_comp[i]
+  V_osc <- results$V_osc[i]
+  
+  spks <- read_csv(paste(name, "_n_", n, "_spks.csv", sep=""))
+  spks$j = rep(j, nrow(spks))
+  spks$N = rep(n, nrow(spks))
+  spks$V_comp <- rep(V_comp, nrow(spks))
+  spks$V_osc <- rep(V_osc, nrow(spks))
+  
+  all_spks <- rbind(all_spks, spks)
+  
+  j <- j + 1
+}
+
+all_spks %>% 
+  # filter(ns == 9) %>% 
+  ggplot(aes(x=ts, y=j)) +
+    geom_point(size=0.3, alpha=0.3) +
+    theme_classic()
+
+all_spks %>% 
+  # filter(ns == 9) %>% 
+  ggplot(aes(x=j, y=V_comp)) +
+    geom_line(size=0.3, alpha=0.3) +
+    theme_classic()
+```

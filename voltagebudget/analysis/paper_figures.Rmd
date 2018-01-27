@@ -48,8 +48,8 @@ vms %>%
   ggplot(aes(x=t, ymin=-70e-3, ymax=osc)) +
   geom_ribbon(fill="red", alpha=0.5) +
   geom_ribbon(aes(x=t, ymin=osc, ymax=comp), fill="purple", alpha=0.5) +
-  geom_hline(yintercept=-50e-3, color="black", linetype="dotted", size=0.5) +
-  geom_hline(yintercept=-70e-3, color="black", linetype="dotted", size=0.5) +
+  # geom_hline(yintercept=-50e-3, color="black", linetype="dotted", size=0.5) +
+  # geom_hline(yintercept=-70e-3, color="black", linetype="dotted", size=0.5) +
   geom_rect(aes(xmin=0.23652 - 2e-3, xmax=0.23652, ymin=-70e-3, ymax=-50e-3), fill="grey", alpha=0.01) +
   geom_rect(aes(xmin=0.23652 + 2e-3, xmax=0.23652 + 2e-3 + 0.03333333, ymin=-70e-3, ymax=-50e-3),  fill="grey", alpha=0.01) +
   geom_rect(aes(xmin=0.23652 - 8e-3, xmax=0.23652 + 2e-3 + 0.03333333 + 8e-3, ymin=-70e-3, ymax=-50e-3),  fill=NA, color="black", alpha=0.01, size=.2) +
@@ -71,6 +71,133 @@ plot_grid <- rbind(c(1 , 1, NA), c(2, 2, 3))
 grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
 ```
            
+
+# Bounds
+
+```{r, message=FALSE, fig.width=1.5, fig.height=1.3}
+name <- "../data/exp7_d-2e-3_f20.csv"
+results <- read_csv(paste(name, sep=""))
+
+results %>% 
+  filter(V_free > 0.002) %>% 
+  ggplot(aes(x=V_free*1e3)) +
+  geom_histogram(aes(y=0.5*..density..), bins=50, size=0.2) +
+  geom_density(alpha=0.3, fill="black") +
+  geom_vline(aes(xintercept=min(1e3*V_free - 0.05)), color="darkolivegreen3", alpha=0.6) +
+  geom_vline(aes(xintercept=max(1e3*V_free + 0.01)), color="goldenrod2", alpha=0.5) +
+  labs(x="V_free (mvolt)", y="Density (AU)") +
+  xlim(3, 6) +
+  theme_classic() -> p1
+
+results %>% 
+  filter(V_free > 0.002) %>% 
+  ggplot(aes(x=variances, y=errors, color=V_free)) +
+  geom_point(alpha=0.5) +
+  scale_color_gradient(low="darkolivegreen3", high="goldenrod2") +
+  theme_classic() -> p2
+```
+
+```{r, message=FALSE, fig.width=3, fig.height=1.7}
+# Load min, max V_free and neighbors
+name <- "../data/exp5_d-2e-3_f8_r1.csv"
+rank1 <- read_csv(paste(name, sep=""))
+rank1$rank <- rep(1, nrow(rank1))
+
+name <- "../data/exp5_d-2e-3_f8_r2.csv"
+rank2 <- read_csv(paste(name, sep=""))
+rank2$rank <- rep(2, nrow(rank2))
+
+name <- "../data/exp5_d-2e-3_f8_r3.csv"
+rank3 <- read_csv(paste(name, sep=""))
+rank3$rank <- rep(3, nrow(rank3))
+
+name <- "../data/exp5_d-2e-3_f8_r50.csv"
+rank50 <- read_csv(paste(name, sep=""))
+rank50$rank <- rep(50, nrow(rank50))
+
+name <- "../data/exp5_d-2e-3_f8_r49.csv"
+rank49 <- read_csv(paste(name, sep=""))
+rank49$rank <- rep(49, nrow(rank49))
+
+name <- "../data/exp5_d-2e-3_f8_r48.csv"
+rank48 <- read_csv(paste(name, sep=""))
+rank48$rank <- rep(48, nrow(rank48))
+
+# Group 'em
+ranked <- rbind(rank1, rank2, rank3, rank50, rank49, rank48)
+
+# -----------------------------------------------------
+# TODO: manual color assignment, setting alphas to rank?
+ranked %>%
+  ggplot(aes(x=N, y=sort(errors), color=rank, group=rank)) +
+  geom_line(alpha=0.4) +
+  scale_color_gradient(low="darkolivegreen3", high="goldenrod2") +
+  theme_classic() -> p3
+
+ranked %>%
+  ggplot(aes(x=N, y=sort(variances), color=rank, group=rank)) +
+  geom_line(alpha=0.4) +
+  scale_color_gradient(low="darkolivegreen3", high="goldenrod2") +
+  theme_classic() -> p4
+
+plot_grid <- rbind(c(1 , 1, NA, 3, 3, 3), c(2, 2, 2, 4, 4, 4))
+grid.arrange(p1, p2, p3, p4, layout_matrix=plot_grid)
+```
+
+# Pareto opt
+```{r, message=FALSE, fig.width=2.2, fig.height=1.9}
+name <- "../data/exp4_d-2e-3_f12.csv"
+results <- read_csv(paste(name, sep=""))
+
+results %>% 
+  # filter(errors < 0.6, variances > 0) %>%
+  ggplot(aes(y=V_comp*1e3, x=V_osc*1e3, color=As)) +
+  scale_color_gradient(low="mediumpurple", high="red3", name="A") +
+  xlab("Vc (mvolt)") + ylab("Vo (mvolt)") +
+  geom_point(alpha=0.4) + 
+  theme_classic() + 
+  theme(legend.position="bottom", legend.key.size =  unit(0.3, "in")) -> p1
+
+
+results %>% 
+  ggplot(aes(x=1e3*V_free, y=normalize(variances))) +
+  geom_smooth(method = "glm",  method.args = list(family = "binomial"), color="red3", alpha=0.5, se=FALSE, linetype="dashed") + 
+  # geom_point(color="red3", alpha=0.2) + 
+  geom_smooth(aes(x=1e3*V_free, y=normalize(errors)), 
+              method = "glm",  method.args = list(family = "binomial"), color="mediumpurple", se=FALSE,linetype="dashed") + 
+  # geom_point(aes(x=1e3*V_free, y=normalize(errors)), color="mediumpurple", alpha=0.2) + 
+  geom_vline(aes(xintercept = mean(1e3*V_free)), color="black") +
+  xlab("Vf (mvolt)") +
+  ylab("Normalized") +
+  theme_classic() -> p2
+
+
+results %>% 
+  ggplot(aes(x=1e3*V_comp, y=errors)) +
+  geom_point(alpha=0.4, size=.3, color="mediumpurple") +
+  geom_smooth(method = "glm",  method.args = list(family = "binomial"), color="mediumpurple", alpha=0.2, se=FALSE, linetype="dashed") + 
+  xlab("Vc (mvolt)") +
+  ylab("Errors (s)") +
+  theme_classic() -> p3
+
+
+results %>% 
+  ggplot(aes(x=1e3*V_osc, y=variances)) +
+  geom_point(alpha=0.3, size=.3, color="red3") +
+  geom_smooth(method = "glm",  method.args = list(family = "binomial"), color="red3", alpha=0.5, se=FALSE, linetype="dashed") + 
+  xlab("Vo (mvolt)") +
+  ylab("Variance (s)") +
+  theme_classic() -> p4
+
+
+
+
+plot_grid <- rbind(c(NA ,NA, 3, 3), c(NA, NA, 3, 3), c(NA, NA, 4, 4), c(1 ,1, 4, 4), c(1, 1, 2, 2), c(1, 1, 2, 2))
+grid.arrange(p1, p2, p3, p4, layout_matrix=plot_grid)
+```
+
+
+
 # Voltage timecourses many neurons
 
 ```{r}
@@ -117,65 +244,3 @@ vms %>%
   # theme_classic()
 ```
 
-# Load and process
-
-```{r, message=FALSE}
-results <- read_csv("../exp/paper2.csv")
-```
-
-```{r, fig.width=1.5, fig.height=1}
-results %>% 
-  # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(y=computation_voltages, x=communication_voltages, color=As)) +
-  scale_color_gradient(low="mediumpurple", high="red3", name="A") +
-  xlab("Vo (mvolt)") + ylab("Vc (mvolt)") +
-  geom_point(alpha=0.3) + 
-  theme_classic()
-```
-
-
-```{r, fig.width=1.85, fig.height=.75}
-results %>% 
-  # filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=computation_voltages, y=communication_scores)) +
-  geom_point(color="red3", alpha=0.6) + 
-  xlab("Vc (mvolt)") +
-  ylab("C (counts)") +
-  ylim(0, 20) +
-  theme_classic() -> p1
-print(p1)
-```
-
-```{r, fig.width=1.85, fig.height=.75}
-results %>% 
-  ggplot(aes(x=computation_voltages, y=computation_scores)) +
-  geom_point(color="mediumpurple", alpha=0.6) + 
-  xlab("Vf (mvolt)") +
-  ylab("S (sec)") +
-  ylim(0, 0.030) +
-  theme_classic() -> p2
-print(p2)
-```
-
-
-```{r, fig.width=.95, fig.height=.75}
-results %>% 
-  filter(computation_scores < 0.6, communication_scores > 0) %>%
-  ggplot(aes(x=communication_voltages + computation_voltages, y=normalize(communication_scores))) +
-  geom_smooth(method = "glm",  method.args = list(family = "binomial"), color="red3", alpha=0.5, se=FALSE) + 
-  geom_point(color="red3", alpha=0.2) + 
-  xlab("Vf (mvolt)") +
-  ylab("Norm. scores") +
-  geom_smooth(aes(x=communication_voltages + computation_voltages, y=normalize(computation_scores)), 
-              method = "glm",  method.args = list(family = "binomial"), color="mediumpurple", se=FALSE) + 
-  geom_point(aes(x=communication_voltages+ computation_voltages, y=normalize(computation_scores)), color="mediumpurple", alpha=0.2) + 
-  # geom_vline(xintercept = 8.8373, color="black")+
-  theme_classic() -> p3
-print(p3)
-```
-
-
-```{r, fig.width=.95, fig.height=2}
-grid.arrange(p1, p2, p3, ncol=1)
-
-```
