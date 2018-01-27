@@ -212,7 +212,7 @@ exp15:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp15.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py ranked $(DATADIR)/exp15_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50--rank={3} --d={1} --T=0.05 --f={2} --verbose --save_only' \
+		'python budget_experiments.py ranked $(DATADIR)/exp15_d{1}_f{2}_r{3} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={3} --d={1} --T=0.05 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 20 ::: 1 2 3 48 49 50
 
 exp16:
