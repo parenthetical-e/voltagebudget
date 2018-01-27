@@ -44,7 +44,6 @@ def ranked(name,
            opt_phi=False,
            mode='regular',
            noise=False,
-           shadow=False,
            save_only=False,
            verbose=False,
            seed_value=42):
@@ -60,6 +59,9 @@ def ranked(name,
     coincidence_t = 1e-3
 
     # Process rank
+    if verbose:
+        print(">>> Target rank is {}".format(rank))
+
     rank -= 1  # Adj for python zero indexing
 
     if rank > N:
@@ -109,25 +111,6 @@ def ranked(name,
     if ns_ref.size == 0:
         raise ValueError("The reference model didn't spike.")
 
-    # If in shadow mode, replace ref voltages
-    if shadow:
-        voltages_ref = shadow_adex(
-            N,
-            t,
-            ns,
-            ts,
-            w_in=w_in,
-            bias_in=bias_in,
-            f=0,
-            A=0,
-            phi=0,
-            opt_phi=opt_phi,
-            sigma=sigma,
-            seed_value=seed_value,
-            save_args=None,
-            time_step=time_step,
-            **params)
-
     # Find the ref spike closest to E_0
     # and set that as E
     if np.isclose(E_0, 0.0):
@@ -151,9 +134,11 @@ def ranked(name,
     budget_ref = budget_window(voltages_ref, E + d, w, select=None)
 
     # Pick the neuron to optimize, based on its rank
-    n = np.argmin([budget_ref["V_free"][j, :].mean() for j in range(N)])
+    idx = np.argsort([budget_ref["V_free"][j, :].mean() for j in range(N)])
+    n = int(np.where(idx == rank)[0])
     if verbose:
-        print(">>> Rank {} is neuron {}.".format(rank, n))
+        print(">>> The Vf rank index: {}.".format(idx))
+        print(">>> Rank {} is neuron {}.".format(rank + 1, n))
 
     # least_squares() was struggling with small A, so boost it
     # for param search purposes, then divide it back out in the 
@@ -197,7 +182,7 @@ def ranked(name,
         loss = est_loss(voltage)
 
         if verbose:
-            print(">>> (A {:0.12f}, phi {:0.3f})  ->  (loss {})".format(
+            print(">>> (A {:0.14f}, phi {:0.3f})  ->  (loss {})".format(
                 A / rescale, phi, np.sum(loss)))
 
         return loss
@@ -225,7 +210,7 @@ def ranked(name,
         loss = est_loss(voltage)
 
         if verbose:
-            print(">>> (A {:0.12f}, phi {:0.3f})  ->  (loss {})".format(
+            print(">>> (A {:0.14f}, phi {:0.3f})  ->  (loss {})".format(
                 A / rescale, phi, np.sum(loss)))
 
         return loss
@@ -282,6 +267,7 @@ def ranked(name,
     write_spikes("{}_rank_{}_spks".format(name, n), ns_n, ts_n)
 
     variances = []
+    delta_variances = []
     errors = []
     V_oscs = []
     V_comps = []
@@ -294,6 +280,8 @@ def ranked(name,
 
         # Variance
         var = mad(ts_i)
+        var_ref = mad(ns_ref_i)
+        delta_var = var_ref - var
 
         # Error
         error = mae(ts_i, ts_ref_i)
@@ -306,6 +294,7 @@ def ranked(name,
 
         # Store all stats for n
         variances.append(var)
+        delta_variances.append(delta_var)
         errors.append(np.mean(error))
 
         V_oscs.append(V_osc)
@@ -316,8 +305,9 @@ def ranked(name,
         phis.append(phi_hat)
 
         if verbose:
-            print(">>> (n {})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                  format(i, ns_n.size, error, var))
+            print(
+                u">>> (n {})  ->  (N spks, {}, mae {:0.5f}, delta_mad, {:0.5f})".
+                format(i, ns_n.size, error, delta_var))
 
     # --------------------------------------------------------------
     if verbose:
@@ -327,6 +317,7 @@ def ranked(name,
     results = {}
     results["N"] = list(range(N))
     results["variances"] = variances
+    results["delta_variances"] = delta_variances
     results["errors"] = errors
 
     results["V_osc"] = V_oscs
