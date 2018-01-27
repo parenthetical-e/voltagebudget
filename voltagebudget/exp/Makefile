@@ -263,3 +263,39 @@ exp21:
 		--nice 19 --delay 2 \
 		'python budget_experiments.py pareto $(DATADIR)/exp21_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose' \
 		::: -2e-3 ::: 4 8 12 20 30 60
+
+# ------------------------------------------------------------------
+# Forward with small T, multi-f
+exp22:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp22.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp22_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.016 --f={2} --verbose --save_only' \
+		::: -2e-3 ::: 4 8 12 20 24 30 40 60
+
+# Forward with big T, multi-f
+exp23:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp23.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp23_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only' \
+		::: -2e-3 ::: 4 8 12 20 24 30 40 60
+
+# Forward with small T, matched d, multi-f
+exp24:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp24.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp24_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.016 --f={2} --verbose --save_only' \
+		::: -0.016 ::: 4 8 12 20 24 30 40 60
+
+
+# Forward with big T, matched d, multi-f
+exp25:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp25.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp25_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only' \
+		::: -0.25 ::: 4 8 12 20 24 30 40 60
+
+
