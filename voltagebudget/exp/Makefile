@@ -265,6 +265,7 @@ exp21:
 		::: -2e-3 ::: 4 8 12 20 30 60
 
 # ------------------------------------------------------------------
+# 1-27-2018
 # Forward with small T, multi-f
 exp22:
 	parallel -j 10 -v \
@@ -281,21 +282,10 @@ exp23:
 		'python budget_experiments.py forward $(DATADIR)/exp23_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 4 8 12 20 24 30 40 60
 
-# Forward with small T, matched d, multi-f
+# Forward with T with matched d, multi-f
 exp24:
 	parallel -j 10 -v \
 		--joblog '$(DATADIR)/exp24.log' \
 		--nice 19 --delay 2 \
-		'python budget_experiments.py forward $(DATADIR)/exp24_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.016 --f={2} --verbose --save_only' \
-		::: -0.016 ::: 4 8 12 20 24 30 40 60
-
-
-# Forward with big T, matched d, multi-f
-exp25:
-	parallel -j 10 -v \
-		--joblog '$(DATADIR)/exp25.log' \
-		--nice 19 --delay 2 \
-		'python budget_experiments.py forward $(DATADIR)/exp25_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only' \
-		::: -0.25 ::: 4 8 12 20 24 30 40 60
-
-
+		'python budget_experiments.py forward $(DATADIR)/exp24_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={1} --f={2} --verbose --save_only --link' \
+		::: -0.25 -0.125 -0.083 -0.05 -0.0416 -0.033 -0.025 -0.016 ::: 4 8 12 20 24 30 40 60
