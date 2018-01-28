@@ -286,6 +286,6 @@ exp23:
 exp24:
 	parallel -j 10 -v \
 		--joblog '$(DATADIR)/exp24.log' \
-		--nice 19 --delay 2 --colsep ',' --dryrun \
+		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp24_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp24.txt 
