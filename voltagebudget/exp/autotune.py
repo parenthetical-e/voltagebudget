@@ -39,6 +39,7 @@ def autotune_V_osc(N,
                    f=8,
                    mode='regular',
                    noise=False,
+                   all_phi=False,
                    seed_value=42,
                    shadow=False,
                    verbose=False):
@@ -144,6 +145,17 @@ def autotune_V_osc(N,
         if n == 0:
             if verbose:
                 print(">>> Optimizing phi (neuron {}).".format(n))
+
+            p0 = [phi_0]
+            bounds = (0, np.pi)
+            sol = least_squares(
+                lambda p: phi_problem(p, A_0 * rescale), p0, bounds=bounds)
+
+            phi_hat = sol.x[0]
+
+        elif n > 0 and all_phi:
+            if verbose:
+                print(">>> Optimizing phi, neuron {}/{}.".format(n + 1, N))
 
             p0 = [phi_0]
             bounds = (0, np.pi)
