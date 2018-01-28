@@ -282,6 +282,8 @@ exp23:
 		'python budget_experiments.py forward $(DATADIR)/exp23_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 4 8 12 20 24 30 40 60
 
+# ------------------------------------------------------------------
+# 1-28-2017
 # Forward: T and d and f, all matched, multi-f
 # Use stim 2 (cont, sparse), 
 exp24:
