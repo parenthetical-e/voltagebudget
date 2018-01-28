@@ -282,10 +282,29 @@ exp23:
 		'python budget_experiments.py forward $(DATADIR)/exp23_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only' \
 		::: -2e-3 ::: 4 8 12 20 24 30 40 60
 
-# Forward with T with matched d, multi-f
+# Forward: T and d and f, all matched, multi-f
+# Use stim 2 (cont, sparse), 
 exp24:
 	parallel -j 10 -v \
 		--joblog '$(DATADIR)/exp24.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py forward $(DATADIR)/exp24_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py forward $(DATADIR)/exp24_d{1}_f{3} $(DATADIR)/stim2.csv 0.20 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only --all_phi' \
 		:::: exp24.txt 
+
+# Forward: T and f, all matched, d=2 ms, multi-f
+# Use stim 2 (cont, sparse), 
+exp25:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp25.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp25_d{1}_f{3} $(DATADIR)/stim2.csv 0.20 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only --all_phi' \
+		:::: exp25.txt 
+
+# rerun of 23, opt all phi
+# Forward with big T, multi-f
+exp26:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp26.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py forward $(DATADIR)/exp26_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only --all_phi' \
+		::: -2e-3 ::: 4 8 12 20 24 30 40 60
