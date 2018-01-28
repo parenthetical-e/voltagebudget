@@ -1,0 +1,84 @@
+
+---
+title: "General analysis notebook for `forward` budget models."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+# Load and process a series of ranks.
+
+```{r, message=FALSE, fig.width=3, fig.height=1}
+# Load min, max V_free and neighbors
+exp_name <- "exp18"
+freq = "30"
+
+ranked <- NULL
+
+rank <- "1"
+name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+rdata <- read_csv(paste(name, sep=""))
+rdata$rank <- rep(rank, nrow(rdata))
+ranked <- rbind(ranked, rdata)
+
+# rank <- "2"
+# name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+# rdata <- read_csv(paste(name, sep=""))
+# rdata$rank <- rep(rank, nrow(rdata))
+# ranked <- rbind(ranked, rdata)
+
+
+rank <- "3"
+name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+rdata <- read_csv(paste(name, sep=""))
+rdata$rank <- rep(rank, nrow(rdata))
+ranked <- rbind(ranked, rdata)
+
+
+rank <- "50"
+name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+rdata <- read_csv(paste(name, sep=""))
+rdata$rank <- rep(rank, nrow(rdata))
+ranked <- rbind(ranked, rdata)
+
+# rank <- "49"
+# name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+# rdata <- read_csv(paste(name, sep=""))
+# rdata$rank <- rep(rank, nrow(rdata))
+# ranked <- rbind(ranked, rdata)
+
+rank <- "48"
+name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+rdata <- read_csv(paste(name, sep=""))
+rdata$rank <- rep(rank, nrow(rdata))
+ranked <- rbind(ranked, rdata)
+
+ranked$rank <- as.numeric(ranked$rank)
+
+
+# -----------------------------------------------------
+# TODO: manual color assignment, setting alphas to rank?
+ranked %>%
+  filter(N!=2) %>% 
+  ggplot(aes(x=N, y=sort(errors), color=rank, group=rank)) +
+  geom_line(alpha=0.4) +
+  scale_color_gradient(low="darkolivegreen3", high="goldenrod2") +
+  theme_classic() -> p3
+
+ranked %>%
+  filter(N!=2) %>% 
+  ggplot(aes(x=N, y=sort(variances), color=rank, group=rank)) +
+  geom_line(alpha=0.4) +
+  scale_color_gradient(low="darkolivegreen3", high="goldenrod2") +
+  theme_classic() -> p4
+
+grid.arrange(p3, p4, nrow=1)
+```

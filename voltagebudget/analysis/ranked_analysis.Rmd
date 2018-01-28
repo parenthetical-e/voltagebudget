@@ -1,3 +1,4 @@
+
 ---
 title: "General analysis notebook for `forward` budget models."
 output: html_notebook
@@ -13,16 +14,17 @@ normalize <- function(x) {
 }
 ```
 
-# Load and process
+# Load and process indivdual ranks
 
 ```{r, message=FALSE}
-name <- "../data/exp22_d-2e-3_f30.csv"
+name <- "../data/exp18_d-2e-3_f12_r50.csv"
 results <- read_csv(paste(name, sep=""))
 ```
 
+
 ```{r, fig.width=2.5, fig.height=1.5}
 results %>% 
-  ggplot(aes(x=variances)) +
+  ggplot(aes(x=delta_variances)) +
   geom_histogram(bins=20) + 
   xlab("Variance") +
   theme_classic() -> p1
@@ -51,8 +53,7 @@ grid.arrange(p1, p2, p3, p4, nrow=2)
 
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=As)) +
+  ggplot(aes(x=V_free, y=V_osc, color=errors)) +
   geom_point() + 
   theme_classic()
 ```
@@ -60,24 +61,18 @@ results %>%
 
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=phis)) +
-  geom_point() + 
-  theme_classic()
-```
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=errors)) +
+  ggplot(aes(x=N, y=sort(errors))) +
+  ylim(0, 0.030) +
   geom_point() + 
   theme_classic()
 ```
 
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=variances)) +
+  ggplot(aes(x=N, y=sort(delta_variances))) +
   geom_point() + 
+  ylim(-0.030, 0.030) +
+  geom_hline(aes(yintercept=0), color="black", alpha=0.6) +
   theme_classic()
 ```
 
@@ -85,11 +80,11 @@ results %>%
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=normalize(variances))) +
+  ggplot(aes(x=V_comp, y=normalize(delta_variances))) +
   geom_point(color="red", alpha=0.5) + 
-  xlab("Vo (mvolt)") +
+  xlab("Vc (mvolt)") +
   ylab("Rel. scores (AU)") +
-  geom_point(aes(x=V_osc, y=normalize(errors)), color="purple") + 
+  geom_point(aes(x=V_comp, y=normalize(errors)), color="purple") + 
   theme_classic()
 ```
 

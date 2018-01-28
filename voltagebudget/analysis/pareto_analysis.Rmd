@@ -16,7 +16,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp4_d-2e-3_f30.csv"
+name <- "../data/exp21_d-2e-3_f60.csv"
 results <- read_csv(paste(name, sep=""))
 ```
 
@@ -52,29 +52,15 @@ grid.arrange(p1, p2, p3, p4, nrow=2)
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=errors)) +
-  geom_point() + 
-  theme_classic()
-```
-
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=variances)) +
-  geom_point() + 
-  theme_classic()
-```
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=V_osc, y=V_comp, color=As)) +
   geom_point() + 
   theme_classic()
 ```
+
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_comp, y=errors)) +
+  ggplot(aes(x=V_osc, y=V_comp, color=phis)) +
   geom_point() + 
   theme_classic()
 ```
@@ -82,7 +68,15 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_comp, y=variances)) +
+  ggplot(aes(x=V_osc, y=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=variances)) +
   geom_point() + 
   theme_classic()
 ```
@@ -105,11 +99,11 @@ results %>%
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_comp, y=normalize(variances))) +
+  ggplot(aes(x=V_osc, y=normalize(variances))) +
   geom_point(color="red", alpha=0.5) + 
-  xlab("Vc (mvolt)") +
+  xlab("Vo (mvolt)") +
   ylab("Rel. scores (AU)") +
-  geom_point(aes(x=V_comp, y=normalize(errors)), color="purple") + 
+  geom_point(aes(x=V_osc, y=normalize(errors)), color="purple") + 
   theme_classic()
 ```
 
