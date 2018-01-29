@@ -18,7 +18,7 @@ from voltagebudget.util import locate_firsts
 from voltagebudget.util import filter_spikes
 from voltagebudget.util import budget_window
 from voltagebudget.util import locate_peaks
-from voltagebudget.util import estimate_communication
+from voltagebudget.util import select_n
 from voltagebudget.util import mae
 from voltagebudget.util import mad
 from voltagebudget.exp.autotune import autotune_V_osc
@@ -146,6 +146,7 @@ def forward(name,
         print(">>> Analyzing results.")
 
     variances = []
+    delta_variances = []
     errors = []
     V_oscs = []
     V_comps = []
@@ -185,11 +186,24 @@ def forward(name,
         if save_spikes:
             write_spikes("{}_n_{}_spks".format(name, n), ns_n, ts_n)
 
-        # Variance
-        var = mad(ts_n)
+        v_i = []
+        d_i = []
+        e_i = []
+        for i in range(N):
+            ns_ref_i, ts_ref_i = select_n(i, ns_ref, ts_ref)
+            ns_i, ts_i = select_n(i, ns_n, ts_n)
 
-        # Error
-        error = mae(ts_n, ts_ref)
+            # Variance
+            v_i.append(mad(ts_i))
+            d_i.append(mad(ns_ref_i) - v_i[-1])
+
+            # Error
+            e_i.append(mae(ts_i, ts_ref_i))
+
+        # Expectation of all neurons.
+        var = np.mean(v_i)
+        delta_var = np.mean(d_i)
+        error = np.mean(e_i)
 
         # Extract budget values
         budget_n = budget_window(voltage_n, E + d, w, select=None)
@@ -199,6 +213,7 @@ def forward(name,
 
         # Store all stats for n
         variances.append(var)
+        delta_variances.append(delta_var)
         errors.append(np.mean(error))
 
         V_oscs.append(V_osc)
@@ -222,6 +237,7 @@ def forward(name,
     results = {}
     results["N"] = list(range(N))
     results["variances"] = variances
+    results["delta_variances"] = delta_variances
     results["errors"] = errors
 
     results["V_osc"] = V_oscs
