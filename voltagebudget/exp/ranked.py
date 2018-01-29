@@ -23,6 +23,7 @@ from voltagebudget.util import precision
 from voltagebudget.util import mad
 from voltagebudget.util import mae
 from voltagebudget.util import select_n
+from voltagebudget.util import score_by_group
 from voltagebudget.exp.autotune import autotune_V_osc
 
 from scipy.optimize import least_squares
@@ -196,7 +197,6 @@ def ranked(name,
         write_spikes("{}_rank_{}_spks".format(name, n), ns_n, ts_n)
 
     variances = []
-    delta_variances = []
     errors = []
     V_oscs = []
     V_comps = []
@@ -208,13 +208,7 @@ def ranked(name,
         ns_ref_i, ts_ref_i = select_n(i, ns_ref, ts_ref)
         ns_i, ts_i = select_n(i, ns_n, ts_n)
 
-        # Variance
-        var = mad(ts_i)
-        var_ref = mad(ns_ref_i)
-        delta_var = var_ref - var
-
-        # Error
-        error = mae(ts_i, ts_ref_i)
+        var, error = score_by_group(ts_ref_i, ts_i)
 
         # Extract budget values
         budget_n = budget_window(voltage_n, E + d, w, select=None)
@@ -224,7 +218,6 @@ def ranked(name,
 
         # Store all stats for n
         variances.append(var)
-        delta_variances.append(delta_var)
         errors.append(np.mean(error))
 
         V_oscs.append(V_osc)
@@ -239,9 +232,8 @@ def ranked(name,
         phis_w.append(phi_w)
 
         if verbose:
-            print(
-                u">>> (n {})  ->  (N spks, {}, mae {:0.5f}, delta_mad, {:0.5f})".
-                format(i, ns_n.size, error, delta_var))
+            print(u">>> (n {})  ->  (N spks, {}, mae {:0.5f})".format(
+                i, ns_n.size, error))
 
     # --------------------------------------------------------------
     if verbose:
@@ -251,7 +243,6 @@ def ranked(name,
     results = {}
     results["N"] = list(range(N))
     results["variances"] = variances
-    results["delta_variances"] = delta_variances
     results["errors"] = errors
 
     results["V_osc"] = V_oscs

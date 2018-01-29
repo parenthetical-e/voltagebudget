@@ -21,6 +21,8 @@ from voltagebudget.util import locate_peaks
 from voltagebudget.util import select_n
 from voltagebudget.util import mae
 from voltagebudget.util import mad
+from voltagebudget.util import score_by_group
+from voltagebudget.util import score_by_n
 from voltagebudget.exp.autotune import autotune_V_osc
 
 
@@ -40,6 +42,7 @@ def forward(name,
             noise=False,
             save_only=False,
             save_spikes=False,
+            score_group=False,
             verbose=False,
             seed_value=42):
     """Optimize using the shadow voltage budget.
@@ -146,7 +149,6 @@ def forward(name,
         print(">>> Analyzing results.")
 
     variances = []
-    delta_variances = []
     errors = []
     V_oscs = []
     V_comps = []
@@ -186,24 +188,10 @@ def forward(name,
         if save_spikes:
             write_spikes("{}_n_{}_spks".format(name, n), ns_n, ts_n)
 
-        v_i = []
-        d_i = []
-        e_i = []
-        for i in range(N):
-            ns_ref_i, ts_ref_i = select_n(i, ns_ref, ts_ref)
-            ns_i, ts_i = select_n(i, ns_n, ts_n)
-
-            # Variance
-            v_i.append(mad(ts_i))
-            d_i.append(mad(ns_ref_i) - v_i[-1])
-
-            # Error
-            e_i.append(mae(ts_i, ts_ref_i))
-
-        # Expectation of all neurons.
-        var = np.mean(v_i)
-        delta_var = np.mean(d_i)
-        error = np.mean(e_i)
+        if score_group:
+            var, error = score_by_group(ts_ref, ts_n)
+        else:
+            var, error = score_by_n(ns_ref, ts_ref, ns_n, ts_n)
 
         # Extract budget values
         budget_n = budget_window(voltage_n, E + d, w, select=None)
@@ -237,7 +225,6 @@ def forward(name,
     results = {}
     results["N"] = list(range(N))
     results["variances"] = variances
-    results["delta_variances"] = delta_variances
     results["errors"] = errors
 
     results["V_osc"] = V_oscs

@@ -20,6 +20,8 @@ from voltagebudget.util import locate_peaks
 from voltagebudget.util import select_n
 from voltagebudget.util import mad
 from voltagebudget.util import mae
+from voltagebudget.util import score_by_group
+from voltagebudget.util import score_by_n
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -42,6 +44,7 @@ def pareto(name,
            scale=1.5,
            save_only=False,
            save_spikes=False,
+           score_group=False,
            verbose=False,
            seed_value=42):
     """Optimize using the voltage budget."""
@@ -256,24 +259,10 @@ def pareto(name,
         if save_spikes:
             write_spikes("{}_m_{}_spks".format(name, m), ns_m, ts_m)
 
-        v_i = []
-        d_i = []
-        e_i = []
-        for i in range(N):
-            ns_ref_i, ts_ref_i = select_n(i, ns_ref, ts_ref)
-            ns_i, ts_i = select_n(i, ns_m, ts_m)
-
-            # Variance
-            v_i.append(mad(ts_i))
-            d_i.append(mad(ns_ref_i) - v_i[-1])
-
-            # Error
-            e_i.append(mae(ts_i, ts_ref_i))
-
-        # Expectation of all neurons.
-        var = np.mean(v_i)
-        delta_var = np.mean(d_i)
-        error = np.mean(e_i)
+        if score_group:
+            var, error = score_by_group(ts_ref, ts_m)
+        else:
+            var, error = score_by_n(ns_ref, ts_ref, ns_m, ts_m)
 
         # Extract budget values
         budget_m = budget_window(voltage_m, E + d, w, select=None)

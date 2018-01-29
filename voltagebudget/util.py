@@ -195,9 +195,9 @@ def mae(x, y, axis=None):
     if np.isclose(x.size, 0.0) and np.isclose(y.size, 0.0):
         return 0.0
     elif np.isclose(x.size, 0.0):
-        return np.max(y)
+        return np.mean(np.absolute(y))
     elif np.isclose(y.size, 0.0):
-        return np.max(x)
+        return np.mean(np.absolute(x))
 
     min_l = min(len(x), len(y))
 
@@ -205,6 +205,33 @@ def mae(x, y, axis=None):
     y = np.sort(y, axis)
 
     return np.mean(np.absolute(x[:min_l] - y[:min_l]), axis)
+
+
+def score_by_group(ts_ref, ts_n):
+    var = mad(ts_n)
+    error = mae(ts_n, ts_ref)
+
+    return var, error
+
+
+def score_by_n(ns_ref, ts_ref, ns_n, ts_n):
+    v_i = []
+    e_i = []
+    for i in range(N):
+        ns_ref_i, ts_ref_i = select_n(i, ns_ref, ts_ref)
+        ns_i, ts_i = select_n(i, ns_n, ts_n)
+
+        # Variance
+        v_i.append(mad(ts_i))
+
+        # Error
+        e_i.append(mae(ts_i, ts_ref_i))
+
+    # Expectation of all neurons.
+    var = np.mean(v_i)
+    error = np.mean(e_i)
+
+    return var, error
 
 
 def estimate_communication(ns, ts, window, coincidence_t=1e-3, min_spikes=2):
