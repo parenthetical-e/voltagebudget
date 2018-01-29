@@ -310,3 +310,38 @@ exp26:
 		--nice 19 --delay 2 \
 		'python budget_experiments.py forward $(DATADIR)/exp26_d{1}_f{2} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T=0.25 --f={2} --verbose --save_only --all_phi' \
 		::: -2e-3 ::: 4 8 12 20 24 30 40 60
+
+# -------------------------------------------------------------------
+# 1-29-2018
+# Created branch: lock_phi from concensus (39848f35cdbaf7d08dfc2d2ed89603ba9de960f9)
+# forward, pareto, ranked changed so all models are locked to phi_0
+# and only A is optimized. This is the more realistic case where the brain has a small
+# window w at a short delay d to optimize the next cycle of oscillation. Perhaps this should
+# have been the default approach all along...
+
+# Pareto exp test
+# Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
+exp27:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp27.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py pareto $(DATADIR)/exp27_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
+
+# Forward exp test
+# Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
+exp28:
+	parallel -j 10 -v \
+		--joblog '$(DATADIR)/exp28.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp25_d{1}_f{3} $(DATADIR)/stim2.csv 0.20 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
+
+# Rank exp test
+# Explore multi-F using a big window T (eq to 4 Hz)
+exp29:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp29.log' \
+		--nice 19 --delay 2 \
+		'python budget_experiments.py ranked $(DATADIR)/exp29_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={4} --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp29.txt
