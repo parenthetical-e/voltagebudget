@@ -331,10 +331,10 @@ exp27:
 # Forward exp test
 # Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
 exp28:
-	parallel -j 10 -v \
+	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp28.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py forward $(DATADIR)/exp25_d{1}_f{3} $(DATADIR)/stim2.csv 0.20 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py forward $(DATADIR)/exp28_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
 
 # Rank exp test
