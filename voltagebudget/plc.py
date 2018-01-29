@@ -45,7 +45,11 @@ def uniform(ts, percent_change):
     return initial, target, obs, ts_opt
 
 
-def deviants(ts, percent_change, dt, argfn=np.argmax):
+def _delta(ts):
+    return np.absolute(ts - np.mean(ts))
+
+
+def max_deviant(ts, percent_change, dt=0.1e-3):
     if dt < 0:
         raise ValueError("dt must be positive.")
     if not (0 <= percent_change <= 1):
@@ -59,27 +63,30 @@ def deviants(ts, percent_change, dt, argfn=np.argmax):
     initial, target = _create_target(ts, percent_change)
 
     # We'll always want the biggest....
-    deltas = np.absolute(ts - np.mean(ts))
+    deltas = _delta(ts)
 
-    # Opt!
+    # Init
     ts_opt = ts.copy()
+    adjusted = initial
 
+    # -
     while adjusted > target:
-        # Find largest delta 
-        k = argfn(deltas)
+        # Find most extreme delta 
+        k = np.argmax(deltas)
 
         # and shift that spike toward the mean
-        if ts_opt[k] < 0:
+        M = np.mean(ts_opt)
+        if ts_opt[k] < M:
             ts_opt[k] += dt
-        elif ts_opt[k] > 0:
+        elif ts_opt[k] > M:
             ts_opt[k] -= dt
         else:
-            pass
+            ts_opt[k] += 0.0
 
         # Recalc the deltas
-        deltas = np.absolute(ts_opt - np.mean(ts_opt))
+        deltas = _delta(ts_opt)
 
         # Update rolling MAD
         adjusted = mad(ts_opt)
 
-    return initial, target, np.asarray(ts_opt)
+    return initial, target, adjusted, np.asarray(ts_opt)
