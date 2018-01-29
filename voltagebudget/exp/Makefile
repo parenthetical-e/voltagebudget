@@ -324,7 +324,7 @@ exp26:
 # Pareto exp test
 # Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
 exp27:
-	parallel -j 6 -v \
+	parallel -j 11 -v \
 		--joblog '$(DATADIR)/exp27.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py pareto $(DATADIR)/exp27_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
@@ -333,7 +333,7 @@ exp27:
 # Forward exp test
 # Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
 exp28:
-	parallel -j 6 -v \
+	parallel -j 11 -v \
 		--joblog '$(DATADIR)/exp28.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp28_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
@@ -342,8 +342,32 @@ exp28:
 # Rank exp test
 # Explore multi-F using a big window T (eq to 4 Hz)
 exp29:
-	parallel -j 6 -v \
+	parallel -j 11 -v \
 		--joblog '$(DATADIR)/exp29.log' \
 		--nice 19 --delay 2 \
 		'python budget_experiments.py ranked $(DATADIR)/exp29_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular  --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --rank={4} --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp29.txt
+
+
+# ---------------------------------------------------------------------
+# 1-29-2018
+# Re-run, using the network (group) for analysis not indiv neurons;
+# Power are the cost of identifiability.
+
+# Pareto exp test
+# Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
+exp30:
+	parallel -j 11 -v \
+		--joblog '$(DATADIR)/exp30.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py pareto $(DATADIR)/exp30_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only --score_group' \
+		:::: exp25.txt 
+
+# Forward exp test
+# Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
+exp31:
+	parallel -j 11 -v \
+		--joblog '$(DATADIR)/exp31.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp31_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only --score_group' \
+		:::: exp25.txt 
