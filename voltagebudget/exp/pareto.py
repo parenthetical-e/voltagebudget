@@ -206,6 +206,7 @@ def pareto(name,
     phis = []
     phis_w = []
     for m in range(M):
+        # Extract opt values
         A_m = results['As'][m]
 
         w_max = results['w_max'][m]
@@ -293,7 +294,6 @@ def pareto(name,
         print(">>> Saving results.")
 
     # Build a dict of results,
-    results = {}
     results["N"] = list(range(N))
     results["variances"] = variances
     results["errors"] = errors
@@ -302,8 +302,6 @@ def pareto(name,
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
 
-    results["As"] = As
-    results["w_max"] = w_maxes
     results["phis"] = phis
     results["phis_w"] = phis_w
 
