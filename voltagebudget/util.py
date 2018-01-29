@@ -183,11 +183,21 @@ def filter_voltages(budget,
 def mad(x, axis=None):
     """Mean absolute deviation"""
 
+    if np.isclose(x.size, 0.0):
+        return 0.0
+
     return np.mean(np.absolute(x - np.mean(x, axis)), axis)
 
 
 def mae(x, y, axis=None):
     """Mean absolute deviation"""
+
+    if np.isclose(x.size, 0.0) and np.isclose(y.size, 0.0):
+        return 0.0
+    elif np.isclose(x.size, 0.0):
+        return np.max(y)
+    elif np.isclose(y.size, 0.0):
+        return np.max(x)
 
     min_l = min(len(x), len(y))
 
