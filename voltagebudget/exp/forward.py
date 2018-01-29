@@ -35,11 +35,10 @@ def forward(name,
             f=8,
             A_0=.05e-9,
             A_max=0.5e-9,
-            phi_0=0,
+            phi_0=1.57,
             all_phi=False,
             mode='regular',
             noise=False,
-            shadow=False,
             save_only=False,
             verbose=False,
             seed_value=42):
@@ -48,6 +47,9 @@ def forward(name,
     TODO: add shadow mode?
     """
     np.random.seed(seed_value)
+
+    if T < (1.0 / f):
+        raise ValueError("T must be >= 1/f (osc. period).")
 
     # --------------------------------------------------------------
     # Temporal params
@@ -96,25 +98,6 @@ def forward(name,
     if ns_ref.size == 0:
         raise ValueError("The reference model didn't spike.")
 
-    # If in shadow mode, replace ref voltages
-    if shadow:
-        voltages_ref = shadow_adex(
-            N,
-            t,
-            ns,
-            ts,
-            w_in=w_in,
-            bias_in=bias_in,
-            f=0,
-            A=0,
-            phi=0,
-            opt_phi=opt_phi,
-            sigma=sigma,
-            seed_value=seed_value,
-            save_args=None,
-            time_step=time_step,
-            **params)
-
     # Find the ref spike closest to E_0
     # and set that as E
     if np.isclose(E_0, 0.0):
@@ -125,6 +108,9 @@ def forward(name,
         E = nearest_spike(ts_ref, E_0)
         if verbose:
             print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
+
+    # Find the phase begin a osc cycle at E 
+    phi_E = float(-E * 2 * np.pi * f)
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
@@ -149,9 +135,7 @@ def forward(name,
         A_max=A_max,
         phi_0=phi_0,
         f=f,
-        shadow=shadow,
         noise=noise,
-        all_phi=all_phi,
         seed_value=seed_value,
         verbose=verbose)
 
@@ -166,8 +150,9 @@ def forward(name,
     V_frees = []
     As = []
     phis = []
+    phis_w = []
     for n, sol in enumerate(solutions):
-        A_opt, phi_opt, _ = sol
+        A_opt, phi_w, _ = sol
 
         # Run 
         if verbose:
@@ -182,7 +167,7 @@ def forward(name,
             bias_in=bias_in,
             f=f,
             A=A_opt,
-            phi=phi_opt,
+            phi=phi_E,
             sigma=sigma,
             budget=True,
             seed_value=seed_value,
@@ -218,12 +203,13 @@ def forward(name,
         V_frees.append(V_free)
 
         As.append(A_opt)
-        phis.append(phi_opt)
+        phis.append(phi_E)
+        phis_w.append(phi_w)
 
         if verbose:
             print(
                 ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_opt, phi_opt, ns_n.size, error, var))
+                format(A_opt, phi_E, ns_n.size, error, var))
 
     # --------------------------------------------------------------
     if verbose:
@@ -241,6 +227,7 @@ def forward(name,
 
     results["As"] = As
     results["phis"] = phis
+    results["phis_w"] = phis_w
 
     # then write it out.
     keys = sorted(results.keys())

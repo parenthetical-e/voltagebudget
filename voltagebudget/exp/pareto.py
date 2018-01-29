@@ -104,6 +104,9 @@ def pareto(name,
         if verbose:
             print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
 
+    # Find the phase begin a osc cycle at E 
+    phi_E = float(-E * 2 * np.pi * f)
+
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
     write_spikes("{}_ref_spks.csv".format(name), ns_ref, ts_ref)
@@ -185,6 +188,7 @@ def pareto(name,
     V_frees = []
     As = []
     phis = []
+    phis_w = []
     for m in range(M):
         A_m = results['A'][m]
         phi_m = results['phis'][m]
@@ -202,7 +206,7 @@ def pareto(name,
             bias_in=bias_in,
             f=f,
             A=A_m,
-            phi=phi_m,
+            phi=phi_E,
             sigma=sigma,
             budget=True,
             seed_value=seed_value,
@@ -238,7 +242,8 @@ def pareto(name,
         V_frees.append(V_free)
 
         As.append(A_m)
-        phis.append(phi_m)
+        phis_w.append(phi_m)
+        phis.append(phi_E)
 
         if verbose:
             print(
@@ -261,6 +266,7 @@ def pareto(name,
 
     results["As"] = As
     results["phis"] = phis
+    results["phis_w"] = phis_w
 
     # then write it out.
     keys = sorted(results.keys())

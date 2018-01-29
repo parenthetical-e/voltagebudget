@@ -39,7 +39,7 @@ def ranked(name,
            f=8,
            A_0=.05e-9,
            A_max=0.5e-9,
-           phi_0=0,
+           phi_0=1.57,
            N=10,
            opt_phi=False,
            mode='regular',
@@ -122,6 +122,9 @@ def ranked(name,
         if verbose:
             print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
 
+    # Find the phase begin a osc cycle at E 
+    phi_E = float(-E * 2 * np.pi * f)
+
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
     write_spikes("{}_ref_spks".format(name), ns_ref, ts_ref)
@@ -140,104 +143,24 @@ def ranked(name,
         print(">>> The Vf rank index: {}.".format(idx))
         print(">>> Rank {} is neuron {}.".format(rank + 1, n))
 
-    # least_squares() was struggling with small A, so boost it
-    # for param search purposes, then divide it back out in the 
-    # problem definition
-    rescale = 1e10
-
-    # ---------------------------------------------------------------
-    # Define a loss func (closing several locals)
-    def est_loss(voltage):
-        # Select window
-        budget = budget_window(voltage, E + d, w, select=None)
-
-        # Get budget terms for opt
-        V_free = np.abs(budget_ref['V_free'][n, :])
-        V_osc = np.abs(budget['V_osc'][n, :])
-
-        # loss = np.mean(V_free - V_osc)
-        loss = V_free - V_osc
-
-        return loss
-
-    def phi_problem(p, A):
-        """A new problem for each neuron"""
-
-        phi = p[0]
-        _, _, voltage = adex(
+        solutions = autotune_V_osc(
             N,
             t,
+            E,
+            d,
             ns,
             ts,
-            A=A / rescale,
-            phi=phi,
+            voltages_ref,
+            A_0=A_0,
+            A_max=A_max,
+            phi_0=phi_0,
             f=f,
-            w_in=w_in,
-            bias_in=bias_in,
-            sigma=sigma,
+            select_n=n,
+            noise=noise,
             seed_value=seed_value,
-            budget=True,
-            **params)
+            verbose=verbose)
 
-        loss = est_loss(voltage)
-
-        if verbose:
-            print(">>> (A {:0.14f}, phi {:0.3f})  ->  (loss {})".format(
-                A / rescale, phi, np.sum(loss)))
-
-        return loss
-
-    def A_problem(p, phi):
-        """A new problem for each neuron"""
-
-        A = p[0] / rescale
-
-        _, _, voltage = adex(
-            N,
-            t,
-            ns,
-            ts,
-            A=A,
-            phi=phi,
-            f=f,
-            w_in=w_in,
-            bias_in=bias_in,
-            sigma=sigma,
-            seed_value=seed_value,
-            budget=True,
-            **params)
-
-        loss = est_loss(voltage)
-
-        if verbose:
-            print(">>> (A {:0.14f}, phi {:0.3f})  ->  (loss {})".format(
-                A / rescale, phi, np.sum(loss)))
-
-        return loss
-
-    # Do the opt, phi then A for ith neuron
-    # ---------------------------------------------------------------
-
-    # Opt phi
-    if verbose:
-        print(">>> Optimizing phi.")
-
-    p0 = [phi_0]
-    bounds = (0, np.pi)
-    sol = least_squares(
-        lambda p: phi_problem(p, A_0 * rescale), p0, bounds=bounds)
-
-    phi_hat = sol.x[0]
-
-    # Opt A
-    if verbose:
-        print(">>> Optimizing A")
-
-    p0 = [A_0 * rescale]
-    bounds = (0, A_max * rescale)
-    sol = least_squares(lambda p: A_problem(p, phi_hat), p0, bounds=bounds)
-
-    A_hat = sol.x[0]
+    A_hat, phi_hat, _ = solutions[0]
 
     # --------------------------------------------------------------
     if verbose:
@@ -251,8 +174,8 @@ def ranked(name,
         w_in=w_in,
         bias_in=bias_in,
         f=f,
-        A=A_hat / rescale,
-        phi=phi_hat,
+        A=A_hat,
+        phi=phi_E,
         sigma=sigma,
         budget=True,
         seed_value=seed_value,
@@ -274,6 +197,7 @@ def ranked(name,
     V_frees = []
     As = []
     phis = []
+    phis_w = []
     for i in range(N):
         ns_ref_i, ts_ref_i = select_n(i, ns_ref, ts_ref)
         ns_i, ts_i = select_n(i, ns_n, ts_n)
@@ -302,7 +226,11 @@ def ranked(name,
         V_frees.append(V_free)
 
         As.append(A_hat)
-        phis.append(phi_hat)
+
+        # Below are constant in this exp, including for consistency with other
+        # exps (pareto, forward, etc)
+        phis.append(phi_E)
+        phis_w.append(phi_hat)
 
         if verbose:
             print(

@@ -35,11 +35,11 @@ def autotune_V_osc(N,
                    w=2e-3,
                    A_0=0.05e-9,
                    A_max=0.5e-9,
-                   phi_0=0,
+                   phi_0=1.57,
                    f=8,
                    mode='regular',
+                   select_n=None,
                    noise=False,
-                   all_phi=False,
                    seed_value=42,
                    shadow=False,
                    verbose=False):
@@ -81,9 +81,13 @@ def autotune_V_osc(N,
 
     # -
     solutions = []
-    for n in range(N):
+    if select_n is None:
+        Ns = list(range(N))
+    else:
+        Ns = [int(select_n)]
 
-        # ---------------------------------------------------------------
+    for i, n in enumerate(Ns):
+
         def phi_problem(p, A):
             """A new problem for each neuron"""
 
@@ -142,7 +146,7 @@ def autotune_V_osc(N,
         # ---------------------------------------------------------------
 
         # Opt phi, only do the first neuron.
-        if n == 0:
+        if i == 0:
             if verbose:
                 print(">>> Optimizing phi (neuron {}).".format(n))
 
@@ -153,20 +157,9 @@ def autotune_V_osc(N,
 
             phi_hat = sol.x[0]
 
-        elif n > 0 and all_phi:
-            if verbose:
-                print(">>> Optimizing phi, neuron {}/{}.".format(n + 1, N))
-
-            p0 = [phi_0]
-            bounds = (0, np.pi)
-            sol = least_squares(
-                lambda p: phi_problem(p, A_0 * rescale), p0, bounds=bounds)
-
-            phi_hat = sol.x[0]
-
         # Opt A
         if verbose:
-            print(">>> Optimizing A, neuron {}/{}.".format(n + 1, N))
+            print(">>> Optimizing A, neuron {}".format(n, len(Ns)))
 
         p0 = [A_0 * rescale]
         bounds = (0, A_max * rescale)
