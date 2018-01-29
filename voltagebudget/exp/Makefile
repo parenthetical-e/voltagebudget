@@ -313,11 +313,13 @@ exp26:
 
 # -------------------------------------------------------------------
 # 1-29-2018
-# Created branch: lock_phi from concensus (39848f35cdbaf7d08dfc2d2ed89603ba9de960f9)
-# forward, pareto, ranked changed so all models are locked to phi_0
-# and only A is optimized. This is the more realistic case where the brain has a small
-# window w at a short delay d to optimize the next cycle of oscillation. Perhaps this should
-# have been the default approach all along...
+# Created branch: lock_phi from consensus (39848f35cdbaf7d08dfc2d2ed89603ba9de960f9)
+# forward, pareto, ranked changed so phi_w is opt nut all analyses are locked to phi_E
+# and only A is run. 
+# This is the more realistic case where the brain uses the possible peak power in a small
+# window w, at a short delay d, to optimize the next cycle of oscillation BUT 
+# the next cycle starts at E. 
+# ...Perhaps this should have been the default approach all along...
 
 # Pareto exp test
 # Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
