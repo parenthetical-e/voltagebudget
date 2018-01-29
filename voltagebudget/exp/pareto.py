@@ -17,6 +17,7 @@ from voltagebudget.util import locate_firsts
 from voltagebudget.util import filter_spikes
 from voltagebudget.util import budget_window
 from voltagebudget.util import locate_peaks
+from voltagebudget.util import select_n
 from voltagebudget.util import mad
 from voltagebudget.util import mae
 
@@ -38,7 +39,7 @@ def pareto(name,
            M=100,
            mode='regular',
            noise=False,
-           shadow=False,
+           scale=1.5,
            save_only=False,
            save_spikes=False,
            verbose=False,
@@ -116,24 +117,33 @@ def pareto(name,
     if verbose:
         print(">>> {} spikes in the analysis window.".format(ns_ref.size))
 
+    # -------------------------------------------------------------
+    if verbose:
+        print(">>> Finding the best phi at (d, w).")
+
+    # Set phi so it peaks in w
+    phi_w = float((-(E + d) * 2 * np.pi * f) + np.pi / 2)
+
     # --------------------------------------------------------------
     if verbose:
         print(">>> Setting up the problem function.")
 
     def sim(pars):
         A_p = pars[0]
-        phi_p = pars[1]
+
+        w_max = pars[1]
+        w_p = [w_in[0], w_max]
 
         _, _, voltages_o = adex(
             N,
             t,
             ns,
             ts,
-            w_in=w_in,
+            w_in=w_p,
             bias_in=bias_in,
             f=f,
             A=A_p,
-            phi=phi_p,
+            phi=phi_w,
             sigma=sigma,
             time_step=time_step,
             seed_value=seed_value,
@@ -149,8 +159,8 @@ def pareto(name,
 
         if verbose:
             print(
-                "(A {:.12f}, phi {:.3f})  ->  (V_comp {:0.5f}, V_osc {:0.5f})".
-                format(A_p, phi_p, V_comp, V_osc))
+                "(A {:.12f}, w_max {:.10f})  ->  (V_comp {:0.5f}, V_osc {:0.5f})".
+                format(A_p, w_max, V_comp, V_osc))
 
         return V_osc, V_comp
 
@@ -159,7 +169,7 @@ def pareto(name,
         print(">>> Building problem.")
 
     problem = Problem(2, 2)
-    problem.types[:] = [Real(0, A_max), Real(0.0, np.pi)]
+    problem.types[:] = [Real(0, A_max), Real(w_in[0], w_in[1] * scale)]
 
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -176,14 +186,15 @@ def pareto(name,
 
     # Extract opt params
     As = [s.variables[0] for s in algorithm.result]
-    phis = [s.variables[1] for s in algorithm.result]
+    w_maxes = [s.variables[1] for s in algorithm.result]
 
     results = {}
-    results['A'] = As
-    results['phis'] = phis
+    results['As'] = As
+    results['w_max'] = w_maxes
 
     # Iterate over opt params, analyzing the result
     variances = []
+    delta_variances = []
     errors = []
     V_oscs = []
     V_comps = []
@@ -192,19 +203,40 @@ def pareto(name,
     phis = []
     phis_w = []
     for m in range(M):
-        A_m = results['A'][m]
-        phi_m = results['phis'][m]
+        A_m = results['As'][m]
+
+        w_max = results['w_max'][m]
+        w_m = [w_in[0], w_max]
 
         # Run 
         if verbose:
             print(">>> Running analysis for neuron {}/{}.".format(m + 1, M))
 
+        # Rerun the ref, for this m
+        ns_ref, ts_ref, voltage_ref = adex(
+            N,
+            t,
+            ns,
+            ts,
+            w_in=w_m,
+            bias_in=bias_in,
+            f=0,  # No osc
+            A=0,
+            phi=phi_E,
+            sigma=sigma,
+            budget=True,
+            seed_value=seed_value,
+            time_step=time_step,
+            save_args="{}_m_{}_opt_args".format(name, m),
+            **params)
+
+        # With osc
         ns_m, ts_m, voltage_m = adex(
             N,
             t,
             ns,
             ts,
-            w_in=w_in,
+            w_in=w_m,
             bias_in=bias_in,
             f=f,
             A=A_m,
@@ -224,11 +256,24 @@ def pareto(name,
         if save_spikes:
             write_spikes("{}_m_{}_spks".format(name, m), ns_m, ts_m)
 
-        # Variance
-        var = mad(ts_m)
+        v_i = []
+        d_i = []
+        e_i = []
+        for i in range(N):
+            ns_ref_i, ts_ref_i = select_n(i, ns_ref, ts_ref)
+            ns_i, ts_i = select_n(i, ns_m, ts_m)
 
-        # Error
-        error = mae(ts_m, ts_ref)
+            # Variance
+            v_i.append(mad(ts_i))
+            d_i.append(mad(ns_ref_i) - v_i[-1])
+
+            # Error
+            e_i.append(mae(ts_i, ts_ref_i))
+
+        # Expectation of all neurons.
+        var = np.mean(v_i)
+        delta_var = np.mean(d_i)
+        error = np.mean(e_i)
 
         # Extract budget values
         budget_m = budget_window(voltage_m, E + d, w, select=None)
@@ -238,20 +283,20 @@ def pareto(name,
 
         # Store all stats for n
         variances.append(var)
+        delta_variances.append(delta_var)
         errors.append(np.mean(error))
 
         V_oscs.append(V_osc)
         V_comps.append(V_comp)
         V_frees.append(V_free)
 
-        As.append(A_m)
-        phis_w.append(phi_m)
+        phis_w.append(phi_w)
         phis.append(phi_E)
 
         if verbose:
             print(
-                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_m, phi_m, ns_m.size, error, var))
+                ">>> (A {:0.12f}, w_max {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
+                format(A_m, w_max, ns_m.size, error, var))
 
     # --------------------------------------------------------------
     if verbose:
@@ -261,6 +306,7 @@ def pareto(name,
     results = {}
     results["N"] = list(range(N))
     results["variances"] = variances
+    results["delta_variances"] = delta_variances
     results["errors"] = errors
 
     results["V_osc"] = V_oscs
@@ -268,6 +314,7 @@ def pareto(name,
     results["V_free"] = V_frees
 
     results["As"] = As
+    results["w_max"] = w_maxes
     results["phis"] = phis
     results["phis_w"] = phis_w
 

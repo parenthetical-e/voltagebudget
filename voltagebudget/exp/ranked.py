@@ -39,7 +39,6 @@ def ranked(name,
            f=8,
            A_0=.05e-9,
            A_max=0.5e-9,
-           phi_0=1.57,
            N=10,
            opt_phi=False,
            mode='regular',
@@ -125,6 +124,7 @@ def ranked(name,
 
     # Find the phase begin a osc cycle at E 
     phi_E = float(-E * 2 * np.pi * f)
+    phi_w = float((-(E + d) * 2 * np.pi * f) + np.pi / 2)
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
@@ -158,14 +158,14 @@ def ranked(name,
             voltages_ref,
             A_0=A_0,
             A_max=A_max,
-            phi_0=phi_0,
+            phi_0=phi_w,
             f=f,
             select_n=n,
             noise=noise,
             seed_value=seed_value,
             verbose=verbose)
 
-    A_hat, phi_hat, _ = solutions[0]
+    A_hat, _ = solutions[0]
 
     # --------------------------------------------------------------
     if verbose:
@@ -236,7 +236,7 @@ def ranked(name,
         # Below are constant in this exp, including for consistency with other
         # exps (pareto, forward, etc)
         phis.append(phi_E)
-        phis_w.append(phi_hat)
+        phis_w.append(phi_w)
 
         if verbose:
             print(

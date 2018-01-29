@@ -88,33 +88,6 @@ def autotune_V_osc(N,
 
     for i, n in enumerate(Ns):
 
-        def phi_problem(p, A):
-            """A new problem for each neuron"""
-
-            phi = p[0]
-            _, _, voltage = adex(
-                N,
-                t,
-                ns,
-                ts,
-                A=A / rescale,
-                phi=phi,
-                f=f,
-                w_in=w_in,
-                bias_in=bias_in,
-                sigma=sigma,
-                seed_value=seed_value,
-                budget=True,
-                **params)
-
-            loss = est_loss(n, voltage)
-
-            if verbose:
-                print(">>> (A {:0.12f}, phi {:0.3f})  ->  (loss {})".format(
-                    A / rescale, phi, np.sum(loss)))
-
-            return loss
-
         def A_problem(p, phi):
             """A new problem for each neuron"""
 
@@ -138,36 +111,23 @@ def autotune_V_osc(N,
             loss = est_loss(n, voltage)
 
             if verbose:
-                print(">>> (A {:0.12f}, phi {:0.3f})  ->  (loss {})".format(
-                    A / rescale, phi, np.sum(loss)))
+                print(">>> (A {:0.15f})  ->  (loss {:6})".format(
+                    A, np.mean(loss)))
 
             return loss
 
         # ---------------------------------------------------------------
-
-        # Opt phi, only do the first neuron.
-        if i == 0:
-            if verbose:
-                print(">>> Optimizing phi (neuron {}).".format(n))
-
-            p0 = [phi_0]
-            bounds = (0, np.pi)
-            sol = least_squares(
-                lambda p: phi_problem(p, A_0 * rescale), p0, bounds=bounds)
-
-            phi_hat = sol.x[0]
-
         # Opt A
         if verbose:
-            print(">>> Optimizing A, neuron {}".format(n, len(Ns)))
+            print(">>> Optimizing A, neuron {}/{}".format(i + 1, len(Ns)))
 
         p0 = [A_0 * rescale]
         bounds = (0, A_max * rescale)
-        sol = least_squares(lambda p: A_problem(p, phi_hat), p0, bounds=bounds)
+        sol = least_squares(lambda p: A_problem(p, phi_0), p0, bounds=bounds)
 
         A_hat = sol.x[0]
 
-        solutions.append((A_hat / rescale, phi_hat, sol))
+        solutions.append((A_hat / rescale, sol))
 
     return solutions
 
