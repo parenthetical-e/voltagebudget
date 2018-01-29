@@ -214,7 +214,7 @@ def score_by_group(ts_ref, ts_n):
     return var, error
 
 
-def score_by_n(ns_ref, ts_ref, ns_n, ts_n):
+def score_by_n(N, ns_ref, ts_ref, ns_n, ts_n):
     v_i = []
     e_i = []
     for i in range(N):
