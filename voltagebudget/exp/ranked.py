@@ -45,6 +45,7 @@ def ranked(name,
            mode='regular',
            noise=False,
            save_only=False,
+           save_spikes=False,
            verbose=False,
            seed_value=42):
     """Optimize using the shadow voltage budget.
@@ -127,8 +128,12 @@ def ranked(name,
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
-    write_spikes("{}_ref_spks".format(name), ns_ref, ts_ref)
 
+    # -
+    if save_spikes:
+        write_spikes("{}_ref_spks".format(name), ns_ref, ts_ref)
+
+    # -
     if verbose:
         print(">>> {} spikes in the analysis window.".format(ns_ref.size))
 
@@ -187,7 +192,8 @@ def ranked(name,
     # Filter spikes in E
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
     ns_n, ts_n = filter_spikes(ns_n, ts_n, (E, E + T))
-    write_spikes("{}_rank_{}_spks".format(name, n), ns_n, ts_n)
+    if save_spikes:
+        write_spikes("{}_rank_{}_spks".format(name, n), ns_n, ts_n)
 
     variances = []
     delta_variances = []

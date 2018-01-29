@@ -40,6 +40,7 @@ def pareto(name,
            noise=False,
            shadow=False,
            save_only=False,
+           save_spikes=False,
            verbose=False,
            seed_value=42):
     """Optimize using the voltage budget."""
@@ -109,7 +110,8 @@ def pareto(name,
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
-    write_spikes("{}_ref_spks.csv".format(name), ns_ref, ts_ref)
+    if save_spikes:
+        write_spikes("{}_ref_spks.csv".format(name), ns_ref, ts_ref)
 
     if verbose:
         print(">>> {} spikes in the analysis window.".format(ns_ref.size))
@@ -219,7 +221,8 @@ def pareto(name,
         ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
         ns_m, ts_m = filter_spikes(ns_m, ts_m, (E, E + T))
 
-        write_spikes("{}_m_{}_spks".format(name, m), ns_m, ts_m)
+        if save_spikes:
+            write_spikes("{}_m_{}_spks".format(name, m), ns_m, ts_m)
 
         # Variance
         var = mad(ts_m)
