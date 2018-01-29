@@ -150,6 +150,7 @@ def forward(name,
 
     variances = []
     errors = []
+    n_spikes = []
     V_oscs = []
     V_comps = []
     V_frees = []
@@ -191,7 +192,7 @@ def forward(name,
         if score_group:
             var, error = score_by_group(ts_ref, ts_n)
         else:
-            var, error = score_by_n(ns_ref, ts_ref, ns_n, ts_n)
+            var, error = score_by_n(N, ns_ref, ts_ref, ns_n, ts_n)
 
         # Extract budget values
         budget_n = budget_window(voltage_n, E + d, w, select=None)
@@ -201,8 +202,8 @@ def forward(name,
 
         # Store all stats for n
         variances.append(var)
-        delta_variances.append(delta_var)
         errors.append(np.mean(error))
+        n_spikes.append(ts_n.size)
 
         V_oscs.append(V_osc)
         V_comps.append(V_comp)
@@ -226,7 +227,7 @@ def forward(name,
     results["N"] = list(range(N))
     results["variances"] = variances
     results["errors"] = errors
-
+    results["n_spikes"] = n_spikes
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees

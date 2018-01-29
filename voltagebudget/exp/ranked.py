@@ -198,6 +198,7 @@ def ranked(name,
 
     variances = []
     errors = []
+    n_spikes = []
     V_oscs = []
     V_comps = []
     V_frees = []
@@ -219,6 +220,7 @@ def ranked(name,
         # Store all stats for n
         variances.append(var)
         errors.append(np.mean(error))
+        n_spikes.append(ts_i.size)
 
         V_oscs.append(V_osc)
         V_comps.append(V_comp)
@@ -244,6 +246,7 @@ def ranked(name,
     results["N"] = list(range(N))
     results["variances"] = variances
     results["errors"] = errors
+    results["n_spikes"] = n_spikes
 
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps

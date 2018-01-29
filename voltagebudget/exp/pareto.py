@@ -197,8 +197,8 @@ def pareto(name,
 
     # Iterate over opt params, analyzing the result
     variances = []
-    delta_variances = []
     errors = []
+    n_spikes = []
     V_oscs = []
     V_comps = []
     V_frees = []
@@ -262,7 +262,7 @@ def pareto(name,
         if score_group:
             var, error = score_by_group(ts_ref, ts_m)
         else:
-            var, error = score_by_n(ns_ref, ts_ref, ns_m, ts_m)
+            var, error = score_by_n(N, ns_ref, ts_ref, ns_m, ts_m)
 
         # Extract budget values
         budget_m = budget_window(voltage_m, E + d, w, select=None)
@@ -272,7 +272,6 @@ def pareto(name,
 
         # Store all stats for n
         variances.append(var)
-        delta_variances.append(delta_var)
         errors.append(np.mean(error))
 
         V_oscs.append(V_osc)
@@ -281,6 +280,8 @@ def pareto(name,
 
         phis_w.append(phi_w)
         phis.append(phi_E)
+
+        n_spikes.append(ts_m.size)
 
         if verbose:
             print(
@@ -295,9 +296,8 @@ def pareto(name,
     results = {}
     results["N"] = list(range(N))
     results["variances"] = variances
-    results["delta_variances"] = delta_variances
     results["errors"] = errors
-
+    results["n_spikes"] = n_spikes
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
