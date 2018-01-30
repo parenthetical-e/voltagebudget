@@ -1,0 +1,24 @@
+---
+title: "Analysis of archived appraochs for comparison"
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+```
+
+# Load and process
+
+```{r, message=FALSE}
+results <- read_csv("~/Code/voltagebudget/voltagebudget/data/opt30b_f8.csv")
+```
+
+
+```{r}
+results %>% 
+  ggplot(aes(x=v_osc, y=v_comp, color=As)) +
+  geom_point() + 
+  theme_classic()
+```

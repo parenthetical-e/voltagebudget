@@ -1,0 +1,101 @@
+---
+title: "General analysis notebook for `forward` budget models."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+# Load and process
+
+```{r, message=FALSE}
+name <- "../data/exp31_d-0.2e-3_f40.csv"
+results <- read_csv(paste(name, sep=""))
+results %>% 
+  filter(n_spikes > 0, errors > 0) -> results
+```
+
+```{r, fig.width=2.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=variances)) +
+  geom_histogram(bins=20) + 
+  xlab("Variance") +
+  theme_classic() -> p1
+
+results %>% 
+  ggplot(aes(x=errors)) +
+  geom_histogram(bins=20) + 
+  xlab("Error") +
+  theme_classic() -> p2
+
+results %>% 
+  ggplot(aes(x=V_osc)) +
+  geom_histogram(bins=20) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  ggplot(aes(x=V_comp)) +
+  geom_histogram(bins=20) +
+  xlab("Vo (volt)") +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+```
+
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=As)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=variances)) +
+  geom_point() + 
+  theme_classic()
+```
+
+
+```{r, fig.width=1.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=normalize(variances))) +
+  geom_point(color="red", alpha=0.5) + 
+  xlab("Vo (mvolt)") +
+  ylab("Rel. scores (AU)") +
+  geom_point(aes(x=V_osc, y=normalize(errors)), color="purple") + 
+  theme_classic()
+```
+```{r, fig.width=1.5, fig.height=1}
+results %>% 
+  ggplot(aes(x=1e3*V_free, y=normalize(variances))) +
+  geom_smooth(method = "glm",  method.args = list(family = "binomial"), color="red3", alpha=0.5, se=FALSE, linetype="dashed") + 
+  # geom_point(color="red3", alpha=0.2) + 
+  geom_smooth(aes(x=1e3*V_free, y=normalize(errors)), 
+              method = "glm",  method.args = list(family = "binomial"), color="mediumpurple", se=FALSE,linetype="dashed") + 
+  # geom_point(aes(x=1e3*V_free, y=normalize(errors)), color="mediumpurple", alpha=0.2) + 
+  geom_vline(aes(xintercept = mean(1e3*V_free)), color="black") +
+  xlab("Vf (mvolt)") +
+  ylab("Normalized") +
+  theme_classic() 
+```

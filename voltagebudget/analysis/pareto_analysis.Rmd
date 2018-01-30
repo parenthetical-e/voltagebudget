@@ -1,0 +1,143 @@
+---
+title: "General analysis notebook for `forward` budget models."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+# Load and process
+
+```{r, message=FALSE}
+name <- "../data/exp21_d-2e-3_f60.csv"
+results <- read_csv(paste(name, sep=""))
+```
+
+```{r, fig.width=2.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=variances)) +
+  geom_histogram(bins=50) + 
+  xlab("C") +
+  theme_classic() -> p1
+
+results %>% 
+  ggplot(aes(x=errors)) +
+  geom_histogram(bins=50) + 
+  xlab("S") +
+  theme_classic() -> p2
+
+results %>% 
+  ggplot(aes(x=V_osc)) +
+  geom_histogram(bins=100) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  ggplot(aes(x=V_comp)) +
+  geom_histogram(bins=100) +
+  xlab("Vo (volt)") +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+```
+
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=As)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=phis)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=variances)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  ggplot(aes(x=N, y=sort(errors))) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  ggplot(aes(x=N, y=sort(variances))) +
+  geom_point() + 
+  theme_classic()
+```
+
+
+```{r, fig.width=1.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=normalize(variances))) +
+  geom_point(color="red", alpha=0.5) + 
+  xlab("Vo (mvolt)") +
+  ylab("Rel. scores (AU)") +
+  geom_point(aes(x=V_osc, y=normalize(errors)), color="purple") + 
+  theme_classic()
+```
+
+
+```{r}
+idx <- order(results$V_osc)
+
+all_spks <- NULL
+j <- 1
+for(i in idx){
+  n <- results$N[i]
+  V_comp <- results$V_comp[i]
+  V_osc <- results$V_osc[i]
+  
+  spks <- read_csv(paste(name, "_n_", n, "_spks.csv", sep=""))
+  spks$j = rep(j, nrow(spks))
+  spks$N = rep(n, nrow(spks))
+  spks$V_comp <- rep(V_comp, nrow(spks))
+  spks$V_osc <- rep(V_osc, nrow(spks))
+  
+  all_spks <- rbind(all_spks, spks)
+  
+  j <- j + 1
+}
+
+all_spks %>% 
+  # filter(ns == 9) %>% 
+  ggplot(aes(x=ts, y=j)) +
+    geom_point(size=0.3, alpha=0.3) +
+    theme_classic()
+
+all_spks %>% 
+  # filter(ns == 9) %>% 
+  ggplot(aes(x=j, y=V_comp)) +
+    geom_line(size=0.3, alpha=0.3) +
+    theme_classic()
+```

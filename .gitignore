@@ -1,6 +1,17 @@
 # csv
 *.csv
 *log
+*.npz
+*.png 
+*.mat 
+
+*Rhis*
+*RData*
+*.Rproj
+*.html
+
+*.DS_Store
+*.swc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

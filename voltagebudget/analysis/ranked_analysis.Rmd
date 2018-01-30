@@ -1,0 +1,90 @@
+
+---
+title: "General analysis notebook for `forward` budget models."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+# Load and process indivdual ranks
+
+```{r, message=FALSE}
+name <- "../data/exp18_d-2e-3_f12_r50.csv"
+results <- read_csv(paste(name, sep=""))
+```
+
+
+```{r, fig.width=2.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=delta_variances)) +
+  geom_histogram(bins=20) + 
+  xlab("Variance") +
+  theme_classic() -> p1
+
+results %>% 
+  ggplot(aes(x=errors)) +
+  geom_histogram(bins=20) + 
+  xlab("Error") +
+  theme_classic() -> p2
+
+results %>% 
+  ggplot(aes(x=V_osc)) +
+  geom_histogram(bins=20) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  ggplot(aes(x=V_comp)) +
+  geom_histogram(bins=20) +
+  xlab("Vo (volt)") +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+```
+
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  ggplot(aes(x=V_free, y=V_osc, color=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  ggplot(aes(x=N, y=sort(errors))) +
+  ylim(0, 0.030) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  ggplot(aes(x=N, y=sort(delta_variances))) +
+  geom_point() + 
+  ylim(-0.030, 0.030) +
+  geom_hline(aes(yintercept=0), color="black", alpha=0.6) +
+  theme_classic()
+```
+
+
+```{r, fig.width=1.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_comp, y=normalize(delta_variances))) +
+  geom_point(color="red", alpha=0.5) + 
+  xlab("Vc (mvolt)") +
+  ylab("Rel. scores (AU)") +
+  geom_point(aes(x=V_comp, y=normalize(errors)), color="purple") + 
+  theme_classic()
+```
+
