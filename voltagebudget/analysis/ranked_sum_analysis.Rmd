@@ -18,45 +18,45 @@ normalize <- function(x) {
 
 ```{r, message=FALSE, fig.width=3, fig.height=1}
 # Load min, max V_free and neighbors
-exp_name <- "exp18"
-freq = "30"
+exp_name <- "exp29"
+freq = "8"
 
 ranked <- NULL
 
 rank <- "1"
-name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+name <- paste("../data/", exp_name, "_d-0.2e-3_f", freq, "_r", rank, ".csv", sep="")
+rdata <- read_csv(name)
+rdata$rank <- rep(rank, nrow(rdata))
+ranked <- rbind(ranked, rdata)
+
+rank <- "2"
+name <- paste("../data/", exp_name, "_d-0.2e-3_f", freq, "_r", rank, ".csv", sep="")
 rdata <- read_csv(paste(name, sep=""))
 rdata$rank <- rep(rank, nrow(rdata))
 ranked <- rbind(ranked, rdata)
 
-# rank <- "2"
-# name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
-# rdata <- read_csv(paste(name, sep=""))
-# rdata$rank <- rep(rank, nrow(rdata))
-# ranked <- rbind(ranked, rdata)
-
 
 rank <- "3"
-name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+name <- paste("../data/", exp_name, "_d-0.2e-3_f", freq, "_r", rank, ".csv", sep="")
 rdata <- read_csv(paste(name, sep=""))
 rdata$rank <- rep(rank, nrow(rdata))
 ranked <- rbind(ranked, rdata)
 
 
 rank <- "50"
-name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+name <- paste("../data/", exp_name, "_d-0.2e-3_f", freq, "_r", rank, ".csv", sep="")
 rdata <- read_csv(paste(name, sep=""))
 rdata$rank <- rep(rank, nrow(rdata))
 ranked <- rbind(ranked, rdata)
 
-# rank <- "49"
-# name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
-# rdata <- read_csv(paste(name, sep=""))
-# rdata$rank <- rep(rank, nrow(rdata))
-# ranked <- rbind(ranked, rdata)
+rank <- "49"
+name <- paste("../data/", exp_name, "_d-0.2e-3_f", freq, "_r", rank, ".csv", sep="")
+rdata <- read_csv(paste(name, sep=""))
+rdata$rank <- rep(rank, nrow(rdata))
+ranked <- rbind(ranked, rdata)
 
 rank <- "48"
-name <- paste("../data/", exp_name, "_d-2e-3_f", freq, "_r", rank, ".csv", sep="")
+name <- paste("../data/", exp_name, "_d-0.2e-3_f", freq, "_r", rank, ".csv", sep="")
 rdata <- read_csv(paste(name, sep=""))
 rdata$rank <- rep(rank, nrow(rdata))
 ranked <- rbind(ranked, rdata)
