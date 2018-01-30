@@ -371,3 +371,15 @@ exp31:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp31_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only --score_group' \
 		:::: exp25.txt 
+
+# ----------------------------------------------------------------------------
+# 1-30-2018
+# Removed w_in opt from Pareto; searching only A in this run 
+# (compare to exp27/30)
+# Re-using exp25 config: d=-2e-3, T=1/f, f=(4,8,12,2024,30,40,60)
+exp32:
+	parallel -j 11 -v \
+		--joblog '$(DATADIR)/exp32.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py pareto $(DATADIR)/exp32_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 

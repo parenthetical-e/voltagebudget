@@ -28,25 +28,26 @@ from platypus.core import Problem
 from platypus.types import Real
 
 
-def pareto(name,
-           stim,
-           E_0,
-           N=10,
-           t=0.4,
-           d=-5e-3,
-           w=2e-3,
-           T=0.0625,
-           f=8,
-           A_max=0.5e-9,
-           M=100,
-           mode='regular',
-           noise=False,
-           scale=1.5,
-           save_only=False,
-           save_spikes=False,
-           score_group=False,
-           verbose=False,
-           seed_value=42):
+def pareto(
+        name,
+        stim,
+        E_0,
+        N=10,
+        t=0.4,
+        d=-5e-3,
+        w=2e-3,
+        T=0.0625,
+        f=8,
+        A_max=0.5e-9,
+        M=100,
+        mode='regular',
+        noise=False,
+        #    scale=1.5,
+        save_only=False,
+        save_spikes=False,
+        score_group=False,
+        verbose=False,
+        seed_value=42):
     """Optimize using the voltage budget."""
     np.random.seed(seed_value)
 
@@ -134,15 +135,15 @@ def pareto(name,
     def sim(pars):
         A_p = pars[0]
 
-        w_max = pars[1]
-        w_p = [w_in[0], w_max]
+        # w_max = pars[1]
+        # w_p = [w_in[0], w_max]
 
         _, _, voltages_o = adex(
             N,
             t,
             ns,
             ts,
-            w_in=w_p,
+            w_in=w_in,
             bias_in=bias_in,
             f=f,
             A=A_p,
@@ -161,9 +162,8 @@ def pareto(name,
         V_osc = np.mean(budget_o['V_osc'])
 
         if verbose:
-            print(
-                "(A {:.12f}, w_max {:.10f})  ->  (V_comp {:0.5f}, V_osc {:0.5f})".
-                format(A_p, w_max, V_comp, V_osc))
+            print("(A {:.12f})  ->  (V_comp {:0.5f}, V_osc {:0.5f})".format(
+                A_p, V_comp, V_osc))
 
         return V_osc, V_comp
 
@@ -171,8 +171,8 @@ def pareto(name,
     if verbose:
         print(">>> Building problem.")
 
-    problem = Problem(2, 2)
-    problem.types[:] = [Real(0, A_max), Real(w_in[0], w_in[1] * scale)]
+    problem = Problem(1, 2)
+    problem.types[:] = [Real(0, A_max)]  #, Real(w_in[0], w_in[1] * scale)]
 
     problem.function = sim
     algorithm = NSGAII(problem)
@@ -189,11 +189,11 @@ def pareto(name,
 
     # Extract opt params
     As = [s.variables[0] for s in algorithm.result]
-    w_maxes = [s.variables[1] for s in algorithm.result]
+    # w_maxes = [s.variables[1] for s in algorithm.result]
 
     results = {}
     results['As'] = As
-    results['w_max'] = w_maxes
+    # results['w_max'] = w_maxes
 
     # Iterate over opt params, analyzing the result
     variances = []
@@ -209,30 +209,30 @@ def pareto(name,
         # Extract opt values
         A_m = results['As'][m]
 
-        w_max = results['w_max'][m]
-        w_m = [w_in[0], w_max]
+        # w_max = results['w_max'][m]
+        # w_m = [w_in[0], w_max]
 
         # Run 
         if verbose:
             print(">>> Running analysis for neuron {}/{}.".format(m + 1, M))
 
         # Rerun the ref, for this m
-        ns_ref, ts_ref, voltage_ref = adex(
-            N,
-            t,
-            ns,
-            ts,
-            w_in=w_m,
-            bias_in=bias_in,
-            f=0,  # No osc
-            A=0,
-            phi=phi_E,
-            sigma=sigma,
-            budget=True,
-            seed_value=seed_value,
-            time_step=time_step,
-            save_args="{}_m_{}_opt_args".format(name, m),
-            **params)
+        # ns_ref, ts_ref, voltage_ref = adex(
+        #     N,
+        #     t,
+        #     ns,
+        #     ts,
+        #     w_in=w_m,
+        #     bias_in=bias_in,
+        #     f=0,  # No osc
+        #     A=0,
+        #     phi=phi_E,
+        #     sigma=sigma,
+        #     budget=True,
+        #     seed_value=seed_value,
+        #     time_step=time_step,
+        #     save_args="{}_m_{}_opt_args".format(name, m),
+        #     **params)
 
         # With osc
         ns_m, ts_m, voltage_m = adex(
@@ -240,7 +240,7 @@ def pareto(name,
             t,
             ns,
             ts,
-            w_in=w_m,
+            w_in=w_in,
             bias_in=bias_in,
             f=f,
             A=A_m,
@@ -285,10 +285,12 @@ def pareto(name,
         n_spikes.append(ts_m.size)
 
         if verbose:
+            # print(
+            #     ">>> (A {:0.12f}, w_max {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
+            #     format(A_m, w_max, ns_m.size, error, var))
             print(
-                ">>> (A {:0.12f}, w_max {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_m, w_max, ns_m.size, error, var))
-
+                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
+                format(A_m, ns_m.size, error, var))
     # --------------------------------------------------------------
     if verbose:
         print(">>> Saving results.")
