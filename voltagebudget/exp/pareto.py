@@ -28,26 +28,24 @@ from platypus.core import Problem
 from platypus.types import Real
 
 
-def pareto(
-        name,
-        stim,
-        E_0,
-        N=10,
-        t=0.4,
-        d=-5e-3,
-        w=2e-3,
-        T=0.0625,
-        f=8,
-        A_max=0.5e-9,
-        M=100,
-        mode='regular',
-        noise=False,
-        #    scale=1.5,
-        save_only=False,
-        save_spikes=False,
-        score_group=False,
-        verbose=False,
-        seed_value=42):
+def pareto(name,
+           stim,
+           E_0,
+           N=10,
+           t=0.4,
+           d=-5e-3,
+           w=2e-3,
+           T=0.0625,
+           f=8,
+           A_max=0.5e-9,
+           M=100,
+           mode='regular',
+           noise=False,
+           save_only=False,
+           save_spikes=False,
+           score_group=False,
+           verbose=False,
+           seed_value=42):
     """Optimize using the voltage budget."""
     np.random.seed(seed_value)
 
