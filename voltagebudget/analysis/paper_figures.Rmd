@@ -220,6 +220,7 @@ vms %>%
   geom_vline(xintercept = 0.25719 + 2e-3 +  0.03333333, color="darkgreen", alpha=0.5, size=0.2) +
   theme_classic()
 ```
+
 ```{r, fig.width=0.4, fig.height=0.8}
 vms %>% 
   filter(t > 0.25, t < 0.27) %>%
@@ -244,3 +245,46 @@ vms %>%
   # theme_classic()
 ```
 
+
+# Optimal PLC 
+
+```{r, message=FALSE}
+plc_spikes <- read_csv("plc_spikes.csv")
+plc_traces <- read_csv("plc_traces.csv")
+```
+
+```{r, fig.width=0.6, fig.height=1}
+plc_spikes %>% 
+  ggplot(aes(x=ts_opt, y=n)) + 
+  geom_point(color="black", size=0.8) +
+  geom_point(data=filter(plc_spikes, ts != ts_opt), aes(x=ts, y=n), color="red", size=1.5, shape=4, alpha=0.6) +
+  xlim(0.2, 0.24) +
+  theme_classic() +
+  # labs(x="Time (s)", y="N") +
+  theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      axis.title.x=element_blank(),
+      axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major.y=element_blank(),
+      panel.grid.minor.y =element_blank(),
+      plot.background=element_blank()) -> p1
+```
+
+```{r, fig.width=1.2, fig.height=1}
+plc_traces %>% 
+  ggplot(aes(x=variances, y=errors)) +
+  geom_line() +
+  theme_classic() +
+  ylab("Errors (s)") +
+  xlab("Variance (s)") -> p2
+```
+
+```{r, fig.width=2.25, fig.height=1}
+plot_grid <- rbind(c(1, 1, NA, 2, 2, 2),c(1, 1, NA, 2, 2, 2),c(1, NA, NA, 2, 2, 2))
+grid.arrange(p1, p2, layout_matrix=plot_grid)
+```
