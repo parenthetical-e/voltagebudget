@@ -383,3 +383,13 @@ exp32:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py pareto $(DATADIR)/exp32_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_max=0.05e-9 --N=50 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
+
+# ----------------------------------------------------------------------------
+# 2-3-2-18
+# Exp 28 is the choice for group exps. Rerun with much hugher N
+exp23:
+	parallel -j 11 -v \
+		--joblog '$(DATADIR)/exp33.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp33_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=500 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
