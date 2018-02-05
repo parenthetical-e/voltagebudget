@@ -385,11 +385,23 @@ exp32:
 		:::: exp25.txt 
 
 # ----------------------------------------------------------------------------
-# 2-3-2-18
+# 2-3-2018
 # Exp 28 is the choice for group exps. Rerun with much hugher N
 exp33:
 	parallel -j 11 -v \
 		--joblog '$(DATADIR)/exp33.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp33_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=500 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
+
+# ----------------------------------------------------------------------------
+# 2-4-2018
+# Need to be running with larger N. Prev results were misleading. (FUCKS!).
+# When run en masse, it is clear V0 is too strong. Added a bias - A/2 ('homeostatic') correction
+# to see what that does `--correct_bias`
+exp34:
+	parallel -j 11 -v \
+		--joblog '$(DATADIR)/exp34.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp34_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=500 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias' \
 		:::: exp25.txt 
