@@ -43,6 +43,7 @@ def forward(name,
             save_only=False,
             save_spikes=False,
             score_group=False,
+            correct_bias=False,
             verbose=False,
             seed_value=42):
     """Optimize using the shadow voltage budget.
@@ -141,6 +142,7 @@ def forward(name,
         phi_0=phi_w,
         f=f,
         noise=noise,
+        correct_bias=correct_bias,
         seed_value=seed_value,
         verbose=verbose)
 
@@ -164,13 +166,20 @@ def forward(name,
         if verbose:
             print(">>> Running analysis for neuron {}/{}.".format(n + 1, N))
 
+        if correct_bias:
+            bias = bias_in - (A_opt / 2.0)
+            if verbose:
+                print(">>> (bias {}) -> (bias_adj {})".format(bias_in, bias))
+        else:
+            bias = bias_in
+
         ns_n, ts_n, voltage_n = adex(
             N,
             t,
             ns,
             ts,
             w_in=w_in,
-            bias_in=bias_in,
+            bias_in=bias,
             f=f,
             A=A_opt,
             phi=phi_E,

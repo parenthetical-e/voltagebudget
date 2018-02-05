@@ -40,6 +40,7 @@ def autotune_V_osc(N,
                    mode='regular',
                    select_n=None,
                    noise=False,
+                   correct_bias=False,
                    seed_value=42,
                    shadow=False,
                    verbose=False):
@@ -92,6 +93,14 @@ def autotune_V_osc(N,
             """A new problem for each neuron"""
 
             A = p[0] / rescale
+            if correct_bias:
+                bias = bias_in - (A / 2.0)
+
+                if verbose:
+                    print(
+                        ">>> (bias {}) -> (bias_adj {})".format(bias_in, bias))
+            else:
+                bias = bias_in
 
             _, _, voltage = adex(
                 N,
@@ -102,7 +111,7 @@ def autotune_V_osc(N,
                 phi=phi,
                 f=f,
                 w_in=w_in,
-                bias_in=bias_in,
+                bias_in=bias,
                 sigma=sigma,
                 seed_value=seed_value,
                 budget=True,
