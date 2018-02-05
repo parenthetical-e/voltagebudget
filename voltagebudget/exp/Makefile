@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # ------------------------------------------------------------------------
 # SFN runs are all deprecated. 
@@ -411,5 +411,5 @@ exp35:
 	parallel -j 2 -v \
 		--joblog '$(DATADIR)/exp35.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py reverse $(DATADIR)/exp35_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --d={1} --T={2} --f_0={3} --verbose --save_only --correct_bias' \
+		'python budget_experiments.py reverse $(DATADIR)/exp35_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --percent_change=0.1 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --d={1} --T={2} --f_0={3} --verbose --save_only' \
 		:::: exp25.txt 
