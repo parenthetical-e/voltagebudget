@@ -24,6 +24,7 @@ from voltagebudget.exp import forward
 from voltagebudget.exp import ranked
 from voltagebudget.exp import replay
 from voltagebudget.exp import pareto
+from voltagebudget.exp import reverse
 from voltagebudget.exp import create_stim
 from voltagebudget.exp import autotune_membrane
 from voltagebudget.exp import autotune_w
@@ -39,6 +40,7 @@ if __name__ == "__main__":
         'create_stim': create_stim,
         'forward': forward,
         'ranked': ranked,
+        'reverse': reverse,
         'pareto': pareto,
         'replay': replay
     })
