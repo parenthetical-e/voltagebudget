@@ -16,7 +16,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp32_d-0.2e-3_f12.csv"
+name <- "../data/exp31_d-0.2e-3_f20.csv"
 results <- read_csv(paste(name, sep=""))
 results %>% 
   filter(n_spikes > 0, errors > 0) -> results
@@ -70,6 +70,14 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=V_osc, y=errors)) +
   geom_point() + 
   theme_classic()
@@ -80,7 +88,16 @@ results %>%
   # filter(errors < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=V_osc, y=variances)) +
   geom_point() + 
-  ylim(0.01, 0.015) +
+  # ylim(0.008, 0.012) +
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=variances, y=errors)) +
+  geom_point() + 
+  # ylim(0.008, 0.012) +
   theme_classic()
 ```
 
