@@ -95,10 +95,6 @@ def autotune_V_osc(N,
             A = p[0] / rescale
             if correct_bias:
                 bias = bias_in - (A / 2.0)
-
-                if verbose:
-                    print(
-                        ">>> (bias {}) -> (bias_adj {})".format(bias_in, bias))
             else:
                 bias = bias_in
 
@@ -120,6 +116,8 @@ def autotune_V_osc(N,
             loss = est_loss(n, voltage)
 
             if verbose:
+                print(">>> (bias {}) -> (bias_adj {}, V_rest {})".format(
+                    bias_in, bias, voltage["V_rest"]))
                 print(">>> (A {:0.15f})  ->  (loss {:6})".format(
                     A, np.mean(loss)))
 
