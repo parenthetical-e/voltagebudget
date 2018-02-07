@@ -156,7 +156,9 @@ def forward(name,
     V_oscs = []
     V_comps = []
     V_frees = []
+    V_budgets = []
     As = []
+    biases = []
     phis = []
     phis_w = []
     for n, sol in enumerate(solutions):
@@ -208,6 +210,7 @@ def forward(name,
         V_osc = np.abs(np.mean(budget_n['V_osc'][n, :]))
         V_comp = np.abs(np.mean(budget_n['V_comp'][n, :]))
         V_free = np.abs(np.mean(budget_n['V_free'][n, :]))
+        V_b = float(voltage_n['V_budget'])
 
         # Store all stats for n
         variances.append(var)
@@ -217,8 +220,10 @@ def forward(name,
         V_oscs.append(V_osc)
         V_comps.append(V_comp)
         V_frees.append(V_free)
+        V_budgets.append(V_b)
 
         As.append(A_opt)
+        biases.append(bias)
         phis.append(phi_E)
         phis_w.append(phi_w)
 
@@ -237,11 +242,14 @@ def forward(name,
     results["variances"] = variances
     results["errors"] = errors
     results["n_spikes"] = n_spikes
+
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
+    results["V_b"] = V_budgets
 
     results["As"] = As
+    results["biases"] = biases
     results["phis"] = phis
     results["phis_w"] = phis_w
 
