@@ -257,7 +257,8 @@ def adex(N,
         V_free = V_max - V_m_thresh
 
         # Budget
-        V_budget = V_max - np.asarray(V_rest)
+        V_rest = np.asarray(V_rest)
+        V_budget = V_max - V_rest
 
         # Build budget dict
         vs = dict(
@@ -272,6 +273,7 @@ def adex(N,
             V_free=V_free,
             V_max=V_max,
             V_rheo=V_rheo,
+            V_rest=V_rest,
             V_leak=V_leak,
             V_cut=V_cut,
             V_thresh=V_t)
