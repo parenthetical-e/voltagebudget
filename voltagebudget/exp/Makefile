@@ -406,10 +406,20 @@ exp34:
 		'python budget_experiments.py forward $(DATADIR)/exp34_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=500 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias' \
 		:::: exp25.txt 
 
-# Reverse - first attempt, Fit only A.
+# Reverse - first attempt. Fit only A.
 exp35:
 	parallel -j 2 -v \
 		--joblog '$(DATADIR)/exp35.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py reverse $(DATADIR)/exp35_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --percent_change=0.1 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=100 --d={1} --T={2} --f_0={3} --verbose --save_only' \
+		:::: exp25.txt 
+
+# Repeat of 34, this time reporting V_b to correct V_o/V_c as bias shifts
+# The last run (34) was not difficult to interpret without this correction.
+# To speed thing up I also decrease N a bit
+exp36:
+	parallel -j 11 -v \
+		--joblog '$(DATADIR)/exp36.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp36_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias' \
 		:::: exp25.txt 
