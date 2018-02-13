@@ -131,7 +131,6 @@ def reverse(name,
         print(">>> Finding phi.")
 
     phi_E = float(-E * 2 * np.pi * f_0)
-    phi_w = float((-(E + d) * 2 * np.pi * f) + np.pi / 2)
 
     # -----------------------------------------------
     if verbose:
@@ -268,6 +267,8 @@ def reverse(name,
     phis_w = []
     for n, sol in enumerate(solutions):
         A_opt_n, phi_opt_n, f_opt_n, bias_opt_n = sol
+
+        phi_w = float((-(E + d) * 2 * np.pi * f_opt_n) + np.pi / 2)
 
         # Run 
         if verbose:
