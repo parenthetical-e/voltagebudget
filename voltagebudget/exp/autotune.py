@@ -116,10 +116,19 @@ def autotune_V_osc(N,
             loss = est_loss(n, voltage)
 
             if verbose:
-                print(">>> (bias {}) -> (bias_adj {}, V_rest {})".format(
-                    bias_in, bias, voltage["V_rest"]))
-                print(">>> (A {:0.15f})  ->  (loss {:6})".format(
-                    A, np.mean(loss)))
+                budget = budget_window(voltage, E + d, w, select=None)
+                V_rest = voltage["V_rest"]
+                V_osc = np.mean(budget['V_osc'][n, :])
+                V_b = float(voltage['V_budget'])
+
+                del_V1 = V_osc / V_rest
+                del_V2 = np.abs(V_osc) / V_b
+
+                print(">>> (A {:0.15f}, bias_adj {:0.15f})  ->  (loss {:6})".
+                      format(A, bias, np.mean(loss)))
+                print(
+                    ">>> budgets: (V_rest {:6}, V_osc {:6}, del_V1 {:6}, del_V2 {:6})".
+                    format(V_rest, V_osc, del_V1, del_V2))
 
             return loss
 
