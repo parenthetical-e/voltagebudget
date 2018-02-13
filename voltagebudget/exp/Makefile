@@ -414,6 +414,8 @@ exp35:
 		'python budget_experiments.py reverse $(DATADIR)/exp35_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --percent_change=0.1 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=10 --d={1} --T={2} --f_0={3} --verbose --save_only' \
 		:::: exp25.txt 
 
+# ----------------------------------------------------------------------------
+# 2 - 12 - 2018
 # Repeat of 34, this time reporting V_b to correct V_o/V_c as bias shifts
 # The last run (34) was not difficult to interpret without this correction.
 # To speed thing up I also decrease N a bit
@@ -422,4 +424,14 @@ exp36:
 		--joblog '$(DATADIR)/exp36.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp36_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias' \
+		:::: exp25.txt 
+
+# Exact repeat of 34, but I fixed a major bug in
+# the code as it existed when 34 was run. Want to compare
+# the two, hence this repeat.
+exp37:
+	parallel -j 11 -v \
+		--joblog '$(DATADIR)/exp37.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp37_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
