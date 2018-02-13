@@ -415,7 +415,7 @@ exp35:
 		:::: exp25.txt 
 
 # ----------------------------------------------------------------------------
-# 2 - 12 - 2018
+# 2-12-2018
 # Repeat of 34, this time reporting V_b to correct V_o/V_c as bias shifts
 # The last run (34) was not difficult to interpret without this correction.
 # To speed thing up I also decrease N a bit
@@ -435,3 +435,21 @@ exp37:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp37_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
+
+# ----------------------------------------------------------------------------
+# 2-12-2018
+# Run perturbation experiments on rank 1, 300
+# both correcting bias (38) and not (38)
+exp38:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp38.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py perturb $(DATADIR)/exp38_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.1 --n_perturbations=10 --verbose --save_only' \
+		:::: exp38.txt 
+
+exp39:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp39.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py perturb $(DATADIR)/exp39_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.1 --n_perturbations=10 --verbose --save_only' \
+		:::: exp38.txt 
