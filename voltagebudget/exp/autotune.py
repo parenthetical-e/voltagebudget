@@ -117,7 +117,7 @@ def autotune_V_osc(N,
 
             if verbose:
                 budget = budget_window(voltage, E + d, w, select=None)
-                V_rest = voltage["V_rest"]
+                V_rest =float(voltage["V_rest"])
                 V_osc = np.mean(budget['V_osc'][n, :])
                 V_b = float(voltage['V_budget'])
                 del_V = np.abs(V_osc) / V_b
