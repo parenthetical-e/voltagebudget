@@ -49,7 +49,6 @@ def perturb(name,
             correct_bias=False,
             save_only=False,
             save_spikes=False,
-            score_group=False,
             verbose=False,
             seed_value=42):
     """Optimize using the shadow voltage budget.
@@ -252,10 +251,8 @@ def perturb(name,
         if save_spikes:
             write_spikes("{}_n_{}_spks".format(name, n), ns_n, ts_n)
 
-        if score_group:
-            var, error = score_by_group(ts_ref, ts_n)
-        else:
-            var, error = score_by_n(N, ns_ref, ts_ref, ns_n, ts_n)
+        # Score
+        var, error = score_by_n(N, ns_ref, ts_ref, ns_n, ts_n)
 
         # Extract budget values
         budget_n = budget_window(voltage_n, E + d, w, select=None)
@@ -282,7 +279,7 @@ def perturb(name,
         if verbose:
             print(
                 ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_p, ns_n.size, error, var))
+                format(A_p, ns_n.size / float(N), error, var))
 
     # --------------------------------------------------------------
     if verbose:
