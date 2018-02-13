@@ -128,8 +128,10 @@ def reverse(name,
 
     # -----------------------------------------------
     if verbose:
-        print(">>> Finding phi_E.")
+        print(">>> Finding phi.")
+
     phi_E = float(-E * 2 * np.pi * f_0)
+    phi_w = float((-(E + d) * 2 * np.pi * f) + np.pi / 2)
 
     # -----------------------------------------------
     if verbose:
@@ -271,16 +273,35 @@ def reverse(name,
         if verbose:
             print(">>> Running analysis for neuron {}/{}.".format(n + 1, N))
 
-        ns_n, ts_n, voltage_n = adex(
+        # Spikes, using phi_E
+        ns_n, ts_n = adex(
             N,
             t,
             ns,
             ts,
             w_in=w_in,
-            bias_in=bias_opt_n,
-            f=f_opt_n,
-            A=A_opt_n,
-            phi=phi_opt_n,
+            bias_in=bias,
+            f=f,
+            A=A_opt,
+            phi=phi_E,
+            sigma=sigma,
+            budget=False,
+            seed_value=seed_value,
+            time_step=time_step,
+            save_args="{}_n_{}_opt_args".format(name, n),
+            **params)
+
+        # Voltages at E+d, using phi_w
+        _, _, voltage_n = adex(
+            N,
+            t,
+            ns,
+            ts,
+            w_in=w_in,
+            bias_in=bias,
+            f=f,
+            A=A_opt,
+            phi=phi_w,
             sigma=sigma,
             budget=True,
             seed_value=seed_value,
