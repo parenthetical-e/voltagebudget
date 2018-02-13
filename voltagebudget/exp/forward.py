@@ -175,7 +175,8 @@ def forward(name,
         else:
             bias = bias_in
 
-        ns_n, ts_n, voltage_n = adex(
+        # Spikes, using phi_E
+        ns_n, ts_n = adex(
             N,
             t,
             ns,
@@ -185,6 +186,24 @@ def forward(name,
             f=f,
             A=A_opt,
             phi=phi_E,
+            sigma=sigma,
+            budget=False,
+            seed_value=seed_value,
+            time_step=time_step,
+            save_args="{}_n_{}_opt_args".format(name, n),
+            **params)
+
+        # Voltages at E+d, using phi_w
+        _, _, voltage_n = adex(
+            N,
+            t,
+            ns,
+            ts,
+            w_in=w_in,
+            bias_in=bias,
+            f=f,
+            A=A_opt,
+            phi=phi_w,
             sigma=sigma,
             budget=True,
             seed_value=seed_value,
@@ -231,6 +250,13 @@ def forward(name,
             print(
                 ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
                 format(A_opt, phi_E, ns_n.size, error, var))
+
+            V_rest = voltage_n["V_rest"]
+            del_V1 = V_osc / V_rest
+            del_V2 = np.abs(V_osc) / V_b
+            print(
+                ">>> budgets: (V_rest {:6}, V_osc {:6}, del_V1 {:6}, del_V2 {:6})".
+                format(V_rest, V_osc, del_V1, del_V2))
 
     # --------------------------------------------------------------
     if verbose:
