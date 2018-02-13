@@ -420,7 +420,7 @@ exp35:
 # The last run (34) was not difficult to interpret without this correction.
 # To speed thing up I also decrease N a bit
 exp36:
-	parallel -j 11 -v \
+	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp36.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp36_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias' \
@@ -430,7 +430,7 @@ exp36:
 # the code as it existed when 34 was run. Want to compare
 # the two, hence this repeat.
 exp37:
-	parallel -j 11 -v \
+	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp37.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp37_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
