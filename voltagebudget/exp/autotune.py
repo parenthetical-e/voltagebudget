@@ -120,15 +120,11 @@ def autotune_V_osc(N,
                 V_rest = voltage["V_rest"]
                 V_osc = np.mean(budget['V_osc'][n, :])
                 V_b = float(voltage['V_budget'])
+                del_V = np.abs(V_osc) / V_b
 
-                del_V1 = V_osc / V_rest
-                del_V2 = np.abs(V_osc) / V_b
-
-                print(">>> (A {:0.15f}, bias_adj {:0.15f})  ->  (loss {:6})".
-                      format(A, bias, np.mean(loss)))
                 print(
-                    ">>> budgets: (V_rest {:6}, V_osc {:6}, del_V1 {:6}, del_V2 {:6})".
-                    format(V_rest, V_osc, del_V1, del_V2))
+                    ">>> (A {:0.15f}, bias_adj {:0.15f})  ->  (loss {:0.6f}, V_rest {:0.4f}, del_V_osc {:0.4f}))".
+                    format(A, bias, np.mean(loss), V_rest, del_V))
 
             return loss
 

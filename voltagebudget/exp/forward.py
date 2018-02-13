@@ -248,15 +248,8 @@ def forward(name,
 
         if verbose:
             print(
-                ">>> (A {:0.12f}, phi {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_opt, phi_E, ns_n.size, error, var))
-
-            V_rest = voltage_n["V_rest"]
-            del_V1 = V_osc / V_rest
-            del_V2 = np.abs(V_osc) / V_b
-            print(
-                ">>> budgets: (V_rest {:6}, V_osc {:6}, del_V1 {:6}, del_V2 {:6})".
-                format(V_rest, V_osc, del_V1, del_V2))
+                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
+                format(A_opt, ns_n.size, error, var))
 
     # --------------------------------------------------------------
     if verbose:
