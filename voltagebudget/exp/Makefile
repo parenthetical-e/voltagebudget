@@ -456,6 +456,7 @@ exp39:
 
 
 # Repeat of above, with n_perturbations = 100 (up from 10)
+# 8b44d8c554b15c07a7be7dcca8f99b3862055598
 exp40:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp40.log' \
@@ -465,6 +466,7 @@ exp40:
 
 # 2-14-2018
 # Perturb a much smaller range (0.02%) 
+# 8b44d8c554b15c07a7be7dcca8f99b3862055598
 exp41:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp41.log' \
