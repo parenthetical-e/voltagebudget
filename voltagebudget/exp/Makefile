@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # ------------------------------------------------------------------------
 # SFN runs are all deprecated. 
@@ -455,7 +455,7 @@ exp39:
 		:::: exp38.txt 
 
 
-# Repeat of above, with n_perturbations larger
+# Repeat of above, with n_perturbations = 100 (up from 10)
 exp40:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp40.log' \
@@ -463,9 +463,21 @@ exp40:
 		'python budget_experiments.py perturb $(DATADIR)/exp40_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.1 --n_perturbations=100 --verbose --save_only' \
 		:::: exp38.txt 
 
+# 2-14-2018
+# Perturb a much smaller range (0.02%) 
 exp41:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp41.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py perturb $(DATADIR)/exp41_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.1 --n_perturbations=100 --verbose --save_only' \
+		'python budget_experiments.py perturb $(DATADIR)/exp41_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.02 --n_perturbations=100 --verbose --save_only --correct_bias' \
+		:::: exp38.txt 
+
+# 2-15-2018
+# Repeat 42, but Analyzing neurons seperately
+# c093a6dea0fd485f38ffe5a0f9a8e712c980b083
+exp42:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp42.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py perturb $(DATADIR)/exp42_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.02 --n_perturbations=100 --verbose --save_only --correct_bias' \
 		:::: exp38.txt 
