@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # ------------------------------------------------------------------------
 # SFN runs are all deprecated. 
@@ -456,7 +456,7 @@ exp39:
 
 
 # Repeat of above, with n_perturbations = 100 (up from 10)
-# 8b44d8c554b15c07a7be7dcca8f99b3862055598
+# q8b44d8c554b15c07a7be7dcca8f99b3862055598
 exp40:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp40.log' \
@@ -475,7 +475,7 @@ exp41:
 		:::: exp38.txt 
 
 # 2-15-2018
-# Repeat 42, but Analyzing neurons seperately
+# Repeat 41, but Analyzing neurons seperately
 # c093a6dea0fd485f38ffe5a0f9a8e712c980b083
 exp42:
 	parallel -j 6 -v \
