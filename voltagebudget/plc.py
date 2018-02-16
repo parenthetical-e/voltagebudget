@@ -4,6 +4,7 @@ import csv
 import numpy as np
 
 import voltagebudget
+from copy import deepcopy
 from voltagebudget.util import mad
 
 
@@ -47,6 +48,51 @@ def uniform(ts, percent_change):
 
 def _delta(ts):
     return np.absolute(ts - np.mean(ts))
+
+
+def _diffs(ts):
+    ts = np.sort(ts)
+
+    t_last = ts[0]
+    ds = []
+    for t in ts[1:]:
+        ds.append(t_last - t)
+        t_last = deepcopy(t)
+
+    return np.asarray(ds)
+
+
+def coincidence(ts, percent_change):
+    """Coordinate by increasing coincidences"""
+
+    if not (0 <= percent_change <= 1):
+        raise ValueError("p must be between (0-1).")
+    if ts.size == 0:
+        return ts
+
+    # Prelim...
+    ts = np.sort(ts)
+
+    # Figure out initial and target MAD.
+    initial, target = _create_target(ts, percent_change)
+
+    # Est the seq. differences between ts,
+    # and index their order.
+    i = np.argmin(_diffs(ts))
+
+    # -
+    # Shift closest spikes (smallest deltas)
+    # to be the same until target MAD is achieved.
+    ts_opt = ts.copy()
+    adjusted = initial
+    while adjusted > target:
+        ts_opt[i + 1] = ts_opt[i]
+
+        adjusted = mad(ts_opt)
+
+        i = np.argmin(_diffs(ts_opt))
+
+    return initial, target, adjusted, np.asarray(ts_opt)
 
 
 def max_deviant(ts, percent_change, dt=0.1e-3):

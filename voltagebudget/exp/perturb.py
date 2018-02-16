@@ -148,6 +148,7 @@ def perturb(name,
     # Pick the neuron to optimize, based on its rank
     idx = np.argsort([budget_ref["V_free"][j, :].mean() for j in range(N)])
     n = int(np.where(idx == rank)[0])
+
     if verbose:
         print(">>> The Vf rank index: {}.".format(idx))
         print(">>> Rank {} is neuron {}.".format(rank + 1, n))
@@ -183,6 +184,7 @@ def perturb(name,
     perturbations = np.linspace(A_pmin, A_pmax, n_perturbations)
 
     # --------------------------------------------------------------
+    neurons = []
     variances = []
     errors = []
     n_spikes = []
@@ -251,35 +253,45 @@ def perturb(name,
         if save_spikes:
             write_spikes("{}_n_{}_spks".format(name, n), ns_n, ts_n)
 
-        # Score
-        var, error = score_by_n(N, ns_ref, ts_ref, ns_n, ts_n)
-
-        # Extract budget values
-        budget_n = budget_window(voltage_n, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_n['V_osc'][n, :]))
-        V_comp = np.abs(np.mean(budget_n['V_comp'][n, :]))
-        V_free = np.abs(np.mean(budget_n['V_free'][n, :]))
-        V_b = float(voltage_n['V_budget'])
-
-        # Store all stats for n
-        variances.append(var)
-        errors.append(np.mean(error))
-        n_spikes.append(ts_n.size)
-
-        V_oscs.append(V_osc)
-        V_comps.append(V_comp)
-        V_frees.append(V_free)
-        V_budgets.append(V_b)
-
-        As.append(A_p)
-        biases.append(bias)
-        phis.append(phi_E)
-        phis_w.append(phi_w)
-
+        # -
         if verbose:
-            print(
-                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_p, ns_n.size / float(N), error, var))
+            print(">>> Scoring each neuron...")
+
+        for k in range(N):
+            _, ts_ref_k = select_n(k, ns_ref, ts_ref)
+            _, ts_k = select_n(k, ns_n, ts_n)
+
+            var, error = score_by_group(ts_ref_k, ts_k)
+
+            variances.append(var)
+            errors.append(np.mean(error))
+            n_spikes.append(ts_k.size)
+            neurons.append(k)
+
+            # Extract budget values
+            budget_n = budget_window(voltage_n, E + d, w, select=None)
+            V_osc = np.abs(np.mean(budget_n['V_osc'][k, :]))
+            V_comp = np.abs(np.mean(budget_n['V_comp'][k, :]))
+            V_free = np.abs(np.mean(budget_n['V_free'][k, :]))
+            V_b = float(voltage_n['V_budget'])
+
+            # and save 'em
+            V_oscs.append(V_osc)
+            V_comps.append(V_comp)
+            V_frees.append(V_free)
+            V_budgets.append(V_b)
+
+            # These will repeat for each k,
+            # but that's ok.
+            As.append(A_p)
+            biases.append(bias)
+            phis.append(phi_E)
+            phis_w.append(phi_w)
+
+            if verbose:
+                print(
+                    ">>> (k {}, A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
+                    format(k, A_p, ns_n.size / float(N), error, var))
 
     # --------------------------------------------------------------
     if verbose:
@@ -287,10 +299,10 @@ def perturb(name,
 
     # Build a dict of results,
     results = {}
-    results["N"] = list(range(N))
     results["variances"] = variances
     results["errors"] = errors
     results["n_spikes"] = n_spikes
+    results["N"] = neurons
 
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
