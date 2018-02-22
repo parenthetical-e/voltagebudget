@@ -483,3 +483,12 @@ exp42:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py perturb $(DATADIR)/exp42_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.02 --n_perturbations=100 --verbose --save_only --correct_bias' \
 		:::: exp38.txt 
+
+# 2-22-2018
+# wider perturb range...
+exp43:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp43.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py perturb $(DATADIR)/exp43_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.05 --n_perturbations=100 --verbose --save_only --correct_bias' \
+		:::: exp38.txt 
