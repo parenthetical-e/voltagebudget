@@ -185,6 +185,7 @@ def perturb(name,
 
     # --------------------------------------------------------------
     neurons = []
+    ranks = []
     variances = []
     errors = []
     n_spikes = []
@@ -266,7 +267,9 @@ def perturb(name,
             variances.append(var)
             errors.append(np.mean(error))
             n_spikes.append(ts_k.size)
+
             neurons.append(k)
+            ranks.append(idx[k])
 
             # Extract budget values
             budget_n = budget_window(voltage_n, E + d, w, select=None)
@@ -303,6 +306,7 @@ def perturb(name,
     results["errors"] = errors
     results["n_spikes"] = n_spikes
     results["N"] = neurons
+    results["rank"] = ranks
 
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
