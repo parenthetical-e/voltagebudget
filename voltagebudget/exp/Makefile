@@ -407,6 +407,7 @@ exp34:
 		:::: exp25.txt 
 
 # Reverse - first attempt. Fit only A.
+# KILLED after MANY days of RUNNING. 
 exp35:
 	parallel -j 2 -v \
 		--joblog '$(DATADIR)/exp35.log' \
