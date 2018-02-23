@@ -527,3 +527,38 @@ exp47:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp47_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
+
+ 
+# 2-13-2018
+# Examine all the populations' A_hat effect single neuron 
+exp48:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp48.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py population $(DATADIR)/exp48_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias --analyze_rank={4}' \
+		:::: exp48.txt 
+
+# Examine all a single A_hat effect effect on the whole population
+exp49:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp49.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py single $(DATADIR)/exp49_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias --analyze_rank={4}' \
+		:::: exp48.txt 
+
+# Repeat 48/49 on stim2, without bias
+# With bias correction
+exp50:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp50.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py population $(DATADIR)/exp50_d{1}_f{3}_r{4} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4}' \
+		:::: exp48.txt 
+
+exp51:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp51.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py single $(DATADIR)/exp51_d{1}_f{3}_r{4} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4}' \
+		:::: exp48.txt 
+
