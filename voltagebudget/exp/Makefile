@@ -503,16 +503,26 @@ exp44:
 
 # -
 # Revisit stim2, with and without homeostatsis.
+# Extending A range
 exp45:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp45.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py forward $(DATADIR)/exp45_d{1}_f{3} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias' \
+		'python budget_experiments.py forward $(DATADIR)/exp45_d{1}_f{3} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias' \
 		:::: exp25.txt 
 
 exp46:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp46.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py forward $(DATADIR)/exp46_d{1}_f{3} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py forward $(DATADIR)/exp46_d{1}_f{3} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
+
+
+# Stim 1, with wider A range
+exp47:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp47.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py forward $(DATADIR)/exp47_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
