@@ -16,10 +16,10 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp31_d-0.2e-3_f20.csv"
+name <- "../data/exp36_d-0.2e-3_f20.csv"
 results <- read_csv(paste(name, sep=""))
-results %>% 
-  filter(n_spikes > 0, errors > 0) -> results
+results %>%
+  filter(n_spikes > 0) -> results
 ```
 
 ```{r, fig.width=2.5, fig.height=1.5}
@@ -50,11 +50,10 @@ results %>%
 grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 
-
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=As)) +
+  ggplot(aes(x=As, y=V_osc)) +
   geom_point() + 
   theme_classic()
 ```
@@ -62,7 +61,7 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=variances)) +
+  ggplot(aes(x=As, y=V_comp)) +
   geom_point() + 
   theme_classic()
 ```
@@ -70,29 +69,13 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=V_comp, color=errors)) +
+  ggplot(aes(x=As, y=n_spikes/300)) +
   geom_point() + 
   theme_classic()
 ```
 
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=errors)) +
-  geom_point() + 
-  theme_classic()
-```
 
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=variances)) +
-  geom_point() + 
-  # ylim(0.008, 0.012) +
-  theme_classic()
-```
-
-```{r, fig.width=2.5, fig.height=1}
+```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=variances, y=errors)) +
@@ -101,27 +84,34 @@ results %>%
   theme_classic()
 ```
 
+```{r, fig.width=1.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc/V_b, y=V_comp/V_b, color=As)) +
+  # xlim(0, 0.007) +
+  geom_point() + 
+  theme_classic()
+```
+
 
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_osc, y=normalize(variances))) +
-  geom_point(color="red", alpha=0.5) + 
-  xlab("Vo (mvolt)") +
-  ylab("Rel. scores (AU)") +
-  geom_point(aes(x=V_osc, y=normalize(errors)), color="purple") + 
+  ggplot(aes(x=V_osc, y=variances))+#, color=errors)) +
+  geom_point(color="red") +
+  geom_point(aes(x=V_osc, y=errors), color="purple") +
+  ylab("Metric") +
   theme_classic()
 ```
+
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
-  ggplot(aes(x=1e3*V_free, y=normalize(variances))) +
-  geom_smooth(method = "glm",  method.args = list(family = "binomial"), color="red3", alpha=0.5, se=FALSE, linetype="dashed") + 
-  # geom_point(color="red3", alpha=0.2) + 
-  geom_smooth(aes(x=1e3*V_free, y=normalize(errors)), 
-              method = "glm",  method.args = list(family = "binomial"), color="mediumpurple", se=FALSE,linetype="dashed") + 
-  # geom_point(aes(x=1e3*V_free, y=normalize(errors)), color="mediumpurple", alpha=0.2) + 
-  geom_vline(aes(xintercept = mean(1e3*V_free)), color="black") +
-  xlab("Vf (mvolt)") +
-  ylab("Normalized") +
-  theme_classic() 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=As, y=variances))+#, color=errors)) +
+  geom_point(color="red") +
+  geom_point(aes(x=As, y=errors), color="purple") +
+  ylab("Metric") +
+  theme_classic()
 ```
+
+

@@ -17,14 +17,17 @@ normalize <- function(x) {
 # Load and process indivdual ranks
 
 ```{r, message=FALSE}
-name <- "../data/exp18_d-2e-3_f12_r50.csv"
+name <- "../data/exp44_d-0.2e-3_f12_r300.csv"
 results <- read_csv(paste(name, sep=""))
+print(range(results$rank))
+results %>%
+  filter(n_spikes > 0, rank==299) -> results
 ```
 
 
 ```{r, fig.width=2.5, fig.height=1.5}
 results %>% 
-  ggplot(aes(x=delta_variances)) +
+  ggplot(aes(x=variances)) +
   geom_histogram(bins=20) + 
   xlab("Variance") +
   theme_classic() -> p1
@@ -50,41 +53,91 @@ results %>%
 grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 
+## A and V
 
 ```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  ggplot(aes(x=V_free, y=V_osc, color=errors)) +
-  geom_point() + 
-  theme_classic()
-```
-
-
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  ggplot(aes(x=N, y=sort(errors))) +
-  ylim(0, 0.030) +
-  geom_point() + 
-  theme_classic()
-```
-
-```{r, fig.width=2.5, fig.height=1}
-results %>% 
-  ggplot(aes(x=N, y=sort(delta_variances))) +
-  geom_point() + 
-  ylim(-0.030, 0.030) +
-  geom_hline(aes(yintercept=0), color="black", alpha=0.6) +
-  theme_classic()
-```
-
-
-```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=V_comp, y=normalize(delta_variances))) +
-  geom_point(color="red", alpha=0.5) + 
-  xlab("Vc (mvolt)") +
-  ylab("Rel. scores (AU)") +
-  geom_point(aes(x=V_comp, y=normalize(errors)), color="purple") + 
+  ggplot(aes(x=sort(V_free), y=errors, color=As)) +
+  geom_point() + 
   theme_classic()
 ```
 
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=As, y=V_osc/V_b)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=V_comp, color=As)) +
+  geom_point() + 
+  theme_classic()
+```
+
+### As
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=As, y=variances)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=As, y=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=As, y=n_spikes)) +
+  geom_point() + 
+  theme_classic()
+```
+
+### V_f
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=sort(V_free), y=variances)) +
+  geom_point() + 
+  theme_classic()
+```
+
+### V_osc/V_B
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc, y=variances)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1.5}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc/V_b, y=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1.5}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=errors, y=variances, color=As)) +
+  geom_point() + 
+  theme_classic()
+```
