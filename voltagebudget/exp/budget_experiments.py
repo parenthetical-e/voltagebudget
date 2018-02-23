@@ -21,6 +21,8 @@ from voltagebudget.util import estimate_communication
 from voltagebudget.util import precision
 
 from voltagebudget.exp import forward
+from voltagebudget.exp import population
+from voltagebudget.exp import single
 from voltagebudget.exp import perturb
 from voltagebudget.exp import replay
 from voltagebudget.exp import pareto
@@ -39,6 +41,8 @@ if __name__ == "__main__":
     fire.Fire({
         'create_stim': create_stim,
         'forward': forward,
+        'population': population,
+        'single': single,
         'perturb': perturb,
         'reverse': reverse,
         'pareto': pareto,
