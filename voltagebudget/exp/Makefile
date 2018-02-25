@@ -593,7 +593,7 @@ exp53:
 		'python budget_experiments.py single $(DATADIR)/exp53_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --rank={4} --scale_w_in=0.1' \
 		:::: exp48.txt 
 
-# Population:
+# Population :
 # Repeat 48/49 on *stim3*, without bias and
 # with bias correction.
 # scale w_in by 1/10 to account for high pop rate
@@ -611,3 +611,11 @@ exp55:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py population $(DATADIR)/exp55_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4} --scale_w_in=0.1' \
 		:::: exp48.txt 
+
+# Stim 3 whole population analysis
+exp56:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp56.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py population $(DATADIR)/exp56_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --scale_w_in=0.1' \
+		:::: exp25.txt 
