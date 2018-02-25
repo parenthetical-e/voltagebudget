@@ -58,7 +58,6 @@ def population(name,
     # --------------------------------------------------------------
     # Temporal params
     time_step = 1e-5
-    coincidence_t = 1e-3
 
     # --------------------------------------------------------------
     if verbose:
@@ -161,7 +160,7 @@ def population(name,
         k = int(np.where(idx == analyze_rank)[0])
 
     if verbose:
-        print(">>> Analyzing results.")
+        print(">>> Analyzing results for rank {}.".format(k))
 
     variances = []
     errors = []
@@ -235,6 +234,7 @@ def population(name,
         if analyze_rank is None:
             # Analyze for population avgs.
             var, error = score_by_n(N, ns_ref, ts_ref, ns_n, ts_n)
+
             if verbose:
                 print(">>> Analyzing sol {} by population".format(n))
 

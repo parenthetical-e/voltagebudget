@@ -52,16 +52,13 @@ def perturb(name,
             save_spikes=False,
             verbose=False,
             seed_value=42):
-    """Optimize using the shadow voltage budget.
+    """Optimize using the shadow voltage budget."""
 
-    TODO: add shadow mode?
-    """
     np.random.seed(seed_value)
 
     # --------------------------------------------------------------
     # Temporal params
     time_step = 1e-5
-    coincidence_t = 1e-3
 
     # Process rank
     if verbose:
