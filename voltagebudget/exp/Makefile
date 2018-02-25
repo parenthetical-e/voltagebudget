@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # ------------------------------------------------------------------------
 # SFN runs are all deprecated. 
@@ -613,9 +613,17 @@ exp55:
 		:::: exp48.txt 
 
 # Stim 3 whole population analysis
+# Corrected bias
 exp56:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp56.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py population $(DATADIR)/exp56_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --scale_w_in=0.1' \
+		'python budget_experiments.py population $(DATADIR)/exp56_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --scale_w_in=0.1 --correct_bias' \
+		:::: exp25.txt 
+
+exp57:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp57.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py population $(DATADIR)/exp57_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --scale_w_in=0.1' \
 		:::: exp25.txt 
