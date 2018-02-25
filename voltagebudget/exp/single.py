@@ -46,6 +46,8 @@ def single(name,
            mode='regular',
            noise=False,
            correct_bias=False,
+           scale_w_in=1,
+           alternate_w_in=None,
            save_only=False,
            save_spikes=False,
            verbose=False,
@@ -78,6 +80,9 @@ def single(name,
     params, w_in, bias_in, sigma = read_modes(mode)
     if not noise:
         sigma = 0
+
+    # Scale input weight
+    w_in = [scale_w_in * w_in[0], scale_w_in * w_in[1]]
 
     # --------------------------------------------------------------
     if verbose:
@@ -122,6 +127,8 @@ def single(name,
     else:
         E = nearest_spike(ts_ref, E_0)
         if verbose:
+            print(
+                ">>> ts_ref min {}, max {}".format(ts_ref.min(), ts_ref.max()))
             print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
 
     # --------------------------------------------------------------

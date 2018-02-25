@@ -44,6 +44,7 @@ def population(name,
                save_only=False,
                save_spikes=False,
                correct_bias=False,
+               scale_w_in=1,
                verbose=False,
                seed_value=42):
     """Optimize using the shadow voltage budget.
@@ -66,6 +67,9 @@ def population(name,
     params, w_in, bias_in, sigma = read_modes(mode)
     if not noise:
         sigma = 0
+
+    # Scale input weight
+    w_in = [scale_w_in * w_in[0], scale_w_in * w_in[1]]
 
     # --------------------------------------------------------------
     if verbose:

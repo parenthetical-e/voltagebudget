@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # ------------------------------------------------------------------------
 # SFN runs are all deprecated. 
@@ -81,6 +81,12 @@ stim2:
 	--stim_number=40 --stim_onset=0.0 --stim_offset=0.4 --stim_rate=2 \
 	--seed_stim=754 --time_step=1e-5 --verbose
 
+# lower rate, many more neurons (default .json requires tweaks for this to run
+# with reaslistic firing rates).
+stim3:
+	python budget_experiments.py create_stim $(DATADIR)/stim3 0.4 \
+	--stim_number=1000 --stim_onset=0.0 --stim_offset=0.4 --stim_rate=1.6 \
+	--seed_stim=20 --time_step=1e-5 --verbose
 
 # ---------------------------------------------------------------------------
 # Budgets locked to stim1 (stim onset design), and first population spike
@@ -465,6 +471,7 @@ exp40:
 		'python budget_experiments.py perturb $(DATADIR)/exp40_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.1 --n_perturbations=100 --verbose --save_only' \
 		:::: exp38.txt 
 
+# ----------------------------------------------------------------------------
 # 2-14-2018
 # Perturb a much smaller range (0.02%) 
 # 8b44d8c554b15c07a7be7dcca8f99b3862055598
@@ -475,6 +482,7 @@ exp41:
 		'python budget_experiments.py perturb $(DATADIR)/exp41_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.02 --n_perturbations=100 --verbose --save_only --correct_bias' \
 		:::: exp38.txt 
 
+# ----------------------------------------------------------------------------
 # 2-15-2018
 # Repeat 41, but Analyzing neurons seperately
 # c093a6dea0fd485f38ffe5a0f9a8e712c980b083
@@ -529,7 +537,8 @@ exp47:
 		:::: exp25.txt 
 
  
-# 2-13-2018
+# ----------------------------------------------------------------------------
+# 2-23-2018
 # Examine all the populations' A_hat effect single neuron 
 exp48:
 	parallel -j 6 -v \
@@ -559,6 +568,46 @@ exp51:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp51.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py single $(DATADIR)/exp51_d{1}_f{3}_r{4} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4}' \
+		'python budget_experiments.py single $(DATADIR)/exp51_d{1}_f{3}_r{4} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --rank={4}' \
 		:::: exp48.txt 
 
+# ----------------------------------------------------------------------------
+# 2-25-2018
+
+# Single:
+# Repeat 48/49 on *stim3*, without bias and
+# with bias correction.
+# scale w_in by 1/10 to account for high pop rate
+# in stim 3
+exp52:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp52.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py single $(DATADIR)/exp52_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --rank={4} --scale_w_in=0.1 --correct_bias' \
+		:::: exp48.txt 
+
+exp53:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp53.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py single $(DATADIR)/exp53_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --rank={4} --scale_w_in=0.1' \
+		:::: exp48.txt 
+
+# Population:
+# Repeat 48/49 on *stim3*, without bias and
+# with bias correction.
+# scale w_in by 1/10 to account for high pop rate
+# in stim 3
+exp54:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp54.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py population $(DATADIR)/exp54_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4} --scale_w_in=0.1 --correct_bias' \
+		:::: exp48.txt 
+
+exp55:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp55.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py population $(DATADIR)/exp55_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4} --scale_w_in=0.1' \
+		:::: exp48.txt 
