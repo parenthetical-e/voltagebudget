@@ -621,6 +621,7 @@ exp56:
 		'python budget_experiments.py population $(DATADIR)/exp56_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --scale_w_in=0.1 --correct_bias' \
 		:::: exp25.txt 
 
+# Uncorrected bias
 exp57:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp57.log' \
