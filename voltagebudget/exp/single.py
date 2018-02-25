@@ -59,7 +59,6 @@ def single(name,
     # --------------------------------------------------------------
     # Temporal params
     time_step = 1e-5
-    coincidence_t = 1e-3
 
     # Process rank
     if verbose:
@@ -105,7 +104,7 @@ def single(name,
         phi=0,
         sigma=sigma,
         budget=True,
-        save_args="{}_ref_args".format(name),
+        save_args=None,
         time_step=time_step,
         seed_value=seed_value,
         **params)
@@ -154,9 +153,7 @@ def single(name,
         k = int(np.where(idx == analyze_rank)[0])
 
     if verbose:
-        print(">>> Rank is {}".format(rank))
-        print(">>> Optimizing A for neuron {}".format(n))
-        print(">>> Analyzing neuron {}".format(k))
+        print(">>> Analyzing results for rank {}.".format(k))
 
     # --------------------------------------------------------------
     solutions = autotune_V_osc(
@@ -185,8 +182,8 @@ def single(name,
         bias = bias_in - (A_hat / 2.0)
         if verbose:
             print(">>> (bias {}) -> (bias_adj {})".format(bias_in, bias))
-        else:
-            bias = bias_in
+    else:
+        bias = bias_in
 
     # Spikes, using phi_E
     ns_n, ts_n = adex(
@@ -247,8 +244,7 @@ def single(name,
     phis_w = []
     for i in range(N):
         if verbose:
-            print(">>> Analyzing neuron ({}/{}) using A {:0.15f}.".format(
-                i, N, A_hat))
+            print(">>> Analyzing neuron ({}/{})".format(i, N))
 
         _, ts_ref_i = select_n(i, ns_ref, ts_ref)
         _, ts_i = select_n(i, ns_n, ts_n)
