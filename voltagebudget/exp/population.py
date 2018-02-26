@@ -161,8 +161,8 @@ def population(name,
         idx = np.argsort([budget_ref["V_free"][j, :].mean() for j in range(N)])
         k = int(np.where(idx == analyze_rank)[0])
 
-    if verbose:
-        print(">>> Analyzing results for rank {}.".format(k))
+        if verbose:
+            print(">>> Analyzing results for rank {}.".format(k))
 
     variances = []
     errors = []
