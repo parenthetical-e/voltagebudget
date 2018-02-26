@@ -249,9 +249,9 @@ def single(name,
     biases = []
     phis = []
     phis_w = []
-    for i in range(N):
+    for i in idx:
         if verbose:
-            print(">>> Analyzing neuron ({}/{})".format(i, N))
+            print(">>> Analyzing rank {}".format(i))
 
         _, ts_ref_i = select_n(i, ns_ref, ts_ref)
         _, ts_i = select_n(i, ns_n, ts_n)
