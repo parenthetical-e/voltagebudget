@@ -152,9 +152,7 @@ def population(name,
 
     # --------------------------------------------------------------
     # Pick the neuron to analyze, defaults to n
-    if analyze_rank is None:
-        k = n
-    else:
+    if analyze_rank is not None:
         # Adj rank for python indexing
         analyze_rank -= 1
 
