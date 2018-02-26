@@ -232,6 +232,10 @@ def population(name,
         if save_spikes:
             write_spikes("{}_n_{}_spks".format(name, n), ns_n, ts_n)
 
+        # Get budget terms
+        budget_n = budget_window(voltage_n, E + d, w, select=None)
+        V_b = float(voltage_n['V_budget'])
+
         # Pick the neuron to analyze, defaults to n
         if analyze_rank is None:
             # Analyze for population avgs.
@@ -240,6 +244,10 @@ def population(name,
             if verbose:
                 print(">>> Analyzing sol {} by population".format(n))
 
+            # Extract nth budget values
+            V_osc = np.abs(np.mean(budget_n['V_osc'][n, :]))
+            V_comp = np.abs(np.mean(budget_n['V_comp'][n, :]))
+            V_free = np.abs(np.mean(budget_n['V_free'][n, :]))
         else:
             # Filter for k-only analysis
             ns_ref_k, ts_ref_k = select_n(k, ns_ref, ts_ref)
@@ -251,12 +259,10 @@ def population(name,
             if verbose:
                 print(">>> Analyzing sol {} at neuron {}".format(n, k))
 
-        # Extract kth budget values
-        budget_n = budget_window(voltage_n, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_n['V_osc'][k, :]))
-        V_comp = np.abs(np.mean(budget_n['V_comp'][k, :]))
-        V_free = np.abs(np.mean(budget_n['V_free'][k, :]))
-        V_b = float(voltage_n['V_budget'])
+            # Extract kth budget values
+            V_osc = np.abs(np.mean(budget_n['V_osc'][k, :]))
+            V_comp = np.abs(np.mean(budget_n['V_comp'][k, :]))
+            V_free = np.abs(np.mean(budget_n['V_free'][k, :]))
 
         # Store all stats for n
         variances.append(var)
