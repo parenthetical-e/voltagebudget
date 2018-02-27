@@ -63,7 +63,7 @@ def autotune_V_osc(N,
     # least_squares() was struggling with small A, so boost it
     # for param search purposes, then divide it back out in the 
     # problem definition
-    rescale = 1e10
+    rescale = 1e12
 
     # ---------------------------------------------------------------
     # Define a loss func (closing several locals)
@@ -117,13 +117,13 @@ def autotune_V_osc(N,
 
             if verbose:
                 budget = budget_window(voltage, E + d, w, select=None)
-                V_rest =float(voltage["V_rest"])
+                V_rest = float(voltage["V_rest"])
                 V_osc = np.mean(budget['V_osc'][n, :])
                 V_b = float(voltage['V_budget'])
                 del_V = np.abs(V_osc) / V_b
 
                 print(
-                    ">>> (A {:0.15f}, bias_adj {:0.15f})  ->  (loss {:0.6f}, V_rest {:0.4f}, del_V_osc {:0.4f}))".
+                    ">>> (A {:0.18f}, bias_adj {:0.15f})  ->  (loss {:0.6f}, V_rest {:0.4f}, del_V_osc {:0.4f}))".
                     format(A, bias, np.mean(loss), V_rest, del_V))
 
             return loss
@@ -133,12 +133,17 @@ def autotune_V_osc(N,
         if verbose:
             print(">>> Optimizing A, neuron {}/{}".format(i + 1, len(Ns)))
 
-        p0 = [A_0 * rescale]
-        bounds = (0, A_max * rescale)
-        sol = least_squares(lambda p: A_problem(p, phi_0), p0, bounds=bounds)
+        # Lst Sq
+        p0 = [np.mean([A_0 * rescale, A_max * rescale])]
+        bounds = (A_0 * rescale, A_max * rescale)
+        if verbose:
+            print(">>> p0 {} (rescaled)".format(p0))
+            print(">>> bounds {} (rescaled)".format(bounds))
 
+        sol = least_squares(lambda p: A_problem(p, phi_0), p0, bounds=bounds)
         A_hat = sol.x[0]
 
+        # Save
         solutions.append((A_hat / rescale, sol))
 
     return solutions
