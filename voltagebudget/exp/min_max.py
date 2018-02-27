@@ -248,8 +248,10 @@ def min_max(name,
         # Want group var(ts_i)
         var, _ = score_by_group(ts_ref, ts_i)
 
-        # But avg of individual {n in N} errors
-        _, error = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
+        # But individual n error
+        _, ts_ref_n = select_n(n, ns_ref, ts_ref)
+        _, ts_i_n = select_n(n, ns_i, ts_i)
+        _, error = score_by_group(ts_ref_n, ts_i_n)
 
         # Save scores
         variances.append(var)
@@ -258,9 +260,9 @@ def min_max(name,
 
         # Extract budget values and save 'em
         budget_i = budget_window(voltage_i, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_i['V_osc'][i, :]))
-        V_comp = np.abs(np.mean(budget_i['V_comp'][i, :]))
-        V_free = np.abs(np.mean(budget_i['V_free'][i, :]))
+        V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
+        V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
+        V_free = np.abs(np.mean(budget_i['V_free'][n, :]))
         V_b = float(voltage_i['V_budget'])
 
         V_oscs.append(V_osc)
