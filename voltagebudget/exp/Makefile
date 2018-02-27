@@ -656,7 +656,7 @@ exp57:
 # Re-think of exp plan. Re-think of aims. 
 # branch `three_analyses` -> `re_aim`
 
-# 4ef5c373686713e879a7ea58c02dfcac17c9821f
+# 5f537a1ee0a3c8826ce2ae66936c4d3c72bb7c22
 # Sweep A wide and dense.
 exp58:
 	parallel -j 6 -v \
