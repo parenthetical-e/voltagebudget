@@ -196,9 +196,9 @@ def sweep_A(name,
 
         # Extract budget values and save 'em
         budget_i = budget_window(voltage_i, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_i['V_osc'][i, :]))
-        V_comp = np.abs(np.mean(budget_i['V_comp'][i, :]))
-        V_free = np.abs(np.mean(budget_i['V_free'][i, :]))
+        V_osc = np.abs(np.mean(budget_i['V_osc']))
+        V_comp = np.abs(np.mean(budget_i['V_comp']))
+        V_free = np.abs(np.mean(budget_i['V_free']))
         V_b = float(voltage_i['V_budget'])
 
         V_oscs.append(V_osc)
