@@ -183,15 +183,18 @@ def sweep_A(name,
         ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
-        var, error = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
+        # Want group var(ts_i)
+        var, _ = score_by_group(ts_ref, ts_i)
 
-        # Save spike scores
+        # But avg of individual {n in N} errors
+        _, error = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
+
+        # Save scores
         variances.append(var)
         errors.append(np.mean(error))
         n_spikes.append(ts_i.size)
 
-        # Extract budget values
-        # and save 'em
+        # Extract budget values and save 'em
         budget_i = budget_window(voltage_i, E + d, w, select=None)
         V_osc = np.abs(np.mean(budget_i['V_osc'][i, :]))
         V_comp = np.abs(np.mean(budget_i['V_comp'][i, :]))
@@ -204,8 +207,7 @@ def sweep_A(name,
         V_budgets.append(V_b)
         As.append(A_i)
 
-        # These will repeat for each i,
-        # but that's ok.
+        # These will repeat for each i, but that's ok.
         biases.append(bias_in)
         phis.append(phi_E)
         phis_w.append(phi_w)
