@@ -442,6 +442,8 @@ exp37:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp37_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
+# Result:
+# - Useless. I forgot the --correct_bias flag. I ran the wrong exp.
 
 # ----------------------------------------------------------------------------
 # 2-13-2018
@@ -460,7 +462,8 @@ exp39:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py perturb $(DATADIR)/exp39_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.1 --n_perturbations=10 --verbose --save_only' \
 		:::: exp38.txt 
-
+# Result:
+# - Bug in code. Ignore.
 
 # Repeat of above, with n_perturbations = 100 (up from 10)
 # q8b44d8c554b15c07a7be7dcca8f99b3862055598
@@ -470,6 +473,8 @@ exp40:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py perturb $(DATADIR)/exp40_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.1 --n_perturbations=100 --verbose --save_only' \
 		:::: exp38.txt 
+# Result:
+# - Bug in code. Ignore.
 
 # ----------------------------------------------------------------------------
 # 2-14-2018
@@ -481,6 +486,8 @@ exp41:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py perturb $(DATADIR)/exp41_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.02 --n_perturbations=100 --verbose --save_only --correct_bias' \
 		:::: exp38.txt 
+# Result:
+# - Bug in code. Ignore.
 
 # ----------------------------------------------------------------------------
 # 2-15-2018
@@ -492,6 +499,8 @@ exp42:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py perturb $(DATADIR)/exp42_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.02 --n_perturbations=100 --verbose --save_only --correct_bias' \
 		:::: exp38.txt 
+# Result:
+# - Bug in code. Ignore.
 
 # 2-22-2018
 # wider perturb range...
@@ -500,7 +509,9 @@ exp43:
 		--joblog '$(DATADIR)/exp43.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py perturb $(DATADIR)/exp43_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.05 --n_perturbations=100 --verbose --save_only --correct_bias' \
-		:::: exp38.txt 
+		:::: exp38.txt
+# Result:
+# - Bug in code. Ignore. 
 
 # EVEN wider perturb range...
 exp44:
@@ -509,6 +520,8 @@ exp44:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py perturb $(DATADIR)/exp44_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.2e-9 --N=300 --d={1} --T={2} --f={3} --rank={4} --max_percent=0.25 --n_perturbations=100 --verbose --save_only --correct_bias' \
 		:::: exp38.txt 
+# Result:
+# - Bug in code. Ignore.
 
 # -
 # Revisit stim2, with and without homeostatsis.
@@ -526,7 +539,11 @@ exp46:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp46_d{1}_f{3} $(DATADIR)/stim2.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
-
+# Results:
+# - Patterns consistent with stim1 exps. It's not the rise that cause positive var with A when there is no bias adjustment. 
+# - I'm not sure how to rectify this prev. work on E osc and spike sync. 
+# - Stim 2 analysis was done from .37 - .4 seconds. stim3 was created in part to put analysis in a mode sensible range,
+#   and to make sure the two stim cases are different enough. 
 
 # Stim 1, with wider A range
 exp47:
@@ -535,7 +552,8 @@ exp47:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py forward $(DATADIR)/exp47_d{1}_f{3} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
-
+# Result:
+# - I forgot the --correct_bias flag. Wrong exp was run.
  
 # ----------------------------------------------------------------------------
 # 2-23-2018
@@ -553,7 +571,7 @@ exp49:
 		--joblog '$(DATADIR)/exp49.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py single $(DATADIR)/exp49_d{1}_f{3}_r{4} $(DATADIR)/stim1.csv 0.0 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --correct_bias --analyze_rank={4}' \
-		:::: exp48.txt 
+		:::: exp48.txt 	 
 
 # Repeat 48/49 on stim2, without bias
 # With bias correction
@@ -604,7 +622,9 @@ exp54:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py population $(DATADIR)/exp54_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4} --scale_w_in=0.1 --correct_bias' \
 		:::: exp48.txt 
+# Stopped early on first run = up to f=24
 
+# !
 exp55:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp55.log' \
@@ -612,8 +632,9 @@ exp55:
 		'python budget_experiments.py population $(DATADIR)/exp55_d{1}_f{3}_r{4} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --analyze_rank={4} --scale_w_in=0.1' \
 		:::: exp48.txt 
 
-# Stim 3 whole population analysis
+# Stim 3 - whole population analysis
 # Corrected bias
+# !
 exp56:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp56.log' \
@@ -622,9 +643,41 @@ exp56:
 		:::: exp25.txt 
 
 # Uncorrected bias
+# !
 exp57:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp57.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py population $(DATADIR)/exp57_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.05e-9 --A_max=0.3e-9 --N=100 --d={1} --T={2} --f={3} --verbose --save_only --scale_w_in=0.1' \
 		:::: exp25.txt 
+
+# ----------------------------------------------------------------------------
+# 2-28-2016
+# Re-think of exp plan. Re-think of aims. 
+# branch `three_analyses` -> `re_aim`
+
+# 4ef5c373686713e879a7ea58c02dfcac17c9821f
+# Sweep A wide and dense.
+exp58:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp58.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py min_max $(DATADIR)/exp58_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=100 --n_samples=500 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
+
+# min V_free, percent sweep 0.25 
+exp59:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp59.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py min_max $(DATADIR)/exp59_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=100 --percent=0.25 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
+
+# max V_free, percent sweep 0.25 
+exp60:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp60.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py min_max $(DATADIR)/exp60_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=max --N=100 --n_samples=100 --percent=0.25 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp25.txt 
+
