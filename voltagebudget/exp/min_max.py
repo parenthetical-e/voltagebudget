@@ -245,10 +245,10 @@ def min_max(name,
         ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
-        # Want group var(ts_i)
+        # Want group var(ts_i),
         var, _ = score_by_group(ts_ref, ts_i)
 
-        # But individual n error
+        # but individual error for only n.
         _, ts_ref_n = select_n(n, ns_ref, ts_ref)
         _, ts_i_n = select_n(n, ns_i, ts_i)
         _, error = score_by_group(ts_ref_n, ts_i_n)
@@ -256,7 +256,7 @@ def min_max(name,
         # Save scores
         variances.append(var)
         errors.append(np.mean(error))
-        n_spikes.append(ts_i.size)
+        n_spikes.append(ts_i_n.size)
 
         # Extract budget values and save 'em
         budget_i = budget_window(voltage_i, E + d, w, select=None)
@@ -279,7 +279,7 @@ def min_max(name,
         if verbose:
             print(
                 ">>> (A {:0.18f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_i, ns_i.size / float(N), error, var))
+                format(A_i, ts_i_n.size / float(N), error, var))
 
     # --------------------------------------------------------------
     if verbose:
