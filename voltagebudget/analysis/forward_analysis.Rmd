@@ -16,7 +16,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp36_d-0.2e-3_f20.csv"
+name <- "../data/exp60_d-0.2e-3_f20.csv"
 results <- read_csv(paste(name, sep=""))
 results %>%
   filter(n_spikes > 0) -> results
@@ -36,13 +36,13 @@ results %>%
   theme_classic() -> p2
 
 results %>% 
-  ggplot(aes(x=V_osc)) +
+  ggplot(aes(x=V_osc/V_b)) +
   geom_histogram(bins=20) +
   xlab("Vc (volt)") +
   theme_classic() -> p3
 
 results %>% 
-  ggplot(aes(x=V_comp)) +
+  ggplot(aes(x=V_comp/V_b)) +
   geom_histogram(bins=20) +
   xlab("Vo (volt)") +
   theme_classic() -> p4
@@ -69,6 +69,23 @@ results %>%
 ```{r, fig.width=2.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=As, y=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
+  ggplot(aes(x=V_osc/V_b, y=errors)) +
+  geom_point() + 
+  theme_classic()
+```
+
+
+```{r, fig.width=2.5, fig.height=1}
+results %>% 
+  # filter(errors < 0.6, coincidence_count > 0) %>%
   ggplot(aes(x=As, y=n_spikes/300)) +
   geom_point() + 
   theme_classic()
@@ -78,7 +95,7 @@ results %>%
 ```{r, fig.width=1.5, fig.height=1}
 results %>% 
   # filter(errors < 0.6, coincidence_count > 0) %>%
-  ggplot(aes(x=variances, y=errors)) +
+  ggplot(aes(x=variances, y=errors, color=As)) +
   geom_point() + 
   # ylim(0.008, 0.012) +
   theme_classic()
