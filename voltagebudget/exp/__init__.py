@@ -1,6 +1,7 @@
 from voltagebudget.exp.forward import forward
 from voltagebudget.exp.population import population
 from voltagebudget.exp.single import single
+from voltagebudget.exp.sweep_A import sweep_A
 from voltagebudget.exp.replay import replay
 from voltagebudget.exp.perturb import perturb
 from voltagebudget.exp.reverse import reverse

@@ -21,6 +21,7 @@ from voltagebudget.util import estimate_communication
 from voltagebudget.util import precision
 
 from voltagebudget.exp import forward
+from voltagebudget.exp import sweep_A
 from voltagebudget.exp import population
 from voltagebudget.exp import single
 from voltagebudget.exp import perturb
@@ -43,6 +44,7 @@ if __name__ == "__main__":
         'forward': forward,
         'population': population,
         'single': single,
+        'sweep_A': sweep_A,
         'perturb': perturb,
         'reverse': reverse,
         'pareto': pareto,
