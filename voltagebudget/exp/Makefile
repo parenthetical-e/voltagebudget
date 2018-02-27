@@ -662,7 +662,7 @@ exp58:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp58.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py min_max $(DATADIR)/exp58_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=100 --n_samples=500 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp58_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=100 --n_samples=500 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp25.txt 
 
 # min V_free, percent sweep 0.25 
