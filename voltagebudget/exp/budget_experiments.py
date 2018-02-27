@@ -22,7 +22,7 @@ from voltagebudget.util import precision
 
 from voltagebudget.exp import forward
 from voltagebudget.exp import sweep_A
-from voltagebudget.exp import min_free
+from voltagebudget.exp import min_max
 from voltagebudget.exp import population
 from voltagebudget.exp import single
 from voltagebudget.exp import perturb
@@ -44,7 +44,7 @@ if __name__ == "__main__":
         'create_stim': create_stim,
         'forward': forward,
         'population': population,
-        'min_free': min_free,
+        'min_max': min_max,
         'single': single,
         'sweep_A': sweep_A,
         'perturb': perturb,

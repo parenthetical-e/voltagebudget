@@ -31,26 +31,27 @@ from scipy.optimize import least_squares
 from pyswarm import pso
 
 
-def min_free(name,
-             stim,
-             E_0,
-             A_0=0.00e-9,
-             A_max=0.3e-9,
-             t=0.4,
-             d=-5e-3,
-             w=2e-3,
-             T=0.0625,
-             f=8,
-             percent=0.5,
-             n_samples=10,
-             N=10,
-             mode='regular',
-             noise=False,
-             scale_w_in=1,
-             correct_bias=False,
-             save_only=False,
-             verbose=False,
-             seed_value=42):
+def min_max(name,
+            stim,
+            E_0,
+            A_0=0.00e-9,
+            A_max=0.3e-9,
+            t=0.4,
+            d=-5e-3,
+            w=2e-3,
+            T=0.0625,
+            f=8,
+            percent=0.5,
+            n_samples=10,
+            N=10,
+            mode='regular',
+            target='min',
+            noise=False,
+            scale_w_in=1,
+            correct_bias=False,
+            save_only=False,
+            verbose=False,
+            seed_value=42):
     """Fit A to the min free voltage, then explore a 
     range of A around this point.
     """
@@ -135,10 +136,16 @@ def min_free(name,
     # Rank the neurons
     budget_ref = budget_window(voltages_ref, E + d, w, select=None)
 
-    # Pick the neuron to optimize, based on its rank
-    n = np.argmin([budget_ref["V_free"][j, :].mean() for j in range(N)])
+    # Pick the neuron/V_free to optimize, based on its rank
     if verbose:
-        print(">>> Analyzing results for neuron {}.".format(n))
+        print(">>> Optimization target is '{} V_free'".format(target))
+
+    if target == 'min':
+        n = np.argmin([budget_ref["V_free"][j, :].mean() for j in range(N)])
+    elif target == 'max':
+        n = np.argmax([budget_ref["V_free"][j, :].mean() for j in range(N)])
+    else:
+        raise ValueError("target must be min or max")
 
     # --------------------------------------------------------------
     solutions = autotune_V_osc(
