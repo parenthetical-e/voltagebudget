@@ -695,4 +695,4 @@ exp62:
 		--joblog '$(DATADIR)/exp62.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py min_max $(DATADIR)/exp62_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=100 --percent=0.5 --d={1} --T={2} --f={3} --verbose --save_only' \
-		-2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 0.05 ::: 20 
+		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 0.05 ::: 20 
