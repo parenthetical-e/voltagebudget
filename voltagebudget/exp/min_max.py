@@ -41,7 +41,7 @@ def min_max(name,
             w=2e-3,
             T=0.0625,
             f=8,
-            percent=0.5,
+            percent=1,
             n_samples=10,
             N=10,
             mode='regular',
@@ -183,9 +183,6 @@ def min_max(name,
     A_high = A_hat + (A_hat * percent)
     samples = np.linspace(A_low, A_high, n_samples)
 
-    samples[samples > A_max] = A_max
-    samples[samples < A_0] = A_0
-
     # -
     variances = []
     errors = []
@@ -193,6 +190,7 @@ def min_max(name,
     V_oscs = []
     V_comps = []
     V_frees = []
+    V_free_refs = []
     V_budgets = []
     As = []
     biases = []
@@ -246,7 +244,7 @@ def min_max(name,
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
         # Want group var(ts_i),
-        var, _ = score_by_group(ts_ref, ts_i)
+        var = mad(ts_i)
 
         # but individual error for only n.
         _, ts_ref_n = select_n(n, ns_ref, ts_ref)
@@ -263,11 +261,13 @@ def min_max(name,
         V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
         V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
         V_free = np.abs(np.mean(budget_i['V_free'][n, :]))
+        V_free_ref = np.abs(np.mean(budget_ref['V_free'][n, :]))
         V_b = float(voltage_i['V_budget'])
 
         V_oscs.append(V_osc)
         V_comps.append(V_comp)
         V_frees.append(V_free)
+        V_free_refs.append(V_free_ref)
         V_budgets.append(V_b)
         As.append(A_i)
 
@@ -294,6 +294,7 @@ def min_max(name,
     results["V_osc"] = V_oscs
     results["V_comp"] = V_comps
     results["V_free"] = V_frees
+    results["V_free_ref"] = V_free_refs
     results["V_b"] = V_budgets
 
     results["As"] = As
