@@ -25,6 +25,9 @@ from voltagebudget.util import mae
 from voltagebudget.util import select_n
 from voltagebudget.util import score_by_group
 from voltagebudget.util import score_by_n
+from voltagebudget.util import find_E
+from voltagebudget.util import find_phis
+
 from voltagebudget.exp.autotune import autotune_V_osc
 
 from scipy.optimize import least_squares
@@ -44,6 +47,7 @@ def sweep_A(name,
             N=10,
             mode='regular',
             noise=False,
+            no_lock=False,
             verbose=False,
             save_only=False,
             seed_value=42):
@@ -97,20 +101,10 @@ def sweep_A(name,
     if ns_ref.size == 0:
         raise ValueError("The reference model didn't spike.")
 
-    # Find the ref spike closest to E_0
-    # and set that as E
-    if np.isclose(E_0, 0.0):
-        _, E = locate_firsts(ns_ref, ts_ref, combine=True)
-        if verbose:
-            print(">>> Locking on first spike. E was {}.".format(E))
-    else:
-        E = nearest_spike(ts_ref, E_0)
-        if verbose:
-            print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
-
-    # Find the phase begin a osc cycle at E 
-    phi_E = float(-E * 2 * np.pi * f)
-    phi_w = float((-(E + d) * 2 * np.pi * f) + np.pi / 2)
+    # --------------------------------------------------------------
+    # Find E and phis
+    E = find_E(E_0, ns_ref, ts_ref, no_lock=no_lock, verbose=verbose)
+    phi_w, phi_E = find_phis(E, f, d, verbose=verbose)
 
     # Filter ref spikes into the window of interest
     ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
@@ -180,11 +174,10 @@ def sweep_A(name,
         # Analyze!
 
         # Filter spikes in E    
-        ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
         # Want group var(ts_i)
-        var, _ = score_by_group(ts_ref, ts_i)
+        var = mad(ts_i)
 
         # But avg of individual {n in N} errors
         _, error = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
@@ -196,7 +189,7 @@ def sweep_A(name,
 
         # Extract budget values and save 'em
         budget_i = budget_window(voltage_i, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_i['V_osc']))
+        V_osc = np.abs(np.mean(budget_i['V_osc'] - budget_ref['V_osc']))
         V_comp = np.abs(np.mean(budget_i['V_comp']))
         V_free = np.abs(np.mean(budget_i['V_free']))
         V_b = float(voltage_i['V_budget'])

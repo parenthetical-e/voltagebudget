@@ -207,6 +207,35 @@ def mae(x, y, axis=None):
     return np.mean(np.absolute(x[:min_l] - y[:min_l]), axis)
 
 
+def find_E(E_0, ns_ref, ts_ref, no_lock=False, verbose=False):
+    """Find the ref spike closest to E_0"""
+
+    if no_lock:
+        return E_0
+
+    if np.isclose(E_0, 0.0):
+        _, E = locate_firsts(ns_ref, ts_ref, combine=True)
+        if verbose:
+            print(">>> Locking on first spike. E was {}.".format(E))
+    else:
+        E = nearest_spike(ts_ref, E_0)
+        if verbose:
+            print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
+
+    return E
+
+
+def find_phis(E, f, d, verbose=False):
+    """Find the phase begin a osc cycle at (E + d)"""
+    phi_E = float(-E * 2 * np.pi * f)
+    phi_w = float((-(E + d) * 2 * np.pi * f) + np.pi / 2)
+
+    if verbose:
+        print(">>> phi_w {}, phi_E {}".format(phi_w, phi_E))
+
+    return phi_w, phi_E
+
+
 def score_by_group(ts_ref, ts_n):
     var = mad(ts_n)
     error = mae(ts_n, ts_ref)

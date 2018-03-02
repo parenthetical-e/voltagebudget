@@ -25,6 +25,9 @@ from voltagebudget.util import mae
 from voltagebudget.util import select_n
 from voltagebudget.util import score_by_group
 from voltagebudget.util import score_by_n
+from voltagebudget.util import find_E
+from voltagebudget.util import find_phis
+
 from voltagebudget.exp.autotune import autotune_V_osc
 
 from scipy.optimize import least_squares
@@ -48,6 +51,7 @@ def min_max(name,
             target='min',
             noise=False,
             scale_w_in=1,
+            no_lock=False,
             correct_bias=False,
             save_only=False,
             verbose=False,
@@ -108,23 +112,9 @@ def min_max(name,
         raise ValueError("The reference model didn't spike.")
 
     # --------------------------------------------------------------
-    # Find the ref spike closest to E_0
-    # and set that as E
-    if np.isclose(E_0, 0.0):
-        _, E = locate_firsts(ns_ref, ts_ref, combine=True)
-        if verbose:
-            print(">>> Locking on first spike. E was {}.".format(E))
-    else:
-        E = nearest_spike(ts_ref, E_0)
-        if verbose:
-            print(
-                ">>> ts_ref min {}, max {}".format(ts_ref.min(), ts_ref.max()))
-            print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
-
-    # --------------------------------------------------------------
-    # Find the phase begin a osc cycle at E 
-    phi_E = float(-E * 2 * np.pi * f)
-    phi_w = float((-(E + d) * 2 * np.pi * f) + np.pi / 2)
+    # Find E and phis
+    E = find_E(E_0, ns_ref, ts_ref, no_lock=no_lock, verbose=verbose)
+    phi_w, phi_E = find_phis(E, f, d, verbose=verbose)
 
     # --------------------------------------------------------------
     # Filter ref spikes into the window of interest
@@ -258,7 +248,7 @@ def min_max(name,
 
         # Extract budget values and save 'em
         budget_i = budget_window(voltage_i, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
+        V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]) - budget_ref['V_osc'][n, :]))
         V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
         V_free = np.abs(np.mean(budget_i['V_free'][n, :]))
         V_free_ref = np.abs(np.mean(budget_ref['V_free'][n, :]))
