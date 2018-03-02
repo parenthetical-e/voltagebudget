@@ -1,0 +1,258 @@
+---
+title: "Sweep A - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+exp <- "58"
+freqs <- c("4", "8", "12", "20", "24", "30")
+
+
+results <- NULL
+for(freq in freqs){
+  name <- paste("../data/exp", exp, "_d-0.2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  results <- rbind(results, df)
+}
+
+results$freq <- factor(results$freq, levels=freqs)
+rm(df, exp, freq, freqs, levels, name)
+```
+
+
+# Overall distributions
+
+```{r, fig.width=2.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=variances)) +
+  geom_histogram(bins=20) + 
+  xlab("Variance") +
+  theme_classic() -> p1
+
+results %>% 
+  ggplot(aes(x=errors)) +
+  geom_histogram(bins=20) + 
+  xlab("Error") +
+  theme_classic() -> p2
+
+results %>% 
+  ggplot(aes(x=V_osc/V_b)) +
+  geom_histogram(bins=20) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  ggplot(aes(x=V_comp/V_b)) +
+  geom_histogram(bins=20) +
+  xlab("Vo (volt)") +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+rm(p1, p2, p3, p4)
+```
+
+# As
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=As, y=n_spikes, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=As, y=variances, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+- why is var so variable?
+
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=As, y=errors, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=variances, y=errors, color=freq)) +
+  geom_point(size=.05) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.5, fig.height=3.5}
+results %>% 
+  ggplot(aes(x=variances, y=errors, color=freq)) +
+  geom_point(size=.05) + 
+  facet_grid(freq~.) +
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+# Number spikes
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=n_spikes, y=variances, color=freq)) +
+  geom_point(size=0.1) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=n_spikes, y=errors, color=freq)) +
+  geom_point(size=0.1) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+# Budget 
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=As, y=V_osc, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=2, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=V_osc, y=V_comp, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.25, fig.height=3.5}
+results %>% 
+  ggplot(aes(x=V_osc/V_b, y=V_comp/V_b, color=As)) +
+  geom_line() + 
+  theme_classic() +
+  facet_grid(freq~.) +
+  # scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=V_osc/V_b, y=n_spikes, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=V_osc/V_b, y=variances, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=V_osc/V_b, y=errors, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  xlim(0, 1.5) +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=V_comp/V_b, y=errors, color=freq)) +
+  geom_point(size=0.05) + 
+  theme_classic() +
+  xlim(0, 0.7) +
+  ylim(0, 0.010) +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  filter(V_comp <= V_osc - min(V_osc)) %>% 
+  ggplot(aes(x=V_comp/V_b, y=errors, color=freq)) +
+  geom_point(size=0.05) + 
+  theme_classic() +
+  xlim(0, 0.7) +
+  ylim(0, 0.010) +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=V_comp/V_osc, y=variances, color=freq)) +
+  geom_point(size=0.05) + 
+  theme_classic() +
+  # xlim(0, 0.7) +
+  # ylim(0, 0.010) +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=V_comp/V_osc, y=errors, color=freq)) +
+  geom_point(size=0.05) + 
+  theme_classic() +
+  # xlim(0, 0.7) +
+  # ylim(0, 0.010) +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  ggplot(aes(x=V_comp/V_b, y=variances, color=freq)) +
+  geom_point(size=0.05) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+

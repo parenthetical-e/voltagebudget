@@ -1,0 +1,114 @@
+---
+title: "min/max V_f - delay (d) single experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+exp <- "63"
+freq <- "20"
+delay <- "-4e-3"
+name <- paste("../data/exp", exp, "_d", delay, "_f", freq, ".csv", sep="")
+results <- read_csv(paste(name, sep=""))
+
+rm(exp, delay, name, freq)
+```
+
+
+# Overall distributions
+
+```{r, fig.width=2.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=variances)) +
+  geom_histogram(bins=20) + 
+  xlab("Variance") +
+  theme_classic() -> p1
+
+results %>% 
+  ggplot(aes(x=errors)) +
+  geom_histogram(bins=20) + 
+  xlab("Error") +
+  theme_classic() -> p2
+
+results %>% 
+  ggplot(aes(x=V_osc/V_b)) +
+  geom_histogram(bins=20) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  ggplot(aes(x=V_comp/V_b)) +
+  geom_histogram(bins=20) +
+  xlab("Vo (volt)") +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+rm(p1, p2, p3, p4)
+```
+
+# As
+
+```{r, fig.width=1.2, fig.height=1}
+results %>% 
+  ggplot(aes(x=As*1e9, y=n_spikes)) +
+  geom_line() + 
+  geom_vline(aes(xintercept=mean(As*1e9)), color="grey", size=0.2) +
+  theme_classic() +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.2, fig.height=1}
+results %>% 
+  ggplot(aes(x=As*1e9, y=variances)) +
+  geom_line() + 
+  geom_vline(aes(xintercept=mean(As*1e9)), color="grey", size=0.2) +
+  theme_classic() +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.8}
+results %>% 
+  ggplot(aes(x=As*1e9, y=errors, color=factor(n_spikes))) +
+  geom_point() + 
+  geom_vline(aes(xintercept=mean(As*1e9)), color="grey", size=0.2) +
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.25, fig.height=1.25}
+results %>% 
+  ggplot(aes(x=variances, y=errors)) +
+  geom_line() + 
+  theme_classic() +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.25, fig.height=1.25}
+results %>% 
+  ggplot(aes(x=n_spikes, y=errors)) +
+  geom_point() + 
+  theme_classic() +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.25, fig.height=1.25}
+results %>% 
+  ggplot(aes(x=n_spikes, y=variances)) +
+  geom_point() + 
+  theme_classic() +
+  theme(legend.position="bottom") 
+```
