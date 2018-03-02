@@ -248,7 +248,8 @@ def min_max(name,
 
         # Extract budget values and save 'em
         budget_i = budget_window(voltage_i, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]) - budget_ref['V_osc'][n, :]))
+        V_osc = np.abs(
+            np.mean(budget_i['V_osc'][n, :] - budget_ref['V_osc'][n, :]))
         V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
         V_free = np.abs(np.mean(budget_i['V_free'][n, :]))
         V_free_ref = np.abs(np.mean(budget_ref['V_free'][n, :]))
