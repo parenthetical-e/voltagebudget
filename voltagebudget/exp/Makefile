@@ -696,3 +696,70 @@ exp62:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py min_max $(DATADIR)/exp62_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=100 --percent=0.5 --d={1} --T={2} --f={3} --verbose --save_only' \
 		::: -2e-3 -4e-3 -6e-3 -8e-3 -10e-3 ::: 0.05 ::: 20 
+
+
+# min V_free, percent sweep 100%, with d=4
+exp63:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp63.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py min_max $(DATADIR)/exp63_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=100 --percent=1 --d={1} --T={2} --f={3} --verbose --save_only' \
+		::: -4e-3 ::: 0.05 ::: 20 
+
+# -----------------------------------------------
+# 3-2-2018
+
+# repeat: min V_free, percent sweep 100%, with d=4
+# increaes n_samples
+# is the jitter on err/var due to spike number changes?
+exp64:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp64.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py min_max $(DATADIR)/exp64_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=2000 --percent=1 --d={1} --T={2} --f={3} --verbose --save_only' \
+		::: -4e-3 ::: 0.05 ::: 20 
+
+# sweep, with higher density
+# is the jitter on err/var due to spike number changes?
+exp65:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp65.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp65_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.10e-9 --N=100 --n_samples=2000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		::: -4e-3 ::: 0.05 ::: 20 
+
+# No lock exp:
+# Search delays, with min V_free
+# Es were randomly generated.
+exp66:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp62.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py min_max $(DATADIR)/exp62_d{1}_f{3}_E{4} $(DATADIR)/stim1.csv {4} --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=20 --percent=0.5 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
+		::: -2e-3 -4e-3 -6e-3 ::: 0.05 ::: 20 ::: 0.2368905 0.23911531 0.22072062 0.22945046 0.22405547
+
+# 3-6-2018
+# sweep, low n_samples
+exp67:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp67.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp67_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=100 --n_samples=20 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# very high n_samples
+exp68:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp68.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp68_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=100 --n_samples=4000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+
+# no lock, several E,d combinations
+exp69:
+	parallel -j 6 -v \
+		--joblog '$(DATADIR)/exp69.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py min_max $(DATADIR)/exp69_d{1}_f{3}_E{4} $(DATADIR)/stim1.csv {4} --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=20 --percent=0.5 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
+		::: -2e-3 -4e-3 -6e-3 ::: 0.05 ::: 20 ::: 0.2368905 0.23911531 0.22072062 0.22945046 0.22405547
