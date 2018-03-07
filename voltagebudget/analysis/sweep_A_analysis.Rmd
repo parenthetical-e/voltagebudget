@@ -147,12 +147,22 @@ results %>%
 
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
-  ggplot(aes(x=As, y=V_osc, color=freq)) +
+  ggplot(aes(x=As*1e9, y=V_osc, color=freq)) +
   geom_line() + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
   theme(legend.position="bottom") 
 ```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  ggplot(aes(x=As*1e9, y=V_comp, color=freq)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
 
 ```{r, fig.width=2, fig.height=1.5}
 results %>% 

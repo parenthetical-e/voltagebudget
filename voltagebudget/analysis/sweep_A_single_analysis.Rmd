@@ -17,7 +17,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/sweep_test3.csv"
+name <- "../data/sweep_test6.csv"
 results <- read_csv(paste(name, sep=""))
 
 rm(name)
@@ -57,41 +57,36 @@ rm(p1, p2, p3, p4)
 
 # As
 
-```{r, fig.width=1.5, fig.height=1.5}
+```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  ggplot(aes(x=1e9*As, y=V_osc)) +
-  geom_point() + 
+  ggplot(aes(x=1e9*As, y=1e3*(V_osc - V_osc_ref))) +
+  geom_point(size=0.1) + 
+  ylab("V_osc (mV)") + xlab("A (namp)") +
   theme_classic() 
 ```
 
 
-```{r, fig.width=1.5, fig.height=1.5}
+```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  ggplot(aes(x=1e9*As, y=V_comp)) +
-  geom_point() + 
+  ggplot(aes(x=As*1e9, y=V_comp)) +
+  geom_point(size=0.1) + 
+  ylim(0, 0.005) +
   theme_classic() 
 ```
 
-```{r, fig.width=1.5, fig.height=1.5}
-results %>% 
-  ggplot(aes(x=V_osc, y=V_comp)) +
-  geom_point() + 
-  theme_classic() 
-```
-
-```{r, fig.width=1.5, fig.height=1.5}
+```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   ggplot(aes(x=1e9*As, y=n_spikes)) +
-  geom_point() + 
+  geom_point(size=0.1) + 
   theme_classic() +
   theme(legend.position="bottom") 
 ```
 
 
-```{r, fig.width=1.5, fig.height=1.5}
+```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   ggplot(aes(x=As*1e9, y=variances)) +
-  geom_point() + 
+  geom_point(size=0.1) + 
   theme_classic() +
   theme(legend.position="bottom") 
 ```
@@ -105,6 +100,16 @@ results %>%
   geom_point(size=0.1) + 
   theme_classic() +
   theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.25, fig.height=1.15}
+results %>% 
+  # filter(As > 0.01e-9) %>% 
+  ggplot(aes(x=(V_osc - V_osc_ref)/(V_comp_ref), y=errors)) +
+  geom_point(size=0.1) + 
+  theme_classic() +
+  # xlim(0, 2) +
+  xlab("V_osc/V_comp") 
 ```
 
 

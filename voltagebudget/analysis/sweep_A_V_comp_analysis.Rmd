@@ -1,0 +1,28 @@
+---
+title: "Sweep A - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+name <- "../data/sweep_test6.csv"
+results <- read_csv(paste(name, sep=","))
+
+rm(name)
+
+name0 <- "../data/sweep_test6_A0.0_V_comp.csv"
+voltage0 <- read_csv(name0, sep=",")
+```
+

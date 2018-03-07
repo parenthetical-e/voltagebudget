@@ -17,11 +17,12 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-exp <- "63"
-freq <- "20"
-delay <- "-4e-3"
-name <- paste("../data/exp", exp, "_d", delay, "_f", freq, ".csv", sep="")
-results <- read_csv(paste(name, sep=""))
+# exp <- "63"
+# freq <- "20"
+# delay <- "-4e-3"
+# name <- paste("../data/exp", exp, "_d", delay, "_f", freq, ".csv", sep="")
+name <- "../data/min_max_test2.csv"
+results <- read_csv(paste(name, sep=","))
 
 rm(exp, delay, name, freq)
 ```
@@ -111,4 +112,28 @@ results %>%
   geom_point() + 
   theme_classic() +
   theme(legend.position="bottom") 
+```
+
+
+# Budget analysis
+
+```{r, fig.width=1.25, fig.height=1.25}
+results %>% 
+  ggplot(aes(x=As, y=(V_osc - V_osc_ref))) +
+  geom_point() + 
+  theme_classic() 
+```
+
+```{r, fig.width=1.25, fig.height=1.25}
+results %>% 
+  ggplot(aes(x=(V_osc-V_osc_ref)/V_comp_ref, y=variances)) +
+  geom_point() + 
+  theme_classic() 
+```
+
+```{r, fig.width=1.25, fig.height=1.25}
+results %>% 
+  ggplot(aes(x=(V_osc-V_osc_ref)/V_comp_ref, y=errors)) +
+  geom_point() + 
+  theme_classic() 
 ```
