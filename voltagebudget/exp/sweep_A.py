@@ -18,8 +18,8 @@ from voltagebudget.util import locate_firsts
 from voltagebudget.util import filter_spikes
 from voltagebudget.util import budget_window
 from voltagebudget.util import locate_peaks
-from voltagebudget.util import estimate_communication
-from voltagebudget.util import precision
+from voltagebudget.util import write_spikes
+from voltagebudget.util import write_voltages
 from voltagebudget.util import mad
 from voltagebudget.util import mae
 from voltagebudget.util import select_n
@@ -50,6 +50,7 @@ def sweep_A(name,
             no_lock=False,
             verbose=False,
             save_only=False,
+            save_details=False,
             seed_value=42):
     """Optimize using the shadow voltage budget."""
 
@@ -122,7 +123,9 @@ def sweep_A(name,
     errors = []
     n_spikes = []
     V_oscs = []
+    V_osc_refs = []
     V_comps = []
+    V_comp_refs = []
     V_frees = []
     V_budgets = []
     As = []
@@ -187,15 +190,27 @@ def sweep_A(name,
         errors.append(np.mean(error))
         n_spikes.append(ts_i.size)
 
+        # -------------------------------------------------------------------
         # Extract budget values and save 'em
+        # ith
         budget_i = budget_window(voltage_i, E + d, w, select=None)
-        V_osc = np.abs(np.mean(budget_i['V_osc'] - budget_ref['V_osc']))
+
+        V_b = float(voltage_i['V_budget'])
+        V_osc = np.abs(np.mean(budget_i['V_osc']))
         V_comp = np.abs(np.mean(budget_i['V_comp']))
         V_free = np.abs(np.mean(budget_i['V_free']))
-        V_b = float(voltage_i['V_budget'])
 
+        # ref
+        V_comp_ref = np.abs(np.mean(budget_ref['V_comp']))
+        V_osc_ref = np.abs(np.mean(budget_ref['V_osc']))
+
+        # Save 'em all
         V_oscs.append(V_osc)
+        V_osc_refs.append(V_osc_ref)
+
         V_comps.append(V_comp)
+        V_comp_refs.append(V_comp_ref)
+
         V_frees.append(V_free)
         V_budgets.append(V_b)
         As.append(A_i)
@@ -205,10 +220,23 @@ def sweep_A(name,
         phis.append(phi_E)
         phis_w.append(phi_w)
 
+        # -------------------------------------------------------------------
         if verbose:
             print(
                 ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
                 format(A_i, ns_i.size / float(N), error, var))
+
+        if save_details:
+            print(">>> Writing details for A {} (nA)".format(
+                np.round(A_i * 1e9, 3)))
+
+            write_spikes("{}_A{}_spks".format(name, np.round(A_i * 1e9, 3)),
+                         ns_i, ts_i)
+
+            write_voltages(
+                "{}_A{}".format(name, np.round(A_i * 1e9, 3)),
+                voltage_i,
+                select=["V_comp", "V_osc", "V_m"])
 
     # --------------------------------------------------------------
     if verbose:
@@ -221,7 +249,11 @@ def sweep_A(name,
     results["n_spikes"] = n_spikes
 
     results["V_osc"] = V_oscs
+    results["V_osc_ref"] = V_osc_refs
+
     results["V_comp"] = V_comps
+    results["V_comp_ref"] = V_comp_refs
+
     results["V_free"] = V_frees
     results["V_b"] = V_budgets
 

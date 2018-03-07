@@ -54,6 +54,7 @@ def min_max(name,
             no_lock=False,
             correct_bias=False,
             save_only=False,
+            save_details=False,
             verbose=False,
             seed_value=42):
     """Fit A to the min free voltage, then explore a 
@@ -178,7 +179,9 @@ def min_max(name,
     errors = []
     n_spikes = []
     V_oscs = []
+    V_osc_refs = []
     V_comps = []
+    V_comp_refs = []
     V_frees = []
     V_free_refs = []
     V_budgets = []
@@ -246,19 +249,28 @@ def min_max(name,
         errors.append(np.mean(error))
         n_spikes.append(ts_i_n.size)
 
+        # -------------------------------------------------------------------
         # Extract budget values and save 'em
+        # ith
         budget_i = budget_window(voltage_i, E + d, w, select=None)
-        V_osc = np.abs(
-            np.mean(budget_i['V_osc'][n, :] - budget_ref['V_osc'][n, :]))
+
+        V_b = float(voltage_i['V_budget'])
+        V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
         V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
         V_free = np.abs(np.mean(budget_i['V_free'][n, :]))
-        V_free_ref = np.abs(np.mean(budget_ref['V_free'][n, :]))
-        V_b = float(voltage_i['V_budget'])
 
+        # ref
+        V_comp_ref = np.abs(np.mean(budget_ref['V_comp'][n, :]))
+        V_osc_ref = np.abs(np.mean(budget_ref['V_osc'][n, :]))
+
+        # Save 'em all
         V_oscs.append(V_osc)
+        V_osc_refs.append(V_osc_ref)
+
         V_comps.append(V_comp)
+        V_comp_refs.append(V_comp_ref)
+
         V_frees.append(V_free)
-        V_free_refs.append(V_free_ref)
         V_budgets.append(V_b)
         As.append(A_i)
 
@@ -267,10 +279,23 @@ def min_max(name,
         phis.append(phi_E)
         phis_w.append(phi_w)
 
+        # -------------------------------------------------------------------
         if verbose:
             print(
-                ">>> (A {:0.18f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_i, ts_i_n.size / float(N), error, var))
+                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
+                format(A_i, ns_i.size / float(N), error, var))
+
+        if save_details:
+            print(">>> Writing details for A {} (nA)".format(
+                np.round(A_i * 1e9, 3)))
+
+            write_spikes("{}_A{}_spks".format(name, np.round(A_i * 1e9, 3)),
+                         ns_i, ts_i)
+
+            write_voltages(
+                "{}_A{}".format(name, np.round(A_i * 1e9, 3)),
+                voltage_i,
+                select=["V_comp", "V_osc", "V_m"])
 
     # --------------------------------------------------------------
     if verbose:
@@ -283,9 +308,12 @@ def min_max(name,
     results["n_spikes"] = n_spikes
 
     results["V_osc"] = V_oscs
+    results["V_osc_ref"] = V_osc_refs
+
     results["V_comp"] = V_comps
+    results["V_comp_ref"] = V_comp_refs
+
     results["V_free"] = V_frees
-    results["V_free_ref"] = V_free_refs
     results["V_b"] = V_budgets
 
     results["As"] = As
