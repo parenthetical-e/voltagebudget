@@ -471,6 +471,24 @@ def write_spikes(name, ns, ts):
         writer.writerows([[nrn, spk] for nrn, spk in zip(ns, ts)])
 
 
+def write_voltages(name, voltages, select=None):
+    selected = select_voltages(voltages, select=select)
+
+    for k in selected.keys():
+
+        vs = selected[k]
+        # Create header
+        head = ",".join([str(n) for n in range(vs.shape[1])])
+
+        # write
+        np.savetxt(
+            "{}_{}.csv".format(name, k),
+            vs.transpose(),
+            header=head,
+            comments='',
+            delimiter=',')
+
+
 def read_stim(stim):
     """Read in budget_experiment stimulation, as a dict"""
     return _read_csv_cols_into_dict(stim)
