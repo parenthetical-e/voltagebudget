@@ -763,3 +763,18 @@ exp69:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py min_max $(DATADIR)/exp69_d{1}_f{3}_E{4} $(DATADIR)/stim1.csv {4} --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=20 --percent=0.5 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
 		::: -2e-3 -4e-3 -6e-3 ::: 0.05 ::: 20 ::: 0.2368905 0.23911531 0.22072062 0.22945046 0.22405547
+
+# 3-7-2019
+# 9f79cf8a4ae8deb2bb9981e2355c02e6a1f1dfd5
+# after above commit sweep_A saves all n results.
+# Instead of just the mean. 
+
+# Re-running 68
+# very high n_samples
+exp70:
+	parallel -j 8 -v \
+		--joblog '$(DATADIR)/exp70.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp70_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=260 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
