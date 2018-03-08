@@ -211,7 +211,7 @@ def sweep_A(name,
             var = mad(ts_i_n)
             error = mae(ts_ref_n, ts_i_n)
             n_spike = ts_i_n.size
-            n_spike_ref = ts_i_n.size
+            n_spike_ref = ts_ref_n.size
 
             # Extract budget values
             V_b = float(voltage_i['V_budget'])
