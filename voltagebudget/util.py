@@ -370,6 +370,21 @@ def create_times(tspan, dt):
     return np.linspace(t0, t1, np.int(np.round((t1 - t0) / dt)))
 
 
+def burst(tspan, onset, n_cycles, A, f, phi, dt, min_A=0.0):
+    # Create a sing wave over the full tspan
+    times = create_times(tspan, dt=dt)
+    osc = A / 2 * (1 + np.sin((times * f * 2 * np.pi) + phi))
+
+    # Truncate it to a n_cycle burst
+    burst_l = (1 / float(f)) * n_cycles
+    print(onset, burst_l)
+    m = np.logical_not(
+        np.logical_and(times >= onset, times <= (onset + burst_l)))
+    osc[m] = min_A
+
+    return times, osc
+
+
 def step_waves(I, f, duty, t, dt):
     times = fsutil.create_times(t, dt)
 
