@@ -115,25 +115,39 @@ def sweep_A(name,
     # --------------------------------------------------------------
     # Rank the neurons
     budget_ref = budget_window(voltages_ref, E + d, w, select=None)
+    rank_index = np.argsort(
+        [budget_ref["V_free"][j, :].mean() for j in range(N)])
 
     # --------------------------------------------------------------
     samples = np.linspace(A_0, A_max, n_samples)
 
+    # Init results 
+    neurons = []
+    ranks = []
+
+    variances_pop = []
+    errors_pop = []
+    n_spikes_pop = []
+
     variances = []
     errors = []
     n_spikes = []
+    n_spike_refs = []
+
+    V_budgets = []
     V_oscs = []
     V_osc_refs = []
     V_comps = []
     V_comp_refs = []
     V_frees = []
-    V_budgets = []
+
     As = []
     biases = []
     phis = []
     phis_w = []
+
+    # Run 
     for i, A_i in enumerate(samples):
-        # Run 
         if verbose:
             print(">>> Running A {:0.15f} ({}/{}).".format(A_i, i + 1,
                                                            n_samples))
@@ -179,52 +193,69 @@ def sweep_A(name,
         # Filter spikes in E    
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
-        # Want group var(ts_i)
-        var = mad(ts_i)
+        # Pop var and error
+        var_pop = mad(ts_i)
+        _, error_pop = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
 
-        # But avg of individual {n in N} errors
-        _, error = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
-
-        # Save scores
-        variances.append(var)
-        errors.append(np.mean(error))
-        n_spikes.append(ts_i.size)
-
-        # -------------------------------------------------------------------
-        # Extract budget values and save 'em
-        # ith
+        # Budget, all n
         budget_i = budget_window(voltage_i, E + d, w, select=None)
 
-        V_b = float(voltage_i['V_budget'])
-        V_osc = np.abs(np.mean(budget_i['V_osc']))
-        V_comp = np.abs(np.mean(budget_i['V_comp']))
-        V_free = np.abs(np.mean(budget_i['V_free']))
+        # Calc stats for each nth neuron
+        for n in range(N):
+            # -
+            # Select spikes
+            ns_ref_n, ts_ref_n = select_n(n, ns_ref, ts_ref)
+            ns_i_n, ts_i_n = select_n(n, ns_i, ts_i)
 
-        # ref
-        V_comp_ref = np.abs(np.mean(budget_ref['V_comp']))
-        V_osc_ref = np.abs(np.mean(budget_ref['V_osc']))
+            # Score
+            var = mad(ts_i_n)
+            error = mae(ts_ref_n, ts_i_n)
+            n_spike = ts_i_n.size
+            n_spike_ref = ts_i_n.size
 
-        # Save 'em all
-        V_oscs.append(V_osc)
-        V_osc_refs.append(V_osc_ref)
+            # Extract budget values
+            V_b = float(voltage_i['V_budget'])
 
-        V_comps.append(V_comp)
-        V_comp_refs.append(V_comp_ref)
+            V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
+            V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
+            V_free = np.abs(np.mean(budget_i['V_free'][n, :]))
+            V_comp_ref = np.abs(np.mean(budget_ref['V_comp'][n, :]))
+            V_osc_ref = np.abs(np.mean(budget_ref['V_osc'][n, :]))
 
-        V_frees.append(V_free)
-        V_budgets.append(V_b)
-        As.append(A_i)
+            # -
+            # Save 'em all
+            # Pop
+            variances_pop.append(var_pop)
+            errors_pop.append(np.mean(error_pop))
+            n_spikes_pop.append(ts_i.size)
 
-        # These will repeat for each i, but that's ok.
-        biases.append(bias_in)
-        phis.append(phi_E)
-        phis_w.append(phi_w)
+            # nth
+            neurons.append(n)
+            ranks.append(rank_index[n])
+
+            variances.append(var)
+            errors.append(error)
+            n_spikes.append(n_spike)
+            n_spike_refs.append(n_spike_ref)
+
+            V_budgets.append(V_b)
+            V_oscs.append(V_osc)
+            V_osc_refs.append(V_osc_ref)
+            V_comps.append(V_comp)
+            V_comp_refs.append(V_comp_ref)
+            V_frees.append(V_free)
+
+            # Repeats: tidy data
+            As.append(A_i)
+            biases.append(bias_in)
+            phis.append(phi_E)
+            phis_w.append(phi_w)
 
         # -------------------------------------------------------------------
         if verbose:
             print(
                 ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_i, ns_i.size / float(N), error, var))
+                format(A_i, ns_i.size / float(N), error_pop, var_pop))
 
         if save_details:
             print(">>> Writing details for A {} (nA)".format(
@@ -244,22 +275,31 @@ def sweep_A(name,
 
     # Build a dict of results,
     results = {}
+
+    results["N"] = neurons
+    results["rank"] = ranks
+
+    results["variances_pop"] = variances_pop
+    results["errors_pop"] = errors_pop
+    results["n_spikes_pop"] = n_spikes_pop
+
     results["variances"] = variances
     results["errors"] = errors
     results["n_spikes"] = n_spikes
+    results["n_spikes_ref"] = n_spike_refs
+
+    results["V_b"] = V_budgets
 
     results["V_osc"] = V_oscs
-    results["V_osc_ref"] = V_osc_refs
-
     results["V_comp"] = V_comps
-    results["V_comp_ref"] = V_comp_refs
-
     results["V_free"] = V_frees
-    results["V_b"] = V_budgets
+
+    results["V_osc_ref"] = V_osc_refs
+    results["V_comp_ref"] = V_comp_refs
 
     results["As"] = As
     results["biases"] = biases
-    results["phis"] = phis
+    results["phis_E"] = phis
     results["phis_w"] = phis_w
 
     # then write it out.
