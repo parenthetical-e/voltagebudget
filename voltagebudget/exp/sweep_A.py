@@ -219,6 +219,7 @@ def sweep_A(name,
             V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
             V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
             V_free = np.abs(np.mean(budget_i['V_free'][n, :]))
+
             V_comp_ref = np.abs(np.mean(budget_ref['V_comp'][n, :]))
             V_osc_ref = np.abs(np.mean(budget_ref['V_osc'][n, :]))
 
