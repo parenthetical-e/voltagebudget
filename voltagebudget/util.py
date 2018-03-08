@@ -377,7 +377,6 @@ def burst(tspan, onset, n_cycles, A, f, phi, dt, min_A=0.0):
 
     # Truncate it to a n_cycle burst
     burst_l = (1 / float(f)) * n_cycles
-    print(onset, burst_l)
     m = np.logical_not(
         np.logical_and(times >= onset, times <= (onset + burst_l)))
     osc[m] = min_A
