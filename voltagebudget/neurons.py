@@ -4,6 +4,7 @@ import numpy as np
 from brian2 import *
 from copy import deepcopy
 from voltagebudget.util import step_waves
+from voltagebudget.util import burst
 
 
 def shadow_adex(N, time, ns, ts, **adex_kwargs):
@@ -33,6 +34,8 @@ def adex(N,
          time,
          ns,
          ts,
+         E=0,
+         n_cycles=1,
          w_in=0.8e-9,
          tau_in=5e-3,
          bias_in=0.0e-9,
@@ -129,13 +132,13 @@ def adex(N,
     # -----------------------------------------------------------------
     # Define an adex neuron, and its connections
     eqs = """
-    dv/dt = (g_l * (V_l - v) + g_l * delta_t * exp((v - V_t) / delta_t) + I_in + I_osc + I_noise + I_ext + bias_in - w) / C : volt
+    dv/dt = (g_l * (V_l - v) + g_l * delta_t * exp((v - V_t) / delta_t) + I_in + I_osc(t) + I_noise + I_ext + bias_in - w) / C : volt
     dw/dt = (a * (v - V_l) - w) / tau_w : amp
     dg_in/dt = -g_in / tau_in : siemens
     dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     I_in = g_in * (v - V_l) : amp
     I_noise = g_noise * (v - V_l) : amp
-    I_osc = A/2 * (1 + sin((t * f * 2 * pi) + phi/second)) : amp
+    # I_osc = A/2 * (1 + sin((t * f * 2 * pi) + phi/second)) : amp
     C : farad
     g_l : siemens 
     a : siemens
@@ -156,6 +159,15 @@ def adex(N,
     else:
         eqs += """I_ext = 0 * amp : amp"""
 
+    # Create osc/burst
+    if np.isclose(E, 0.0):
+        E = time
+
+    _, I_osc = burst(
+        (0, time), E, n_cycles, A, float(f), float(phi), float(time_step))
+    I_osc = TimedArray(I_osc, dt=time_step * second)
+
+    # Def the population
     P_n = NeuronGroup(
         N,
         model=eqs,
