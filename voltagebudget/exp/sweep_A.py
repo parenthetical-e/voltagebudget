@@ -162,6 +162,8 @@ def sweep_A(name,
             f=f,
             A=A_i,
             phi=phi_E,
+            E=E,
+            n_cycles=1,
             sigma=sigma,
             budget=False,
             seed_value=seed_value,
@@ -170,6 +172,7 @@ def sweep_A(name,
             **params)
 
         # Voltages at E+d, using phi_w
+        tau_m = 0.02  # Approx.
         _, _, voltage_i = adex(
             N,
             t,
@@ -180,6 +183,8 @@ def sweep_A(name,
             f=f,
             A=A_i,
             phi=phi_w,
+            E=E + d - (2.5 * tau_m),  # Adj for tau_m filter
+            n_cycles=0.5
             sigma=sigma,
             budget=True,
             seed_value=seed_value,
