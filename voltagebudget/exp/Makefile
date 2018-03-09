@@ -785,7 +785,7 @@ exp70:
 # 459ae7c5f60a9b04c987553540fb73c05d989f3c
 # Re-running 70 to see if this change prevents
 # unexplained steps in var/error 
-# (Not hopefull but this is a good change anyway)
+# (Not hopeful but this is a good change anyway)
 exp71:
 	parallel -j 8 -v \
 		--joblog '$(DATADIR)/exp71.log' \
