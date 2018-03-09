@@ -163,7 +163,7 @@ def sweep_A(name,
         # -
         # Run
         # Spikes, using phi_E
-        ns_i, ts_i = adex(
+        ns_i, ts_i, voltage_E = adex(
             N,
             t,
             ns,
@@ -174,9 +174,9 @@ def sweep_A(name,
             A=A_i,
             phi=phi_E,
             E=E,
-            n_cycles=1,
+            n_cycles=2,
             sigma=sigma,
-            budget=False,
+            budget=True,
             seed_value=seed_value,
             time_step=time_step,
             save_args=None,
@@ -184,7 +184,7 @@ def sweep_A(name,
 
         # Voltages at E+d, using phi_w
         tau_m = 0.02  # Approx.
-        _, _, voltage_i = adex(
+        _, _, voltage_w = adex(
             N,
             t,
             ns,
@@ -194,7 +194,7 @@ def sweep_A(name,
             f=f,
             A=A_i,
             phi=phi_w,
-            E=E + d - (2.5 * tau_m),  # Adj for tau_m filter
+            E=E + d - (1.32 * tau_m),  # Adj for tau_m filter; magic #.
             n_cycles=0.5,
             sigma=sigma,
             budget=True,
@@ -213,7 +213,7 @@ def sweep_A(name,
         _, error_pop = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
 
         # Budget, all n
-        budget_i = budget_window(voltage_i, E + d, w, select=None)
+        budget_i = budget_window(voltage_w, E + d, w, select=None)
 
         # -
         # Calc stats for each nth neuron
@@ -230,7 +230,7 @@ def sweep_A(name,
             n_spike_ref = ts_ref_n.size
 
             # Extract budget values
-            V_b = float(voltage_i['V_budget'])
+            V_b = float(voltage_w['V_budget'])
 
             V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
             V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
@@ -282,8 +282,12 @@ def sweep_A(name,
                          ns_i, ts_i)
 
             write_voltages(
-                "{}_A{}".format(name, np.round(A_i * 1e9, 3)),
-                voltage_i,
+                "{}_A{}_w".format(name, np.round(A_i * 1e9, 3)),
+                voltage_w,
+                select=["V_comp", "V_osc", "V_m"])
+            write_voltages(
+                "{}_A{}_E".format(name, np.round(A_i * 1e9, 3)),
+                voltage_E,
                 select=["V_comp", "V_osc", "V_m"])
 
     # --------------------------------------------------------------
