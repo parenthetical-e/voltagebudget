@@ -38,6 +38,7 @@ def sweep_A(name,
             E_0,
             A_0=0.00e-9,
             A_max=0.5e-9,
+            Z=0.0,
             n_samples=10,
             t=0.4,
             d=-5e-3,
@@ -119,8 +120,6 @@ def sweep_A(name,
         [budget_ref["V_free"][j, :].mean() for j in range(N)])
 
     # --------------------------------------------------------------
-    samples = np.linspace(A_0, A_max, n_samples)
-
     # Init results 
     neurons = []
     ranks = []
@@ -146,11 +145,23 @@ def sweep_A(name,
     phis = []
     phis_w = []
 
-    # Run 
+    # --------------------------------------------------------------
+    # Run samples
+    samples = np.linspace(A_0, A_max, n_samples)
+
     for i, A_i in enumerate(samples):
+        # -
+        # Sat homeostasis factor
+        bias_adj = bias_in - (A_i * Z)
+
         if verbose:
             print(">>> Running A {:0.15f} ({}/{}).".format(A_i, i + 1,
                                                            n_samples))
+            print(
+                ">>> (bias_in {}) -> (bias_adj {})".format(bias_in, bias_adj))
+
+        # -
+        # Run
         # Spikes, using phi_E
         ns_i, ts_i = adex(
             N,
@@ -158,7 +169,7 @@ def sweep_A(name,
             ns,
             ts,
             w_in=w_in,
-            bias_in=bias_in,
+            bias_in=bias_adj,
             f=f,
             A=A_i,
             phi=phi_E,
@@ -179,7 +190,7 @@ def sweep_A(name,
             ns,
             ts,
             w_in=w_in,
-            bias_in=bias_in,
+            bias_in=bias_adj,
             f=f,
             A=A_i,
             phi=phi_w,
@@ -192,9 +203,8 @@ def sweep_A(name,
             save_args=None,
             **params)
 
-        # -------------------------------------------------------------------
+        # -
         # Analyze!
-
         # Filter spikes in E    
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
@@ -205,6 +215,7 @@ def sweep_A(name,
         # Budget, all n
         budget_i = budget_window(voltage_i, E + d, w, select=None)
 
+        # -
         # Calc stats for each nth neuron
         for n in range(N):
             # -
@@ -253,11 +264,11 @@ def sweep_A(name,
 
             # Repeats: tidy data
             As.append(A_i)
-            biases.append(bias_in)
+            biases.append(bias_adj)
             phis.append(phi_E)
             phis_w.append(phi_w)
 
-        # -------------------------------------------------------------------
+        # -
         if verbose:
             print(
                 ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
