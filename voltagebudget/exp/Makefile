@@ -793,12 +793,23 @@ exp71:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp71_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=260 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 
-# exp71 wih Z=(A*0.5) homeostatic correction,
-# also samped fewer f bins for speed
+# 3-9-2018
+# fixed bug in w targeting 
+# 771df92477594315746bfac652299c3711c0e00b
 exp72:
 	parallel -j 8 -v \
 		--joblog '$(DATADIR)/exp72.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp72_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z=0.5 --N=260 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp72_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+
+# exp71/2 wih Z=(A*0.5) homeostatic correction,
+# also samped fewer f bins for speed
+exp73:
+	parallel -j 8 -v \
+		--joblog '$(DATADIR)/exp73.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp73_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z=0.5 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt
 
