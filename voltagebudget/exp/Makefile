@@ -778,3 +778,18 @@ exp70:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp70_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=260 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 
+
+
+# Re-running 70 - oscillations
+# now happend as 1-cycle bursts
+# 459ae7c5f60a9b04c987553540fb73c05d989f3c
+# Re-running 70 to see if this change prevents
+# unexplained steps in var/error 
+# (Not hopefull but this is a good change anyway)
+exp71:
+	parallel -j 8 -v \
+		--joblog '$(DATADIR)/exp71.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp71_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=260 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
