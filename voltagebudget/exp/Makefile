@@ -779,7 +779,7 @@ exp70:
 		:::: exp64.txt
 
 
-
+# 3-8-2019
 # Re-running 70 - oscillations
 # now happend as 1-cycle bursts
 # 459ae7c5f60a9b04c987553540fb73c05d989f3c
