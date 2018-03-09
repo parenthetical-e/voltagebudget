@@ -371,15 +371,21 @@ def create_times(tspan, dt):
 
 
 def burst(tspan, onset, n_cycles, A, f, phi, dt, min_A=0.0):
-    # Create a sing wave over the full tspan
+    # Define time
     times = create_times(tspan, dt=dt)
+
+    # Create a sin wave over the full tspan
     osc = A / 2 * (1 + np.sin((times * f * 2 * np.pi) + phi))
 
-    # Truncate it to a n_cycle burst
-    burst_l = (1 / float(f)) * n_cycles
-    m = np.logical_not(
-        np.logical_and(times >= onset, times <= (onset + burst_l)))
-    osc[m] = min_A
+    # Truncate it to a n_cycle burst, starting at onset
+    if np.isclose(f, 0.0):
+        osc[:] = min_A
+    else:
+        burst_l = (1 / float(f)) * n_cycles
+
+        m = np.logical_not(
+            np.logical_and(times >= onset, times <= (onset + burst_l)))
+        osc[m] = min_A
 
     return times, osc
 

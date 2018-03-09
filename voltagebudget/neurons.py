@@ -138,7 +138,6 @@ def adex(N,
     dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
     I_in = g_in * (v - V_l) : amp
     I_noise = g_noise * (v - V_l) : amp
-    # I_osc = A/2 * (1 + sin((t * f * 2 * pi) + phi/second)) : amp
     C : farad
     g_l : siemens 
     a : siemens
@@ -163,8 +162,8 @@ def adex(N,
     if np.isclose(E, 0.0):
         E = time
 
-    _, I_osc = burst(
-        (0, time), E, n_cycles, A, float(f), float(phi), float(time_step))
+    _, I_osc = burst((0, time), E, n_cycles, A,
+                     float(f), float(phi), float(time_step))
     I_osc = TimedArray(I_osc, dt=time_step * second)
 
     # Def the population
