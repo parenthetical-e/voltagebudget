@@ -17,13 +17,13 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-exp <- "58"
-freqs <- c("4", "8", "12", "20", "24", "30")
+exp <- "71"
+freqs <- c("8", "12", "20", "24", "30")
 
 
 results <- NULL
 for(freq in freqs){
-  name <- paste("../data/exp", exp, "_d-0.2e-3_f", freq, ".csv", sep="")
+  name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
   df <- read_csv(paste(name, sep=""))
   df %>%
     filter(n_spikes > 0) -> df
@@ -33,7 +33,7 @@ for(freq in freqs){
 }
 
 results$freq <- factor(results$freq, levels=freqs)
-rm(df, exp, freq, freqs, levels, name)
+rm(df, exp, freq, freqs, name)
 ```
 
 
@@ -68,33 +68,34 @@ grid.arrange(p1, p2, p3, p4, nrow=2)
 rm(p1, p2, p3, p4)
 ```
 
+
 # As
 
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
-  ggplot(aes(x=As, y=n_spikes, color=freq)) +
+  filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=n_spikes_pop, color=freq)) +
   geom_line() + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
   theme(legend.position="bottom") 
 ```
-
 
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
-  ggplot(aes(x=As, y=variances, color=freq)) +
+  filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=variances_pop, color=freq)) +
   geom_line() + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
   theme(legend.position="bottom") 
 ```
-
-- why is var so variable?
 
 
 ```{r, fig.width=1.6, fig.height=1.6}
 results %>% 
-  ggplot(aes(x=As, y=errors, color=freq)) +
+  filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=errors_pop, color=freq)) +
   geom_line() + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
@@ -104,7 +105,8 @@ results %>%
 
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
-  ggplot(aes(x=variances, y=errors, color=freq)) +
+  filter(rank == 0) %>% 
+  ggplot(aes(x=variances_pop, y=errors_pop, color=freq)) +
   geom_point(size=.05) + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
@@ -114,7 +116,7 @@ results %>%
 
 ```{r, fig.width=1.5, fig.height=3.5}
 results %>% 
-  ggplot(aes(x=variances, y=errors, color=freq)) +
+  ggplot(aes(x=variances_pop, y=errors_pop, color=freq)) +
   geom_point(size=.05) + 
   facet_grid(freq~.) +
   theme_classic() +
@@ -126,7 +128,8 @@ results %>%
 
 ```{r, fig.width=1.6, fig.height=1.6}
 results %>% 
-  ggplot(aes(x=n_spikes, y=variances, color=freq)) +
+  filter(rank == 0) %>% 
+  ggplot(aes(x=n_spikes_pop, y=variances_pop, color=freq)) +
   geom_point(size=0.1) + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
@@ -135,7 +138,8 @@ results %>%
 
 ```{r, fig.width=1.6, fig.height=1.6}
 results %>% 
-  ggplot(aes(x=n_spikes, y=errors, color=freq)) +
+  filter(rank == 0) %>% 
+  ggplot(aes(x=n_spikes_pop, y=errors_pop, color=freq)) +
   geom_point(size=0.1) + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
@@ -148,121 +152,10 @@ results %>%
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
   ggplot(aes(x=As*1e9, y=V_osc, color=freq)) +
-  geom_line() + 
+  geom_point() + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
   theme(legend.position="bottom") 
 ```
 
-```{r, fig.width=1.5, fig.height=1.5}
-results %>% 
-  ggplot(aes(x=As*1e9, y=V_comp, color=freq)) +
-  geom_line() + 
-  theme_classic() +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-
-```{r, fig.width=2, fig.height=1.5}
-results %>% 
-  ggplot(aes(x=V_osc, y=V_comp, color=freq)) +
-  geom_line() + 
-  theme_classic() +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.25, fig.height=3.5}
-results %>% 
-  ggplot(aes(x=V_osc/V_b, y=V_comp/V_b, color=As)) +
-  geom_line() + 
-  theme_classic() +
-  facet_grid(freq~.) +
-  # scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  ggplot(aes(x=V_osc/V_b, y=n_spikes, color=freq)) +
-  geom_line() + 
-  theme_classic() +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  ggplot(aes(x=V_osc/V_b, y=variances, color=freq)) +
-  geom_line() + 
-  theme_classic() +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  ggplot(aes(x=V_osc/V_b, y=errors, color=freq)) +
-  geom_line() + 
-  theme_classic() +
-  xlim(0, 1.5) +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  ggplot(aes(x=V_comp/V_b, y=errors, color=freq)) +
-  geom_point(size=0.05) + 
-  theme_classic() +
-  xlim(0, 0.7) +
-  ylim(0, 0.010) +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  filter(V_comp <= V_osc - min(V_osc)) %>% 
-  ggplot(aes(x=V_comp/V_b, y=errors, color=freq)) +
-  geom_point(size=0.05) + 
-  theme_classic() +
-  xlim(0, 0.7) +
-  ylim(0, 0.010) +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  ggplot(aes(x=V_comp/V_osc, y=variances, color=freq)) +
-  geom_point(size=0.05) + 
-  theme_classic() +
-  # xlim(0, 0.7) +
-  # ylim(0, 0.010) +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  ggplot(aes(x=V_comp/V_osc, y=errors, color=freq)) +
-  geom_point(size=0.05) + 
-  theme_classic() +
-  # xlim(0, 0.7) +
-  # ylim(0, 0.010) +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
-```{r, fig.width=1.6, fig.height=1.6}
-results %>% 
-  ggplot(aes(x=V_comp/V_b, y=variances, color=freq)) +
-  geom_point(size=0.05) + 
-  theme_classic() +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
+- TODO: port over Vo/Vc plots....
