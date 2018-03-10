@@ -795,7 +795,7 @@ exp71:
 
 # 3-9-2018
 # fixed bug in w targeting 
-# 771df92477594315746bfac652299c3711c0e00b
+# 5aadf1d487f66960c16a738cffed74ca16a66742
 exp72:
 	parallel -j 8 -v \
 		--joblog '$(DATADIR)/exp72.log' \
@@ -812,4 +812,13 @@ exp73:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp73_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z=0.5 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt
+
+# 3-10-2018
+# Explore a range of Z
+exp74:
+	parallel -j 1 -v \
+		--joblog '$(DATADIR)/exp74.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp74_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp72.txt ::: 0.1 0.25 0.75 1.0
 
