@@ -11,22 +11,32 @@ library(readr)
 normalize <- function(x) {
     return ((x - min(x)) / (max(x) - min(x)))
 }
+data_summary <- function(x) {
+   m <- mean(x)
+   ymin <- m-mad(x)
+   ymax <- m+mad(x)
+   return(c(y=m,ymin=ymin,ymax=ymax))
+}
+mean_summary <- function(x) {
+   m <- mean(x)
+   return(c(y=m))
+}
 ```
 
 # Read and process all data
 
 ```{r, message=FALSE}
-# -
+# --------------------------------------------------------------------
 # Example voltage timecourses
-results0 <- read_csv("vm_comp_timecourse.csv")
+fig0 <- read_csv("vm_comp_timecourse.csv")
 
-# -
+# --------------------------------------------------------------------
 # Sweep A
 exp <- "72"
 freqs <- c(8, 12, 20, 30)
 
 # Load
-results1 <- NULL
+fig1 <- NULL
 for(freq in freqs){
   name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
   df <- read_csv(paste(name, sep=","))
@@ -34,15 +44,25 @@ for(freq in freqs){
     filter(n_spikes > 0) -> df
   
   df$freq <- rep(freq, nrow(df))
-  results1 <- rbind(results1, df)
+  fig1 <- rbind(fig1, df)
 }
 
 # Process
-results1 %>% 
+fig1 %>% 
   # Add delta_spikes
   mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
   # Re-norm V_osc
-  mutate(V_osc = V_osc - V_osc_ref) -> results1
+  mutate(V_osc = V_osc - V_osc_ref) -> fig1
+
+# --------------------------------------------------------------------
+# Summarize over As
+fig1 %>% 
+  group_by(As) %>% 
+  summarise(
+    V_osc = mean(V_osc), 
+    V_comp = mean(V_comp), 
+    errors = mean(errors), 
+    variances = mean(variances)) -> fig2
 
 rm(df, exp, freq, freqs, name)
 ```
@@ -51,7 +71,7 @@ rm(df, exp, freq, freqs, name)
 # Budget intro
 
 ```{r, fig.width=1.5, fig.height=1.3}
-results0 %>% 
+fig0 %>% 
   filter(t > 0.15, t < 0.35) %>%
   ggplot(aes(x=t, ymin=-70e-3, ymax=vm)) +
   geom_ribbon(fill="blue", alpha=0.5) +
@@ -60,7 +80,7 @@ results0 %>%
   labs(x="", y="Vm") +
   theme_classic() -> p1
 
-results0 %>% 
+fig0 %>% 
   filter(t > 0.15, t < 0.35) %>%
   ggplot(aes(x=t, ymin=-70e-3, ymax=osc)) +
   geom_ribbon(fill="red", alpha=0.5) +
@@ -74,7 +94,7 @@ results0 %>%
   labs(x="Times (s)", y="") +
   theme_classic() -> p2
 
-results0 %>% 
+fig0 %>% 
   filter(t > 0.23652 - 8e-3, t < 0.23652 + 2e-3 + 0.03333333 + 8e-3) %>%
   ggplot(aes(x=t, ymin=-70e-3, ymax=osc)) +
   geom_ribbon(fill="red", alpha=0.5) +
@@ -106,51 +126,139 @@ rm(p1, p2, p3, plot_grid)
 
 # Trade-off
 
-```{r, fig.width=1.3, fig.height=1.9}
-results1 %>% 
+```{r, fig.width=1.5, fig.height=2.0}
+fig1 %>% 
   filter(rank == 0) %>% 
   ggplot(aes(x=As*1e9, y=errors_pop*1e3, color=freq)) +
   geom_point(size=0.05, alpha=0.6) + 
   labs(x="A (namp)", y="Error (ms)") +
   theme_classic() +
-  scale_color_gradient2(low="grey", high="orange", midpoint = 1) +
+  scale_color_gradient(low="grey", high="black") +
   theme(legend.position="none") -> p1
 
-results1 %>% 
+fig1 %>% 
   filter(rank == 0) %>% 
   ggplot(aes(x=As*1e9, y=variances_pop*1e3, color=freq)) +
   geom_point(size=0.05, alpha=0.6) + 
   labs(x="A (namp)", y="Variance (ms)") +
   lims(y=c(0, 12)) +
   theme_classic() +
-  scale_color_gradient2(low="grey", high="orange", midpoint = 1) +
+  scale_color_gradient(low="grey", high="black", name="Freq. (Hz)") +
   theme(legend.position="right") -> p2
 
-results1 %>% 
+fig1 %>% 
   filter(rank == 0) %>% 
   ggplot(aes(x=errors_pop*1e3, y=variances_pop*1e3, color=freq)) +
   geom_point(size=0.05, alpha=0.6) + 
   labs(x="Error (ms)", y="Variance (ms)") +
   theme_classic() +
-  scale_color_gradient2(low="grey", high="orange", midpoint = 1) +
+  scale_color_gradient(low="grey", high="black") +
   theme(legend.position="none") +
   labs(x="Error (ms)", y="Variance (ms)") -> p3
   
 plot_grid <- rbind(c(1, 1, NA), c(2, 2, 2), c(3, 3, NA))
 grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
+rm(p1, p2, p3, plot_grid)
 ```
 
 
 # Bound 1 - V_osc/V_comp (f = 20)
 
-```{r, fig.width=1.25, fig.height=1.15}
-results1 %>% 
-  filter(freq == 20) %>% 
-  ggplot(aes(x=As*1e9, y=1e3*V_osc)) +
-  geom_point(size=0.1, alpha=0.01) + 
+```{r, fig.width=2.7, fig.height=2.3}
+fig1 %>% 
+  filter(rank == 0, freq == 20) %>% 
+  ggplot(aes(x=As*1e9, y=V_osc*1e3)) +
+  geom_point(size=0.1, alpha=0.6, color="black") + 
   labs(x="A (namp)", y="V_osc (mvolt)") +
   theme_classic() -> p1
 
-plot_grid <- rbind(c(1))
-grid.arrange(p1, layout_matrix=plot_grid)
+fig1 %>% 
+  filter(freq == 20) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors*1e3)) +
+  geom_point(size=0.01, alpha=0.01, color="grey") + 
+  geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
+  theme_classic() +
+  geom_line(data=fig2, 
+            aes(x=V_osc/V_comp, y=errors*1e3), 
+            color="black", size=0.5) +
+  labs(x="V_osc/V_comp", y="Error (ms)") -> p2
+
+fig1 %>% 
+  filter(freq == 20) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances*1e3)) +
+  geom_point(size=0.01, alpha=0.01, color="grey") + 
+  geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
+  theme_classic() +
+  geom_line(data=fig2, 
+            aes(x=V_osc/V_comp, y=variances*1e3), 
+            color="black", size=0.7, alpha=1) +
+  labs(x="V_osc/V_comp", y="Variance (ms)") -> p3
+
+max_N <- max(fig1$N)
+
+fig1 %>% 
+  filter(freq==20) %>% 
+  filter(V_osc/V_comp <= 3) %>% 
+  filter(N %in% sample(1:max_N, 16, replace = FALSE)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors*1e3)) +
+  geom_point(size=.1, alpha=0.1, color="grey") + 
+  geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
+  facet_wrap(~rank, nrow=2) +
+  theme_classic() + 
+  scale_x_continuous(breaks=c(0, 1, 2)) +
+  scale_y_continuous(breaks=c(0, 10)) +
+  theme(
+    strip.text.x = element_text(size=0),
+    strip.background = element_blank(),
+    # axis.line=element_blank(),
+    # axis.text.x=element_blank(),
+    # axis.text.y=element_blank(),
+    # axis.ticks=element_blank(),
+    # axis.title.x=element_blank(),
+    # axis.title.y=element_blank(),
+    panel.background=element_blank(),
+    # panel.border=element_blank(),
+    # panel.grid.major=element_blank(),
+    # panel.grid.minor=element_blank(),
+    plot.background=element_blank()) +
+  labs(x="V_osc/V_comp", y="Error (ms)") -> p4
+
+# plot_grid <- rbind(
+#   c(1, 1, 2, 2, 2, 4, 4, 4), 
+#   c(3, 3, 2, 2, 2, 4, 4, 4))
+plot_grid <- rbind(
+  c(1, 1, 2, 2, 2), 
+  c(1, 1, 2, 2, 2), 
+  c(3, 3, 2, 2, 2),
+  c(3, 3, 2, 2, 2),
+  c(4, 4, 4, 4, 4),
+  c(4, 4, 4, 4, 4))
+grid.arrange(p1, p2, p3, p4, layout_matrix=plot_grid)
+rm(p1, p2, p3, p4, plot_grid, max_N)
+```
+
+# Bound 2 - n_spikes < (0, 1)
+
+```{r}
+max_N <- max(fig1$N)
+
+fig1 %>% 
+  filter(freq==20) %>% 
+  filter(V_osc/V_comp <= 3) %>% 
+  filter(N %in% sample(1:max_N, 10, replace = FALSE)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors, color=factor(delta_spikes))) +
+  geom_point(size=1, alpha=0.9) + 
+  geom_vline(xintercept = 1, alpha=0.8) +
+  geom_vline(xintercept = 0.5, alpha=0.4) +
+  facet_wrap(~rank) +
+  theme_classic() + 
+  theme(
+    legend.position="bottom", 
+    strip.text.x = element_text(size=0),
+    strip.background = element_blank()) +
+  scale_colour_brewer(palette = "Accent") +
+  xlab("V_osc/V_comp") 
 ```
