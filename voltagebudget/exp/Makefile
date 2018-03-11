@@ -824,7 +824,7 @@ exp74:
 
 
 # 3-11-2018
-# Explore stim3 ('sparse', resting input)
+# Explore stim3 ('sparse', resting input), no spike lock
 exp75:
 	parallel -j 8 -v \
 		--joblog '$(DATADIR)/exp75.log' \
@@ -832,7 +832,7 @@ exp75:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp75_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
 		:::: exp64.txt
 
-# Z = 0.2
+# Repeat 75, w/ Z = 0.2 and fewer freqs
 exp76:
 	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp76.log' \
