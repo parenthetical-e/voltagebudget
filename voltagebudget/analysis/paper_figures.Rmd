@@ -181,7 +181,7 @@ fig1 %>%
   theme_classic() +
   geom_line(data=fig2, 
             aes(x=V_osc/V_comp, y=errors*1e3), 
-            color="black", size=0.5) +
+            color="black", size=0.8) +
   labs(x="V_osc/V_comp", y="Error (ms)") -> p2
 
 fig1 %>% 
