@@ -1,0 +1,123 @@
+---
+title: "Sweep Z - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+data_summary <- function(x) {
+   m <- mean(x)
+   ymin <- m-mad(x)
+   ymax <- m+mad(x)
+   return(c(y=m,ymin=ymin,ymax=ymax))
+}
+mean_summary <- function(x) {
+   m <- mean(x)
+   return(c(y=m))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+# Osc
+freq <- "40"
+
+# Zs scan
+exp <- "74"
+Zs <- c("0.1", "0.2", "0.3")
+
+results <- NULL
+for(Z in Zs){
+  name <- paste("../data/exp", exp, "_d-2e-3_f", freq, "_Z", Z, ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  
+  df$Zs <- rep(as.numeric(Z), nrow(df))
+  results <- rbind(results, df)
+}
+
+# Ref (Z=0)
+exp <- "72"
+name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$Zs <- rep(0, nrow(df))
+results <- rbind(df, results)
+
+# Process
+results %>% 
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  mutate(V_osc = V_osc - V_osc_ref) %>% 
+  mutate(silent = n_spikes_ref == 0) -> results
+
+rm(df, exp, freq, Zs, Z, name)
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=n_spikes_pop, color=factor(Zs))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=errors_pop, color=factor(Zs))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=variances_pop, color=factor(Zs))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=errors_pop, y=variances_pop, color=factor(Zs))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=2.25, fig.height=1}
+results %>% 
+  ggplot(aes(x=delta_spikes, y=errors)) +
+  facet_grid(.~Zs) +
+  lims(y=c(0, 0.03)) +
+  geom_jitter(size=0.1, alpha=0.01) +
+  stat_summary(fun.data=data_summary, color="darkgrey", size=0.6, geom="linerange") +
+  stat_summary(fun.data=mean_summary, color="darkgrey", size=0.4, geom="point") +
+  theme_classic() 
+```
+
+```{r, fig.width=2.25, fig.height=1}
+results %>% 
+  ggplot(aes(x=delta_spikes, y=variances)) +
+  facet_grid(.~Zs) +
+  # lims(y=c(0, 0.03)) +
+  geom_jitter(size=0.1, alpha=0.01) +
+  stat_summary(fun.data=data_summary, color="darkgrey", size=0.6, geom="linerange") +
+  stat_summary(fun.data=mean_summary, color="darkgrey", size=0.4, geom="point") +
+  theme_classic() 
+```
+
