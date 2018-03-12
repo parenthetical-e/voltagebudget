@@ -821,21 +821,3 @@ exp74:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp74_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt ::: 0.1 0.2 0.3 
-
-
-# 3-11-2018
-# Explore stim3 ('sparse', resting input), no spike lock
-exp75:
-	parallel -j 6 -v \
-		--joblog '$(DATADIR)/exp75.log' \
-		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp75_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
-		:::: exp64.txt
-
-# Repeat 75, w/ Z = 0.2 and fewer freqs
-exp76:
-	parallel -j 6 -v \
-		--joblog '$(DATADIR)/exp76.log' \
-		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp76_d{1}_f{3} $(DATADIR)/stim3.csv 0.2 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z=0.2 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
-		:::: exp72.txt
