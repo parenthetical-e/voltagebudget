@@ -850,8 +850,7 @@ exp76:
 		'python budget_experiments.py homeostasis $(DATADIR)/exp76_d{1}_f{3}_A{4} $(DATADIR)/stim1.csv 0 --mode=regular --n_jobs=12 --A={4} --N=250 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt ::: 0.01e-9 0.025e-9 0.05e-9 0.075e-9 0.1e-9
 
-# Re-run of exp72 after major bugfix in low/high freq
-# w est.
+# Re-run of exp72 after major bugfix in low/high freq in V.B. estimation.
 exp77:
 	parallel -j 8 -v \
 		--joblog '$(DATADIR)/exp77.log' \
