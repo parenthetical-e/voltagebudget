@@ -18,7 +18,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/sweep_test13.csv"
+name <- "../data/exp77_d-2e-3_f20.csv"
 
 results <- read_csv(paste(name, sep=""))
 
@@ -26,6 +26,7 @@ rm(name)
 
 # Add delta_spikes
 results %>% 
+  filter(As <= 0.15e-9) %>% 
   mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
   mutate(V_osc = V_osc - V_osc_ref) %>% 
   mutate(silent = n_spikes_ref == 0) -> results
@@ -238,6 +239,28 @@ results %>%
   coord_flip()
 ```
 
+### Deciles
+
+```{r, fig.width=2.25, fig.height=1.15}
+M = min(avg_results$variances)
+
+results %>% 
+  mutate(quantile = ntile(V_osc, 10)) %>%
+  filter(quantile %in% c(1, 10)) %>% 
+  ggplot(aes(x=variances, fill=factor(quantile), group=quantile)) +
+  # geom_histogram(bins=20, alpha=0.8, ) + 
+  geom_density(alpha=0.6, size=0.2, color="black") +
+  geom_vline(xintercept = M, color="black") +
+  # facet_wrap(~quantile) +
+  xlab("Variance (ms)") +
+  scale_fill_manual(
+    values=c("#FFDED3", "#FD0D11"), 
+    name=expression("Quantiles V"[o]), 
+    labels=c("0 - 10%", "90 - 100%")) +
+  theme_classic()
+
+rm(M)
+```
 ## Metrics
 
 ```{r, fig.width=1.25, fig.height=1.15}
@@ -335,6 +358,7 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors)) +
   geom_point(size=0.1, alpha=0.01) + 
   geom_vline(xintercept = 1, alpha=0.8) +
@@ -355,6 +379,7 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=3}
 results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors)) +
   geom_point(size=0.1, alpha=0.01) + 
   facet_grid(delta_spikes ~ .) +
@@ -368,6 +393,7 @@ results %>%
 ```{r, fig.width=4.0, fig.height=4}
 results %>% 
   filter(rank < 10) %>% 
+  filter(V_osc/V_comp <= 3) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors, color=factor(delta_spikes))) +
   geom_point(size=1, alpha=0.9) + 
   geom_vline(xintercept = 1, alpha=0.8) +
@@ -380,6 +406,7 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
   ggplot(aes(x=V_osc/V_comp, y=variances)) +
   geom_point(size=0.1, alpha=0.01) + 
   theme_classic() +
@@ -390,6 +417,7 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
   ggplot(aes(x=V_osc/V_comp_ref, y=variances)) +
   geom_point(size=0.1, alpha=0.01) + 
   theme_classic() +
@@ -401,6 +429,7 @@ results %>%
 
 ```{r, fig.width=4.5, fig.height=4.5}
 results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
   filter(rank > 230) %>% 
   ggplot(aes(x=V_osc/V_comp, y=variances, color=factor(delta_spikes))) +
   geom_point(size=1, alpha=1) + 
@@ -414,6 +443,7 @@ results %>%
 
 ```{r, fig.width=4.5, fig.height=4.5}
 results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
   filter(rank > 230) %>% 
   ggplot(aes(x=V_osc/V_comp_ref, y=variances, color=factor(delta_spikes))) +
   geom_point(size=1, alpha=1) + 
