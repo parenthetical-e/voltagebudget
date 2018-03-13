@@ -865,3 +865,12 @@ exp78:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp78_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt ::: 0.1 0.2 0.3 
+
+# 3-13-2018
+# Explore more slow freq (re-run of 75)
+exp79:
+	parallel -j 9 -v \
+		--joblog '$(DATADIR)/exp79.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp79_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp75.txt
