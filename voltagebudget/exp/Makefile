@@ -822,7 +822,7 @@ exp74:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp74_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt ::: 0.1 0.2 0.3 
 
-# 3-12-2018
+# 3-11-2018
 # Explore more slow freqs
 exp75:
 	parallel -j 9 -v \
@@ -831,11 +831,31 @@ exp75:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp75_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp75.txt
 
+# 3-12-2018
+# MAJOR BUGFIX in low/high freq est of V.B.
+# 
 # Homeostatis exp set 1 - try a range of As and freqs
 # Careful with `parallel`ism here - PSO also parallel
 exp76:
 	parallel -j 1 -v \
 		--joblog '$(DATADIR)/exp76.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py homeostasis $(DATADIR)/exp76_d{1}_f{3}_A{4} $(DATADIR)/stim1.csv 0 --mode=regular --n_jobs=3 --A={4} --N=250 --d={1} --T={2} --f={3} --verbose --save_only' \
-		:::: exp76.txt ::: 0.01e-9 0.025e-9 0.05e-9 0.075e-9 0.1e-9
+		'python budget_experiments.py homeostasis $(DATADIR)/exp76_d{1}_f{3}_A{4} $(DATADIR)/stim1.csv 0 --mode=regular --n_jobs=12 --A={4} --N=250 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp72.txt ::: 0.01e-9 0.025e-9 0.05e-9 0.075e-9 0.1e-9
+
+# Re-run of exp72 after major bugfix in low/high freq
+# w est.
+exp77:
+	parallel -j 8 -v \
+		--joblog '$(DATADIR)/exp77.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp77_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# Explore a range of Z
+exp78:
+	parallel -j 12 -v \
+		--joblog '$(DATADIR)/exp78.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp78_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp72.txt ::: 0.1 0.2 0.3 
