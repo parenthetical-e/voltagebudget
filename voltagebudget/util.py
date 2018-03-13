@@ -399,6 +399,24 @@ def step_waves(I, f, duty, t, dt):
     return wave
 
 
+def find_time_index(times, t):
+     idx = (np.abs(times - t)).argmin()
+     return idx
+
+def find_time(times, t):
+    idx = find_time_index(times, t)
+    return times[idx]
+
+def pulse(I, on, off, t, dt):
+    times = create_times((0, 1), dt)
+    wave = np.zeros_like(times)
+    i = find_time_index(times, on)
+    j = find_time_index(times, off)
+    wave[i:j] = I
+
+    return wave
+
+
 def poisson_impulse(t, t_stim, w, rate, n=10, dt=1e-3, seed=None):
     """Create a pulse of spikes w seconds wide, starting at t_stim."""
 

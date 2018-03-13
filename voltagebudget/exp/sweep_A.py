@@ -178,25 +178,30 @@ def sweep_A(name,
             save_args=None,
             **params)
 
-        # Voltages at E+d, using phi_w
-        tau_m = 0.02  # Approx.
+        # Est budget contribution of osc as a 
+        # instant A_i pulse, at E+d+adjustment, 
+        tau_m = 20e-3
+        E_adj = E + d - (1 * tau_m)
+        pulse_params = (A_i, E_adj, E_adj + (1 * tau_m))
+
         _, _, voltage_w = adex(
             N,
             t,
             ns,
             ts,
+            E=E_adj,
+            n_cycles=0,
             w_in=w_in,
             bias_in=bias_adj,
-            f=f,
-            A=A_i,
-            phi=phi_w,
-            E=E + d - (1.32 * tau_m),  # Adj for tau_m filter; magic #.
-            n_cycles=0.5,
-            sigma=sigma,
+            f=0,
+            A=0,
+            phi=0,
+            sigma=0,
             budget=True,
-            seed_value=seed_value,
-            time_step=time_step,
             save_args=None,
+            time_step=time_step,
+            pulse_params=pulse_params,
+            seed_value=seed_value,
             **params)
 
         # -

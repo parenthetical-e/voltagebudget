@@ -3,8 +3,8 @@ import csv
 import numpy as np
 from brian2 import *
 from copy import deepcopy
-from voltagebudget.util import step_waves
 from voltagebudget.util import burst
+from voltagebudget.util import pulse
 
 
 def shadow_adex(N, time, ns, ts, **adex_kwargs):
@@ -57,7 +57,7 @@ def adex(N,
          budget=True,
          report=None,
          save_args=None,
-         step_params=None,
+         pulse_params=None,
          seed_value=42):
     """A AdEx neuron
     
@@ -70,6 +70,8 @@ def adex(N,
 
     step_params : None or 3-tuple (I, f, duty)
         Inject a set of square wave currect
+    pulse_params: None or (I, on, off)
+        Inject a current I, starting at on, ending on off
     seed : None, int
         The random seed
     """
@@ -150,9 +152,17 @@ def adex(N,
     """
 
     # Step current injection?
-    if step_params is not None:
-        I, f_wave, duty = step_params
-        waves = step_waves(I, f_wave, duty, time, time_step)
+    # if step_params is not None:
+    #     I, f_wave, duty = step_params
+    #     waves = step_waves(I, f_wave, duty, time, time_step)
+    #     I_sq = TimedArray(waves, dt=time_step * second)
+    #     eqs += """I_ext = I_sq(t) * amp : amp"""
+    # else:
+    #     eqs += """I_ext = 0 * amp : amp"""
+
+    if pulse_params is not None:
+        I, t_on, t_off = pulse_params
+        waves = pulse(I, t_on, t_off, time, time_step)
         I_sq = TimedArray(waves, dt=time_step * second)
         eqs += """I_ext = I_sq(t) * amp : amp"""
     else:
