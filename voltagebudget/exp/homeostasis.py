@@ -10,7 +10,7 @@ def homeostasis(name,
                 E_0=0,
                 N=250,
                 d=-2e-3,
-                w=-2e-3,
+                w=2e-3,
                 t=0.4,
                 A=0.05e-9,
                 Z_0=1e-6,
@@ -21,11 +21,12 @@ def homeostasis(name,
                 noise=False,
                 no_lock=False,
                 verbose=False,
+                save_only=False,
                 save_details=False,
                 seed_value=42):
 
     # Find best Z
-    Z_hat = autotune_homeostasis(
+    Z_hat, fopt = autotune_homeostasis(
         stim,
         target,
         E_0=E_0,
@@ -43,7 +44,7 @@ def homeostasis(name,
         seed_value=42)
 
     if verbose:
-        print(">>> Z_hat {}".format(Z_hat))
+        print(">>> Z_hat {}, fopt {}".format(Z_hat, fopt))
 
     # Use sweep_A to analyze Z_hat 
     sweep_A(
