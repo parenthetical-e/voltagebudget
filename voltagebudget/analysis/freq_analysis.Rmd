@@ -17,7 +17,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-exp <- "72"
+exp <- "77"
 freqs <- c(8, 12, 20, 24, 30)
 
 
@@ -64,42 +64,14 @@ avg_results %>%
     legend.text = element_text(size=8)) 
 ```
 
-```{r, fig.width=2.2, fig.height=1.8}
-results %>%
-  ggplot(aes(x=As*1e9, y=V_osc*1e3, color=freq)) +
-  geom_point(size=0.05, alpha=0.2) + 
-  labs(x="As (namp)", y="Vo (mvolt)") +
-  theme_classic() +
-  facet_wrap(~freq) +
-  scale_color_gradient(low="gold", high="darkgreen") +
-  theme(legend.position="right", 
-    legend.key.size = unit(.4, "cm"),
-    legend.title = element_text(size=8),
-    legend.text = element_text(size=8)) 
-```
-
 - WTF? Vo is gettin way to big here...
 
 
 ```{r, fig.width=1.2, fig.height=0.8}
 avg_results %>% 
-  ggplot(aes(x=As*1e9, y=delta_spikes, color=freq, group=freq)) +
+  ggplot(aes(x=V_osc*1e3, y=delta_spikes, color=freq, group=freq)) +
   geom_jitter(alpha=0.2, size=0.1) + 
-  labs(x="As (namp)", y="Avg. spike count") +
-  scale_color_gradient(low="gold", high="darkgreen") +
-  theme_classic() +
-  theme(legend.position="right", 
-    legend.key.size = unit(.4, "cm"),
-    legend.title = element_text(size=8),
-    legend.text = element_text(size=8))
-```
-
-
-```{r, fig.width=1.2, fig.height=0.8}
-avg_results %>% 
-  ggplot(aes(x=As*1e9, y=errors*1e3, color=freq, group=freq)) +
-  geom_jitter(alpha=0.2, size=0.1) + 
-  labs(x="As (namp)", y="Error (ms)") +
+  labs(x="V_osc (mvolt)", y="Spike count") +
   scale_color_gradient(low="gold", high="darkgreen") +
   theme_classic() +
   theme(legend.position="right", 
@@ -110,9 +82,22 @@ avg_results %>%
 
 ```{r, fig.width=1.2, fig.height=0.8}
 avg_results %>% 
-  ggplot(aes(x=As*1e9, y=variances, color=freq, group=freq)) +
+  ggplot(aes(x=V_osc*1e3, y=errors, color=freq, group=freq)) +
   geom_jitter(alpha=0.2, size=0.1) + 
-  labs(x="As (namp)", y="Variance (ms") +
+  labs(x="V_osc (mvolt)", y="Error (ms)") +
+  scale_color_gradient(low="gold", high="darkgreen") +
+  theme_classic() +
+  theme(legend.position="right", 
+    legend.key.size = unit(.4, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8))
+```
+
+```{r, fig.width=1.2, fig.height=0.8}
+avg_results %>% 
+  ggplot(aes(x=V_osc*1e3, y=variances, color=freq, group=freq)) +
+  geom_jitter(alpha=0.2, size=0.1) + 
+  labs(x="V_osc (mvolt)", y="Variance (ms)") +
   scale_color_gradient(low="gold", high="darkgreen") +
   theme_classic() +
   theme(legend.position="right", 
