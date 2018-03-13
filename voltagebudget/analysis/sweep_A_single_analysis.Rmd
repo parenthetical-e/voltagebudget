@@ -18,7 +18,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp72_d-2e-3_f20.csv"
+name <- "../data/sweep_test13.csv"
 
 results <- read_csv(paste(name, sep=""))
 
@@ -242,9 +242,9 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  filter(variances > 0.005) %>% 
+  # filter(variances > 0.005) %>% 
   ggplot(aes(x=variances*1e3, y=errors*1e3)) +
-  geom_point(size=0.01, alpha=0.01) + 
+  geom_point(size=0.01, alpha=0.1) + 
   xlab("variances (ms)") + ylab("error (ms)") +
   theme_classic() 
 ```

@@ -64,6 +64,20 @@ avg_results %>%
     legend.text = element_text(size=8)) 
 ```
 
+```{r, fig.width=2.2, fig.height=1.8}
+results %>%
+  ggplot(aes(x=As*1e9, y=V_osc*1e3, color=freq)) +
+  geom_point(size=0.05, alpha=0.2) + 
+  labs(x="As (namp)", y="Vo (mvolt)") +
+  theme_classic() +
+  facet_wrap(~freq) +
+  scale_color_gradient(low="gold", high="darkgreen") +
+  theme(legend.position="right", 
+    legend.key.size = unit(.4, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8)) 
+```
+
 - WTF? Vo is gettin way to big here...
 
 

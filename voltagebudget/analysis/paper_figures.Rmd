@@ -63,6 +63,7 @@ fig1 %>%
   summarise(
     V_osc = mean(V_osc), 
     V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
     errors = mean(errors), 
     variances = mean(variances)) -> fig2
 
@@ -180,7 +181,7 @@ rm(p1, p2, p3, plot_grid)
 
 ```{r, fig.width=2.7, fig.height=2.2}
 fig1 %>% 
-  filter(V_osc/V_comp <= 3) %>% 
+  filter(V_osc/V_comp_ref <= 3) %>% 
   filter(freq == 20) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors*1e3)) +
   geom_point(size=0.01, alpha=0.01, color="grey") + 
@@ -225,7 +226,7 @@ fig1 %>%
     # axis.line=element_blank(),
     # axis.text.x=element_blank(),
     # axis.text.y=element_blank(),
-    # axis.ticks=element_blank(),
+    # axis.ticks=element_blank(),s
     # axis.title.x=element_blank(),
     # axis.title.y=element_blank(),
     panel.background=element_blank(),
