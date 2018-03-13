@@ -146,7 +146,11 @@ def autotune_homeostasis(stim,
         print(">>> Running the optimization")
 
     # Pso:
-    # Params taken from
+    # Using PSO for this is overkill. scipy.least_squares is misbehaving -
+    # it won't step at all. Much fiddling has had no effect. Overkill
+    # is better than no progress; pso has a similar API, so here we are.
+    #
+    # Hyper-params taken from
     # http://hvass-labs.org/people/magnus/publications/pedersen10good-pso.pdf
     xopt, _ = pso(Z_problem, [bounds[0]], [bounds[1]],
                   swarmsize=25,
