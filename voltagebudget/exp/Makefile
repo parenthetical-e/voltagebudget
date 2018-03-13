@@ -738,6 +738,7 @@ exp66:
 		'python budget_experiments.py min_max $(DATADIR)/exp62_d{1}_f{3}_E{4} $(DATADIR)/stim1.csv {4} --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=20 --percent=0.5 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
 		::: -2e-3 -4e-3 -6e-3 ::: 0.05 ::: 20 ::: 0.2368905 0.23911531 0.22072062 0.22945046 0.22405547
 
+# -----------------------------------------------
 # 3-6-2018
 # sweep, low n_samples
 exp67:
@@ -764,6 +765,7 @@ exp69:
 		'python budget_experiments.py min_max $(DATADIR)/exp69_d{1}_f{3}_E{4} $(DATADIR)/stim1.csv {4} --mode=regular --A_0=0.00e-9 --A_max=0.2e-9 --target=min --N=100 --n_samples=20 --percent=0.5 --d={1} --T={2} --f={3} --verbose --save_only --no_lock' \
 		::: -2e-3 -4e-3 -6e-3 ::: 0.05 ::: 20 ::: 0.2368905 0.23911531 0.22072062 0.22945046 0.22405547
 
+# -----------------------------------------------
 # 3-7-2019
 # 9f79cf8a4ae8deb2bb9981e2355c02e6a1f1dfd5
 # after above commit sweep_A saves all n results.
@@ -778,7 +780,7 @@ exp70:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp70_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=260 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 
-
+# -----------------------------------------------
 # 3-8-2019
 # Re-running 70 - oscillations
 # now happend as 1-cycle bursts
@@ -793,6 +795,7 @@ exp71:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp71_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=260 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 
+# -----------------------------------------------
 # 3-9-2018
 # fixed bug in w targeting 
 # 5aadf1d487f66960c16a738cffed74ca16a66742
@@ -813,6 +816,7 @@ exp73:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp73_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z=0.5 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt
 
+# -----------------------------------------------
 # 3-10-2018
 # Explore a range of Z
 exp74:
@@ -822,6 +826,7 @@ exp74:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp74_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt ::: 0.1 0.2 0.3 
 
+# -----------------------------------------------
 # 3-11-2018
 # Explore more slow freqs
 exp75:
@@ -831,9 +836,11 @@ exp75:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp75_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp75.txt
 
+# -----------------------------------------------
 # 3-12-2018
 # MAJOR BUGFIX in low/high freq est of V.B.
 # 191bc8a6face2e0671b606fd94b71a6abb168d07
+#
 # Homeostatis exp set 1 - try a range of As and freqs
 # Careful with `parallel`ism here - PSO also parallel
 exp76:
