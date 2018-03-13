@@ -152,13 +152,16 @@ def autotune_homeostasis(stim,
     #
     # Hyper-params taken from
     # http://hvass-labs.org/people/magnus/publications/pedersen10good-pso.pdf
-    xopt, _ = pso(Z_problem, [bounds[0]], [bounds[1]],
-                  swarmsize=25,
-                  omega=0.39,
-                  phip=2.5,
-                  phig=1.33,
-                  minfunc=1e-2,
-                  processes=n_jobs)
+    xopt, _ = pso(
+        Z_problem,
+        [bounds[0]],
+        [bounds[1]],
+        swarmsize=25,
+        omega=0.39,
+        phip=2.5,
+        phig=1.33,
+        minfunc=1e-3,  # ...no need to be that precise
+        processes=n_jobs)
     Z_hat = xopt[0]
 
     return Z_hat
