@@ -830,3 +830,12 @@ exp75:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp75_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp75.txt
+
+# Homeostatis exp set 1 - try a range of As and freqs
+exp76:
+	parallel -j 9 -v \
+		--joblog '$(DATADIR)/exp76.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py homeostasis $(DATADIR)/exp76_d{1}_f{3}_A{4} $(DATADIR)/stim1.csv 0 --mode=regular --A={4} --N=250 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp76.txt ::: 0.01e-9 0.025e-9 0.05e-9 0.075e-9 0.1e-9
+		
