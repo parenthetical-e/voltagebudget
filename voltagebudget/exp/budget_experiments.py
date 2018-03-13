@@ -32,6 +32,7 @@ from voltagebudget.exp import reverse
 from voltagebudget.exp import create_stim
 from voltagebudget.exp import autotune_membrane
 from voltagebudget.exp import autotune_w
+from voltagebudget.exp import homeostasis
 
 from platypus.algorithms import NSGAII
 from platypus.core import Problem
@@ -47,6 +48,7 @@ if __name__ == "__main__":
         'min_max': min_max,
         'single': single,
         'sweep_A': sweep_A,
+        'homeostasis': homeostasis,
         'perturb': perturb,
         'reverse': reverse,
         'pareto': pareto,

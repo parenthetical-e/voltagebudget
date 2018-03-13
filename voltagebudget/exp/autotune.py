@@ -6,6 +6,7 @@ import numpy as np
 import voltagebudget
 
 from scipy.optimize import least_squares
+from pyswarm import pso
 
 from voltagebudget.neurons import adex
 from voltagebudget.neurons import shadow_adex
@@ -16,13 +17,147 @@ from voltagebudget.util import read_stim
 from voltagebudget.util import read_args
 from voltagebudget.util import read_modes
 
+from voltagebudget.util import select_n
 from voltagebudget.util import filter_voltages
+from voltagebudget.util import filter_spikes
 from voltagebudget.util import budget_window
 from voltagebudget.util import locate_firsts
 from voltagebudget.util import locate_peaks
-from voltagebudget.util import estimate_communication
-from voltagebudget.util import precision
-from voltagebudget.util import mad
+from voltagebudget.util import find_E
+from voltagebudget.util import find_phis
+
+
+def autotune_homeostasis(stim,
+                         target,
+                         E_0=0,
+                         N=250,
+                         t=0.4,
+                         A=0.05e-9,
+                         Z_0=1e-6,
+                         Z_max=1,
+                         f=8,
+                         n_jobs=1,
+                         mode='regular',
+                         noise=False,
+                         no_lock=False,
+                         verbose=False,
+                         seed_value=42):
+    """Find the optimal Z value for a given (A, f)."""
+
+    np.random.seed(seed_value)
+
+    # --------------------------------------------------------------
+    # Temporal params
+    time_step = 1e-5
+
+    # ---------------------------------------------------------------
+    if verbose:
+        print(">>> Setting mode.")
+
+    params, w_in, bias_in, sigma = read_modes(mode)
+    if not noise:
+        sigma = 0
+
+    # ---------------------------------------------------------------
+    if verbose:
+        print(">>> Importing stimulus from {}.".format(stim))
+
+    stim_data = read_stim(stim)
+    ns = np.asarray(stim_data['ns'])
+    ts = np.asarray(stim_data['ts'])
+
+    # ---------------------------------------------------------------
+    if verbose:
+        print(">>> Creating reference spikes.")
+
+    ns_ref, ts_ref = adex(
+        N,
+        t,
+        ns,
+        ts,
+        w_in=w_in,
+        bias_in=bias_in,
+        f=0.0,
+        A=0,
+        phi=0,
+        sigma=sigma,
+        budget=False,
+        save_args=None,
+        time_step=time_step,
+        seed_value=seed_value,
+        **params)
+
+    if ns_ref.size == 0:
+        raise ValueError("The reference model didn't spike.")
+
+    # --------------------------------------------------------------
+    # Find T, E and phis
+    T = 1 / float(f)  # Analysis window
+    E = find_E(E_0, ns_ref, ts_ref, no_lock=no_lock, verbose=verbose)
+    _, phi_E = find_phis(E, f, 0, verbose=verbose)
+
+    # Filter ref spikes into the window of interest
+    ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
+    if verbose:
+        print(">>> {} spikes in the analysis window.".format(ns_ref.size))
+
+    # ---------------------------------------------------------------
+    def Z_problem(p):
+        Z = p[0]
+        bias = bias_in - (Z * A)
+
+        ns_y, ts_y = adex(
+            N,
+            t,
+            ns,
+            ts,
+            E=E,
+            n_cycles=2,
+            w_in=w_in,
+            bias_in=bias,
+            f=f,
+            A=A,
+            phi=phi_E,
+            sigma=sigma,
+            budget=False,
+            save_args=None,
+            time_step=time_step,
+            seed_value=seed_value,
+            **params)
+        ns_y, ts_y = filter_spikes(ns_y, ts_y, (E, E + T))
+
+        delta = float(abs(ts_ref.size - ts_y.size)) / N
+        loss = abs(target - delta)
+
+        if verbose:
+            print("(Z {:0.18f}, bias_adj/bias {:0.18f}) -> (loss {:0.6f})".
+                  format(Z, bias / bias_in, loss))
+
+        # return np.sqrt(np.sum(loss**2))
+        return loss
+
+    # Opt init
+    p0 = [0.1]
+    bounds = (Z_0, Z_max)
+
+    if verbose:
+        print(">>> p0 {}".format(p0))
+        print(">>> bounds {}".format(bounds))
+        print(">>> Running the optimization")
+
+    # Pso:
+    # Params taken from
+    # http://hvass-labs.org/people/magnus/publications/pedersen10good-pso.pdf
+    xopt, _ = pso(Z_problem, [bounds[0]], [bounds[1]],
+                  swarmsize=25,
+                  omega=0.39,
+                  phip=2.5,
+                  phig=1.33,
+                  minfunc=1e-2,
+                  processes=n_jobs)
+    Z_hat = xopt[0]
+
+    return Z_hat
 
 
 def autotune_V_osc(N,
