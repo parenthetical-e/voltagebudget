@@ -833,7 +833,7 @@ exp75:
 
 # 3-12-2018
 # MAJOR BUGFIX in low/high freq est of V.B.
-# 
+# 191bc8a6face2e0671b606fd94b71a6abb168d07
 # Homeostatis exp set 1 - try a range of As and freqs
 # Careful with `parallel`ism here - PSO also parallel
 exp76:
