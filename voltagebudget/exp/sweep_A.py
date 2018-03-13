@@ -28,10 +28,6 @@ from voltagebudget.util import score_by_n
 from voltagebudget.util import find_E
 from voltagebudget.util import find_phis
 
-from voltagebudget.exp.autotune import autotune_V_osc
-
-from scipy.optimize import least_squares
-
 
 def sweep_A(name,
             stim,
