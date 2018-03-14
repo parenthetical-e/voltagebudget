@@ -7,7 +7,7 @@ from voltagebudget.exp import sweep_A
 def homeostasis(name,
                 stim,
                 target,
-                E_0=0,
+                E_0,
                 N=250,
                 d=-2e-3,
                 w=2e-3,
