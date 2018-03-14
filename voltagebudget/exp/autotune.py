@@ -36,6 +36,7 @@ def autotune_homeostasis(stim,
                          Z_0=1e-6,
                          Z_max=1,
                          f=8,
+                         T=0.125,
                          n_jobs=1,
                          mode='regular',
                          noise=False,
@@ -92,7 +93,6 @@ def autotune_homeostasis(stim,
 
     # --------------------------------------------------------------
     # Find T, E and phis
-    T = 1 / float(f)  # Analysis window
     E = find_E(E_0, ns_ref, ts_ref, no_lock=no_lock, verbose=verbose)
     _, phi_E = find_phis(E, f, 0, verbose=verbose)
 
