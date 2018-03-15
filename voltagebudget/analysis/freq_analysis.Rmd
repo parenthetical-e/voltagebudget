@@ -17,11 +17,12 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-exp <- "77"
-freqs <- c(8, 12, 20, 24, 30)
-
-
 results <- NULL
+
+# --------------------------
+exp <- "77"
+freqs <- c(24, 30)
+
 for(freq in freqs){
   name <- paste("../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
   df <- read_csv(paste(name, sep=","))
@@ -32,6 +33,21 @@ for(freq in freqs){
   results <- rbind(results, df)
 }
 
+# --------------------------
+exp <- "79"
+freqs <- c(6, 8, 10, 12, 14, 16, 18, 20)
+
+for(freq in freqs){
+  name <- paste("../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  results <- rbind(results, df)
+}
+
+# --------------------------
 # Process
 results %>% 
   # Add delta_spikes
@@ -93,7 +109,7 @@ avg_results %>%
     legend.text = element_text(size=8))
 ```
 
-```{r, fig.width=1.2, fig.height=0.8}
+```{r, fig.width=1.3, fig.height=0.8}
 avg_results %>% 
   ggplot(aes(x=V_osc*1e3, y=variances, color=freq, group=freq)) +
   geom_jitter(alpha=0.2, size=0.1) + 

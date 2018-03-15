@@ -33,14 +33,28 @@ mean_summary <- function(x) {
 fig0 <- read_csv("vm_comp_timecourse.csv")
 
 # --------------------------------------------------------------------
-# Sweep A
-exp <- "77"
-freqs <- c(8, 12, 20, 30)
-
-# Load
 fig1 <- NULL
+
+# --------------------------
+exp <- "77"
+freqs <- c(24, 30)
+
 for(freq in freqs){
-  name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  name <- paste("../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig1 <- rbind(fig1, df)
+}
+
+# --------------------------
+exp <- "79"
+freqs <- c(6, 8, 10, 12, 14, 16, 18, 20)
+
+for(freq in freqs){
+  name <- paste("../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
   df <- read_csv(paste(name, sep=","))
   df %>%
     filter(n_spikes > 0) -> df
@@ -394,13 +408,14 @@ rm(p1, p2, p3, p4, plot_grid, max_N, M)
 
 # Freq effects - var reduction versus additional 'sampling'?
 
-```{r, fig.width=2, fig.height=1.7}
+```{r, fig.width=1.8, fig.height=1.5}
 fig2 %>% 
-  ggplot(aes(x=V_osc*1e3, y=delta_spikes, color=freq, group=freq)) +
+  filter(V_osc/V_comp <= 3) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=delta_spikes, color=freq, group=freq)) +
   geom_jitter(alpha=0.2, size=0.1) + 
-  labs(x=expression(V[o] (mvolt)), y="Spike count") +
+  labs(x=expression(V[o]/V[c]), y="Spike count") +
   scale_color_gradient(low="gold", high="darkgreen") +
-  scale_x_continuous(breaks=c(0, 4.0, 8.0, 12.0)) +
+  # scale_x_continuous(breaks=c(0, 4.0, 8.0, 12.0)) +
   theme_classic() +
   theme(legend.position="right", 
     legend.key.size = unit(.3, "cm"),
@@ -408,28 +423,30 @@ fig2 %>%
     legend.text = element_text(size=8)) -> p1
 
 fig2 %>% 
-  ggplot(aes(x=V_osc*1e3, y=errors*1e3, color=freq, group=freq)) +
+  filter(V_osc/V_comp <= 3) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors*1e3, color=freq, group=freq)) +
   geom_jitter(alpha=0.2, size=0.1) + 
-  labs(x=expression(V[o] (mvolt)), y="Error (ms)") +
+  labs(x=expression(V[o]/V[c]), y="Error (ms)") +
   scale_color_gradient(low="gold", high="darkgreen") +
   theme_classic() +
-  scale_x_continuous(breaks=c(0, 4.0, 8.0, 12.0)) +
+  # scale_x_continuous(breaks=c(0, 4.0, 8.0, 12.0)) +
   theme(legend.position="none", 
     legend.key.size = unit(.5, "cm"),
     legend.title = element_text(size=8),
-    legend.text = element_text(size=8)) -> p2
+    legend.text = element_text(size=8)) -> p3
 
 fig2 %>% 
-  ggplot(aes(x=V_osc*1e3, y=variances*1e3, color=freq, group=freq)) +
+  filter(V_osc/V_comp <= 3) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances*1e3, color=freq, group=freq)) +
   geom_jitter(alpha=0.2, size=0.1) + 
-  labs(x=expression(V[o] (mvolt)), y="Variance (ms)") +
+  labs(x=expression(V[o]/V[c]), y="Variance (ms)") +
   scale_color_gradient(low="gold", high="darkgreen") +
-  scale_x_continuous(breaks=c(0, 4.0, 8.0, 12.0)) +
+  # scale_x_continuous(breaks=c(0, 4.0, 8.0, 12.0)) +
   theme_classic() +
   theme(legend.position="none", 
     legend.key.size = unit(.4, "cm"),
     legend.title = element_text(size=8),
-    legend.text = element_text(size=8)) -> p3
+    legend.text = element_text(size=8)) -> p2
 
 plot_grid <- rbind(
   c(1, 1, 1, 1, NA, NA),
@@ -442,10 +459,4 @@ plot_grid <- rbind(
 grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
 rm(p1, p2, p3, plot_grid)
 ```
-
-  
-
-# Homeostatis - bigger budgets for more granular control.
-
-
 
