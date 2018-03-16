@@ -130,8 +130,9 @@ def autotune_homeostasis(stim,
         loss = abs(target - delta)
 
         if verbose:
-            print("(Z {:0.18f}, bias_adj/bias {:0.18f}) -> (loss {:0.6f})".
-                  format(Z, bias / bias_in, loss))
+            print(
+                "(Z {:0.4f}, bias_adj/bias {:0.4f}) -> (ref size {}, y size {}, loss {:0.6f})".
+                format(Z, bias / bias_in, ts_ref.size, ts_y.size, loss))
 
         # return np.sqrt(np.sum(loss**2))
         return loss
