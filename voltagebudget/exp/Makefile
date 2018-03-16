@@ -882,3 +882,12 @@ exp80:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp80_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp80.txt
+
+# 3-16-2018
+# fixed bug in 76/homeostatis. re-running.
+exp81:
+	parallel -j 1 -v \
+		--joblog '$(DATADIR)/exp81.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py homeostasis $(DATADIR)/exp81_d{1}_f{3}_A{4} $(DATADIR)/stim1.csv 0 --mode=regular --n_jobs=5 --A={4} --N=250 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp72.txt ::: 0.01e-9 0.025e-9 0.05e-9 0.075e-9 0.1e-9
