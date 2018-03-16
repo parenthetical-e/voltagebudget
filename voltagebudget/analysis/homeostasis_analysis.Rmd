@@ -1,0 +1,109 @@
+---
+title: "Homeostatis - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+data_summary <- function(x) {
+   m <- mean(x)
+   ymin <- m-mad(x)
+   ymax <- m+mad(x)
+   return(c(y=m,ymin=ymin,ymax=ymax))
+}
+mean_summary <- function(x) {
+   m <- mean(x)
+   return(c(y=m))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+exp <- "76"
+As <- c("0.01e-9", "0.025e-9", "0.05e-9", "0.075e-9", "0.1e-9")
+freqs <- c("8", "12", "20", "40")
+
+results <- NULL
+for(A in As){
+  for(f in freqs) {
+    # exp76_d-2e-3_f8_A0.1e-9
+    name <- paste("../data/exp", exp, "_d-2e-3_f", f, "_A", A, ".csv", sep="")
+    df <- read_csv(paste(name, sep=","))
+    
+    df$As <- rep(as.numeric(A), nrow(df))
+    df$freq <- rep(as.numeric(f), nrow(df))
+    results <- rbind(results, df)
+  }
+}
+
+results %>% 
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  mutate(V_osc = V_osc - V_osc_ref) %>% 
+  mutate(silent = n_spikes_ref == 0) -> results
+
+rm(df, exp, freqs, f, As, A, name)
+```
+
+```{r, fig.width=1.9, fig.height=2.3}
+results %>% 
+  ggplot(aes(x=variances*1e3)) +
+  geom_histogram(bins=100) + 
+  xlab("Variance (ms)") +
+  theme_classic() -> p1
+
+results %>% 
+  ggplot(aes(x=errors*1e3)) +
+  geom_histogram(bins=20) + 
+  xlab("Error (ms)") +
+  theme_classic() -> p2
+
+results %>% 
+  ggplot(aes(x=V_osc*1e3)) +
+  geom_histogram(bins=20) +
+  xlab("V_osc (mvolt)") +
+  theme_classic() -> p3
+
+results %>% 
+  ggplot(aes(x=V_comp*1e3)) +
+  geom_histogram(bins=20) +
+  xlab("V_comp (mvolt)") +
+  theme_classic() -> p4
+
+results %>% 
+  ggplot(aes(x=V_osc/V_b)) +
+  geom_histogram(bins=20) +
+  xlab("V_osc/Vb (AU)") +
+  xlim(0, 1) +
+  theme_classic() -> p5
+
+results %>% 
+  ggplot(aes(x=V_comp/V_b)) +
+  geom_histogram(bins=20) +
+  xlab("V_comp/Vb (AU)") +
+  xlim(0, 1) +
+  theme_classic() -> p6
+
+results %>% 
+  ggplot(aes(x=V_osc/V_comp)) +
+  geom_histogram(bins=20) +
+  xlab("V_osc/V_comp (AU)") +
+  theme_classic() -> p7
+
+results %>% 
+  ggplot(aes(x=delta_spikes)) +
+  geom_histogram(bins=20) +
+  xlab("Spike count (AU)") +
+  theme_classic() -> p8
+
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, nrow=4)
+rm(p1, p2, p3, p4, p5, p6, p7, p8)
+```
