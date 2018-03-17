@@ -151,7 +151,7 @@ def adex(N,
     tau_in : second
     """
 
-    # A step of current injection?
+    # A step of current injection?code clean
     if pulse_params is not None:
         I, t_on, t_off = pulse_params
         waves = pulse(I, t_on, t_off, time, time_step)
