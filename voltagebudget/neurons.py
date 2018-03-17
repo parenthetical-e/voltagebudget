@@ -151,15 +151,7 @@ def adex(N,
     tau_in : second
     """
 
-    # Step current injection?
-    # if step_params is not None:
-    #     I, f_wave, duty = step_params
-    #     waves = step_waves(I, f_wave, duty, time, time_step)
-    #     I_sq = TimedArray(waves, dt=time_step * second)
-    #     eqs += """I_ext = I_sq(t) * amp : amp"""
-    # else:
-    #     eqs += """I_ext = 0 * amp : amp"""
-
+    # A step of current injection?
     if pulse_params is not None:
         I, t_on, t_off = pulse_params
         waves = pulse(I, t_on, t_off, time, time_step)
