@@ -54,7 +54,7 @@ def optimal(name,
             verbose=False,
             save_spikes=False,
             save_only=False):
-    """Run a PLC experiment"""
+    """Run an 'optimal' PLC experiment"""
 
     # --------------------------------------------------------------
     if verbose:
