@@ -14,7 +14,7 @@ from voltagebudget.util import mae
 
 
 # -
-def _run(ts, changes, fn, save_ts=False):
+def _run(ts, changes, fn, save_ts=False, verbose=False):
     # init
     initial_variances = []
     target_variances = []
@@ -26,7 +26,10 @@ def _run(ts, changes, fn, save_ts=False):
 
     # run of changes
     for c in changes:
-        initial, target, obs, ts_opt = fn(ts, c)
+        if verbose:
+            print(">>> Running c {}".format(c))
+
+        initial, target, obs, ns_opt, ts_opt = fn(ts, c)
         err = mae(ts, ts_opt)
 
         obs_variances.append(obs)
@@ -82,21 +85,21 @@ def optimal(name,
     # Run plc!
     if verbose:
         print(">>> Running {}.".format(alg))
+
     changes = np.linspace(p_0, p_max, n_samples)
 
     if save_spikes:
         (obs_variances, initial_variances, target_variances, errors,
          ts_cs) = _run(
-             ts, changes, fn, save_ts=save_spikes)
+             ts, changes, fn, save_ts=save_spikes, verbose=verbose)
     else:
         (obs_variances, initial_variances, target_variances, errors) = _run(
-            ts, changes, fn)
+            ts, changes, fn, verbose=verbose)
 
     # --------------------------------------------------------------
     if verbose:
         print(">>> Saving results.")
 
-    # -
     results = {
         'percent_change': changes,
         'obs_variances': obs_variances,
@@ -117,9 +120,9 @@ def optimal(name,
         if verbose:
             print("Saving spikes.")
 
-        for c, ts_c in zip(changes, ts_cs):
+        for c, ns_c, ts_c in zip(changes, ns_cs, ts_cs):
             ts_name = "{}_c{}".format(name, c)
-            write_spikes(ts_name, ns, ts_c)
+            write_spikes(ts_name, ns_c, ts_c)
 
     # -
     # If running in a CL, returns are line noise?
