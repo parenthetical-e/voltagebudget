@@ -95,7 +95,12 @@ def coincidence(ts, percent_change):
     return initial, target, adjusted, np.asarray(ts_opt)
 
 
-def max_deviant(ts, percent_change, side='both', mode_fm=np.mean, dt=0.1e-3):
+def max_deviant(ts,
+                percent_change,
+                side='both',
+                mode_fm=np.mean,
+                dt=0.01e-3,
+                max_iterations=50000):
     if dt < 0:
         raise ValueError("dt must be positive.")
     if not (0 <= percent_change <= 1):
@@ -125,6 +130,7 @@ def max_deviant(ts, percent_change, side='both', mode_fm=np.mean, dt=0.1e-3):
     deltas = _delta(ts_opt)
 
     # -
+    iter_count = 0
     while adjusted > target:
         # TODO if you want to later def 'right' side you'll need to
         # def custom masled argmax
@@ -143,5 +149,13 @@ def max_deviant(ts, percent_change, side='both', mode_fm=np.mean, dt=0.1e-3):
 
         # Update rolling MAD
         adjusted = mad(ts_opt)
+
+        # Let's not seak inifinity
+        iter_count += 1
+        if iter_count > max_iterations:
+            print(">>> max_deviant stopped at {} iterations (c {})".format(
+                max_iterations, percent_change))
+
+            break
 
     return initial, target, adjusted, np.asarray(ts_opt)
