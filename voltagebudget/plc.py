@@ -95,7 +95,7 @@ def coincidence(ts, percent_change):
     return initial, target, adjusted, np.asarray(ts_opt)
 
 
-def max_deviant(ts, percent_change, dt=0.1e-3):
+def max_deviant(ts, percent_change, side='both', mode_fm=np.mean, dt=0.1e-3):
     if dt < 0:
         raise ValueError("dt must be positive.")
     if not (0 <= percent_change <= 1):
@@ -104,24 +104,33 @@ def max_deviant(ts, percent_change, dt=0.1e-3):
         return ts
 
     ts = np.asarray(ts)
+    np.sort(ts)
 
     # -
     initial, target = _create_target(ts, percent_change)
 
-    # We'll always want the biggest....
-    deltas = _delta(ts)
-
     # Init
-    ts_opt = ts.copy()
     adjusted = initial
+    M = mode_fm(ts)
+
+    # Which side of ts too look at?
+    ts_opt = ts.copy()
+    if side == 'both':
+        mask = np.ones_like(ts_opt, dtype=np.bool)
+    elif side == 'left':
+        mask = ts <= M
+    else:
+        raise ValueError("side must be, ('both', 'left'")
+
+    deltas = _delta(ts_opt)
 
     # -
     while adjusted > target:
-        # Find most extreme delta 
-        k = np.argmax(deltas)
+        # TODO if you want to later def 'right' side you'll need to
+        # def custom masled argmax
+        k = np.argmax(deltas[mask])
 
         # and shift that spike toward the mean
-        M = np.mean(ts_opt)
         if ts_opt[k] < M:
             ts_opt[k] += dt
         elif ts_opt[k] > M:
