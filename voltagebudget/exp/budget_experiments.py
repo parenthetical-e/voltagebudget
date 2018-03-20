@@ -23,6 +23,7 @@ from voltagebudget.util import precision
 from voltagebudget.exp import forward
 from voltagebudget.exp import sweep_A
 from voltagebudget.exp import min_max
+from voltagebudget.exp import optimal
 from voltagebudget.exp import population
 from voltagebudget.exp import single
 from voltagebudget.exp import perturb
@@ -43,6 +44,7 @@ from scipy.optimize import least_squares
 if __name__ == "__main__":
     fire.Fire({
         'create_stim': create_stim,
+        'optimal': optimal,
         'forward': forward,
         'population': population,
         'min_max': min_max,

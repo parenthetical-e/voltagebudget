@@ -5,6 +5,7 @@ from voltagebudget.exp.pareto import pareto
 from voltagebudget.exp.forward import forward
 from voltagebudget.exp.population import population
 from voltagebudget.exp.single import single
+from voltagebudget.exp.optimal import optimal
 
 from voltagebudget.exp.autotune import autotune_w
 from voltagebudget.exp.autotune import autotune_membrane

@@ -1,6 +1,6 @@
 SHELL=/bin/bash -O expand_aliases
-DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
-# DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
+# DATADIR=/home/ejp/src/voltagebudget/voltagebudget/data
+DATADIR=/Users/type/Code/voltagebudget/voltagebudget/data
 
 # ------------------------------------------------------------------------
 # SFN runs are all deprecated. 
@@ -891,3 +891,11 @@ exp81:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py homeostasis $(DATADIR)/exp81_d{1}_f{3}_A{4} $(DATADIR)/stim1.csv 0 --mode=regular --n_jobs=5 --A={4} --N=250 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt ::: 0.01e-9 0.025e-9 0.05e-9 0.075e-9 0.1e-9
+
+# 3-20-2018
+# Run several 'optimal' experiments,
+exp82_85:
+	python budget_experiments.py optimal $(DATADIR)/exp82_max ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=max_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp83_left ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=left_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp84_uni ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=uniform --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp85_cc ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=coincidence --save_only --verbose
