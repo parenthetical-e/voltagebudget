@@ -1,0 +1,79 @@
+---
+title: "Optimal coordination - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+library(scales)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+# Data
+algs <- c("max", "left", "uni", "cc")
+alg_names <- c("max", "left", "uniform", "coincidence")
+exps <- c(82, 83, 84, 85)
+
+results <- NULL
+for (n in 1:4){
+  df <- read_csv(paste("../data/exp", as.character(exps[n]), "_", algs[n], ".csv", sep=""))
+  df$alg <- rep(alg_names[n], nrow(df))
+  
+  results <- rbind(results, df)
+}
+
+# Spikes
+# Load ref spikes
+ref <- read_csv("../data/stim1.csv")
+ref$set <- rep("reference", nrow(ref))
+
+# Load exp spikes
+exps <- c(86, 87, 88, 89)
+spikes <- NULL
+for (n in 1:4){
+  df <- read_csv(paste("../data/exp", as.character(exps[n]), "_", algs[n], "_c0.2.csv", sep=""))
+  df$set <- rep("experiment", nrow(df))
+  
+  # Add ref
+  df <- rbind(df, ref)
+  
+  df$alg <- rep(alg_names[n], nrow(df))
+  spikes <- rbind(spikes, df)
+}
+
+rm(df, n, ref)
+```
+
+```{r, fig.width=1.4, fig.height=0.8}
+results %>% 
+  filter(alg != "coincidence") %>%
+  ggplot(aes(x=errors*1e3, y=obs_variances*1e3, linetype=alg)) +
+  geom_line(size=0.6, alpha=0.9) +
+  scale_linetype_manual(values=c("longdash", "solid", "dotdash"), name="Algorithm") +
+  theme_classic() +
+  labs(x="Error (ms)", y="Variance (ms)")
+```
+
+```{r, fig.width=1.0, fig.height=1.5}
+spikes %>% 
+  filter(alg != "coincidence") %>%
+  ggplot(aes(x=ts, y=ns, color=set)) +
+  geom_point(size=0.1) +
+  facet_grid(alg~.) +
+  scale_color_manual(values=c("black", "grey")) +
+  theme_classic() +
+  theme(
+    legend.position="none", 
+    legend.key.size = unit(.4, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8))
+```
