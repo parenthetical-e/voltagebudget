@@ -895,7 +895,14 @@ exp81:
 # 3-20-2018
 # Run several 'optimal' experiments,
 exp82_85:
-	python budget_experiments.py optimal $(DATADIR)/exp82_max ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=max_deviants --save_only --verbose
-	python budget_experiments.py optimal $(DATADIR)/exp83_left ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=left_deviants --save_only --verbose
-	python budget_experiments.py optimal $(DATADIR)/exp84_uni ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=uniform --save_only --verbose
-	python budget_experiments.py optimal $(DATADIR)/exp85_cc ../data/stim1.csv  0.0 0.5 --n_samples=100 --alg=coincidence --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp82_max $(DATADIR)/stim1.csv  0.0 0.1 --n_samples=100 --alg=max_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp83_left $(DATADIR)/stim1.csv  0.0 0.1 --n_samples=100 --alg=left_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp84_uni $(DATADIR)/stim1.csv  0.0 0.1 --n_samples=100 --alg=uniform --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp85_cc $(DATADIR)/stim1.csv  0.0 0.1 --n_samples=100 --alg=coincidence --save_only --verbose
+
+# Save some example spikes
+exp86_89:
+	python budget_experiments.py optimal $(DATADIR)/exp86_max $(DATADIR)/stim1.csv  0.05 0.05 --n_samples=1 --alg=max_deviants --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp87_left $(DATADIR)/stim1.csv  0.05 0.05 --n_samples=1 --alg=left_deviants --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp88_uni $(DATADIR)/stim1.csv  0.05 0.05 --n_samples=1 --alg=uniform --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp89_cc $(DATADIR)/stim1.csv  0.05 0.05 --n_samples=1 --alg=coincidence --save_only --verbose --save_spikes
