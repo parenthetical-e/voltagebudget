@@ -108,18 +108,19 @@ def max_deviant(ts,
     if ts.size == 0:
         return ts
 
-    ts = np.asarray(ts)
-    np.sort(ts)
-
     # -
+    ts = np.asarray(ts)
     initial, target = _create_target(ts, percent_change)
 
     # Init
     adjusted = initial
-    M = mode_fm(ts)
+
+    idx = np.argsort(ts)
+    ts_opt = ts.copy()[idx]
+
+    M = mode_fm(ts_opt)
 
     # Which side of ts too look at?
-    ts_opt = ts.copy()
     if side == 'both':
         mask = np.ones_like(ts_opt, dtype=np.bool)
     elif side == 'left':
@@ -158,4 +159,9 @@ def max_deviant(ts,
 
             break
 
-    return initial, target, adjusted, np.asarray(ts_opt)
+    # Re-sort ts_opt to match the order in intial ts
+    ts_re = np.zeros_like(ts_opt)
+    for n, i in enumerate(idx):
+        ts_re[i] = ts_opt[n]
+
+    return initial, target, adjusted, ts_re

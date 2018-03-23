@@ -14,22 +14,19 @@ from voltagebudget.util import mae
 
 
 # -
-def _run(ts, changes, fn, save_ts=False, verbose=False):
+def _run(ts, changes, fn, verbose=False):
     # init
     initial_variances = []
     target_variances = []
     obs_variances = []
     errors = []
 
-    if save_ts:
-        ts_opts = []
-
     # run of changes
     for c in changes:
         if verbose:
             print(">>> Running c {}".format(c))
 
-        initial, target, obs, ns_opt, ts_opt = fn(ts, c)
+        initial, target, obs, ts_opt = fn(ts, c)
         err = mae(ts, ts_opt)
 
         obs_variances.append(obs)
@@ -37,13 +34,7 @@ def _run(ts, changes, fn, save_ts=False, verbose=False):
         target_variances.append(target)
         errors.append(err)
 
-        if save_ts:
-            ts_opts.append(ts_opt)
-
-    # Build the result
     results = [obs_variances, initial_variances, target_variances, errors]
-    if save_ts:
-        results.append(ts_opts)
 
     return results
 
@@ -87,14 +78,8 @@ def optimal(name,
         print(">>> Running {}.".format(alg))
 
     changes = np.linspace(p_0, p_max, n_samples)
-
-    if save_spikes:
-        (obs_variances, initial_variances, target_variances, errors,
-         ts_cs) = _run(
-             ts, changes, fn, save_ts=save_spikes, verbose=verbose)
-    else:
-        (obs_variances, initial_variances, target_variances, errors) = _run(
-            ts, changes, fn, verbose=verbose)
+    (obs_variances, initial_variances, target_variances, errors) = _run(
+        ts, changes, fn, verbose=verbose)
 
     # --------------------------------------------------------------
     if verbose:
@@ -118,11 +103,13 @@ def optimal(name,
     # -
     if save_spikes:
         if verbose:
-            print("Saving spikes.")
+            print(">>> Saving spikes.")
 
-        for c, ns_c, ts_c in zip(changes, ns_cs, ts_cs):
-            ts_name = "{}_c{}".format(name, c)
-            write_spikes(ts_name, ns_c, ts_c)
+        for c in changes:
+            initial, target, obs, ts_save = fn(ts, c)
+
+            ts_name = "{}_c{}_spikes".format(name, c)
+            write_spikes(ts_name, ns, ts_save)
 
     # -
     # If running in a CL, returns are line noise?
