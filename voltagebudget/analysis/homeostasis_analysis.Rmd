@@ -27,7 +27,7 @@ mean_summary <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-exp <- "76"
+exp <- "81"
 As <- c("0.01e-9", "0.025e-9", "0.05e-9", "0.075e-9", "0.1e-9")
 freqs <- c("8", "12", "20", "40")
 
@@ -42,6 +42,20 @@ for(A in As){
     df$freq <- rep(as.numeric(f), nrow(df))
     results <- rbind(results, df)
   }
+}
+
+# reference?
+exp <- "77"
+freqs <- c("8", "12", "20", "40")
+
+for(freq in freqs){
+  name <- paste("../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  results <- rbind(results_ref, df)
 }
 
 results %>% 
@@ -60,50 +74,62 @@ results %>%
   theme_classic() -> p1
 
 results %>% 
+  filter(errors <= 20e-3) %>% 
   ggplot(aes(x=errors*1e3)) +
-  geom_histogram(bins=20) + 
+  geom_histogram(bins=100) + 
   xlab("Error (ms)") +
   theme_classic() -> p2
 
 results %>% 
   ggplot(aes(x=V_osc*1e3)) +
-  geom_histogram(bins=20) +
+  geom_histogram(bins=50) +
   xlab("V_osc (mvolt)") +
   theme_classic() -> p3
 
 results %>% 
   ggplot(aes(x=V_comp*1e3)) +
-  geom_histogram(bins=20) +
+  geom_histogram(bins=50) +
   xlab("V_comp (mvolt)") +
   theme_classic() -> p4
 
 results %>% 
   ggplot(aes(x=V_osc/V_b)) +
-  geom_histogram(bins=20) +
+  geom_histogram(bins=50) +
   xlab("V_osc/Vb (AU)") +
   xlim(0, 1) +
   theme_classic() -> p5
 
 results %>% 
   ggplot(aes(x=V_comp/V_b)) +
-  geom_histogram(bins=20) +
+  geom_histogram(bins=50) +
   xlab("V_comp/Vb (AU)") +
   xlim(0, 1) +
   theme_classic() -> p6
 
 results %>% 
   ggplot(aes(x=V_osc/V_comp)) +
-  geom_histogram(bins=20) +
+  geom_histogram(bins=50) +
   xlab("V_osc/V_comp (AU)") +
   theme_classic() -> p7
 
 results %>% 
   ggplot(aes(x=delta_spikes)) +
-  geom_histogram(bins=20) +
+  geom_histogram(bins=50) +
   xlab("Spike count (AU)") +
   theme_classic() -> p8
 
-
 grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, nrow=4)
 rm(p1, p2, p3, p4, p5, p6, p7, p8)
+```
+
+
+```{r, fig.width=3.25, fig.height=1.15}
+results %>% 
+  # filter(rank == 0) %>% 
+  filter(errors <= 15e-3) %>% 
+  ggplot(aes(x=errors, y=variances, color=factor(freq))) +
+  geom_point(size=0.1) + 
+  theme_classic() +
+  facet_grid(.~freq) +
+  theme(legend.position="right") 
 ```
