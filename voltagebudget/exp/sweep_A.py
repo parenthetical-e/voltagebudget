@@ -43,7 +43,7 @@ def sweep_A(name,
             f=8,
             N=10,
             mode='regular',
-            noise=False,
+            sigma=0,
             no_lock=False,
             verbose=False,
             save_only=False,
@@ -61,9 +61,7 @@ def sweep_A(name,
     if verbose:
         print(">>> Setting mode.")
 
-    params, w_in, bias_in, sigma = read_modes(mode)
-    if not noise:
-        sigma = 0
+    params, w_in, bias_in, _ = read_modes(mode)
 
     # --------------------------------------------------------------
     if verbose:
