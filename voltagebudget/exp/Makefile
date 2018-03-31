@@ -911,8 +911,8 @@ exp86_89:
 # 3-29-2017
 # Robustness to noise, at 20 Hz
 exp90:
-	parallel -j 8 -v \
+	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp90.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp90_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d={1} --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
-		::: 1.0e-9 2.0e-9 3.0e-9 4.0e-9 5.0e-9 6.0e-9 7.0e-9 8.0e-9 9.0e-9 10.0e-9
+		'python budget_experiments.py sweep_A $(DATADIR)/exp90_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
+		::: 1.0e-9 5.0e-9 10.0e-9
