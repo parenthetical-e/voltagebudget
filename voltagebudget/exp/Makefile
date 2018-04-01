@@ -916,3 +916,34 @@ exp90:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp90_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
 		::: 1.0e-9 5.0e-9 10.0e-9
+
+# -----------------------------------------------
+# 3-30-2017
+# Found a minor bug in adex math, checking to make sure there are no difference
+# 6bf421f0e93c792331bfaa24eb48671b1867f748 
+
+# Re-run of exp72 
+exp91:
+	parallel -j 8 -v \
+		--joblog '$(DATADIR)/exp91.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp91_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=100 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# rerun of 78
+# Explore a range of Z
+exp92:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp92.log' \
+		--nice 19 --delay 2 --colsep ',' 
+		'python budget_experiments.py sweep_A $(DATADIR)/exp92_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=100 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp72.txt ::: 0.1 0.2 0.3 
+
+
+# Running first set of exps with a 'hetero' population
+exp93:
+	parallel -j 8 -v \
+		--joblog '$(DATADIR)/exp93.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp93_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=heterogenous --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=100 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
