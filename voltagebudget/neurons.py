@@ -48,7 +48,6 @@ def adex(N,
          C=200e-12,
          g_l=10e-9,
          V_l=-70e-3,
-         V_max=-50e-3,
          a=0e-9,
          b=10e-12,
          tau_w=30e-3,
@@ -257,7 +256,6 @@ def adex(N,
         V_cut = float(V_cut)
         V_t = float(V_t)
         V_thresh = float(V_thresh)
-        V_max = float(V_max)
 
         V_rheo = np.asarray(V_rheo)
         V_leak = np.asarray(V_l)
@@ -267,10 +265,10 @@ def adex(N,
 
         # Rectify Vm
         V_m_thresh = V_m.copy()
-        V_m_thresh[V_m_thresh > V_max] = V_max
+        V_m_thresh[V_m_thresh > V_rheo] = V_rheo
 
         # Rectify V_osc
-        V_osc[V_osc > V_max] = V_max
+        V_osc[V_osc > V_rheo] = V_rheo
 
         # Est. Comp; 0 rectify
         V_comp = V_osc - V_m_thresh  # swtiched
@@ -283,11 +281,11 @@ def adex(N,
             V_osc = V_leak - V_osc
 
         # Est free.
-        V_free = V_max - V_m_thresh
+        V_free = V_rheo - V_m_thresh
 
         # Budget
         V_rest = np.asarray(V_rest)
-        V_budget = V_max - V_rest
+        V_budget = V_rheo - V_rest
 
         # Build budget dict
         vs = dict(
@@ -300,7 +298,6 @@ def adex(N,
             V_comp=V_comp,
             V_osc=V_osc,
             V_free=V_free,
-            V_max=V_max,
             V_rheo=V_rheo,
             V_rest=V_rest,
             V_leak=V_leak,
