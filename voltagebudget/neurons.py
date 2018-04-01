@@ -40,6 +40,7 @@ def adex(N,
          tau_in=5e-3,
          bias_in=0.0e-9,
          V_t=-50.0e-3,
+         V_thresh=0.0,
          f=0,
          A=.1e-9,
          phi=0,
@@ -68,9 +69,7 @@ def adex(N,
 
     [...]
 
-    step_params : None or 3-tuple (I, f, duty)
-        Inject a set of square wave currect
-    pulse_params: None or (I, on, off)
+    pulse_params: None or a tuple: (I, on, off)
         Inject a current I, starting at on, ending on off
     seed : None, int
         The random seed
@@ -101,12 +100,13 @@ def adex(N,
 
     # -----------------------------------------------------------------
     # If there's no input, return empty
-    if ns.shape[0] == 0:
+    if (ns.shape[0] == 0) and (pulse_params is None):
         return np.array([]), np.array([]), dict()
 
     # -----------------------------------------------------------------
     # Adex dynamics params
     g_l, prng = _parse_membrane_param(g_l, N, prng)
+    V_l, prng = _parse_membrane_param(V_l, N, prng)
     C, prng = _parse_membrane_param(C, N, prng)
 
     # Potentially random synaptic params
@@ -125,6 +125,7 @@ def adex(N,
     # Fixed membrane dynamics
     sigma *= siemens
     V_cut = V_t + 8 * np.mean(delta_t)
+    V_thresh *= volt
 
     # Oscillation params
     f *= Hz
@@ -134,7 +135,7 @@ def adex(N,
     # -----------------------------------------------------------------
     # Define an adex neuron, and its connections
     eqs = """
-    dv/dt = (g_l * (V_l - v) + g_l * delta_t * exp((v - V_t) / delta_t) + I_in + I_osc(t) + I_noise + I_ext + bias_in - w) / C : volt
+    dv/dt = (-g_l * (v - V_l) + (g_l * delta_t * exp((v - V_t) / delta_t)) + I_in + I_osc(t) + I_noise + I_ext + bias_in - w) / C : volt
     dw/dt = (a * (v - V_l) - w) / tau_w : amp
     dg_in/dt = -g_in / tau_in : siemens
     dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
@@ -147,10 +148,12 @@ def adex(N,
     delta_t : volt
     tau_w : second
     V_rheo : volt
+    V_l : volt
     bias_in : amp
     tau_in : second
     """
 
+    # Add step?
     # A step of current injection?code clean
     if pulse_params is not None:
         I, t_on, t_off = pulse_params
@@ -172,13 +175,12 @@ def adex(N,
     P_n = NeuronGroup(
         N,
         model=eqs,
-        threshold='v > V_t',
+        threshold='v > V_thresh',
         reset="v = V_rheo; w += b",
         method='euler')
 
     # Init adex params
     # Fixed voltages neuron params
-    V_l *= volt
     V_t *= volt
     V_cut *= volt
 
@@ -189,36 +191,40 @@ def adex(N,
     P_n.V_rheo = V_rheo * volt
     P_n.C = C * farad
     P_n.g_l = g_l * siemens
+    P_n.V_l = V_l * volt
     P_n.bias_in = bias_in * amp
     P_n.tau_in = tau_in * second
 
     # Init V0, w0
-    V_rest = V_l + ((bias_in / g_l) * volt)
-    P_n.v = V_rest
-    P_n.w = P_n.a * (P_n.v - V_l)
+    V_rest = V_l + (bias_in / g_l)
+    P_n.v = V_rheo * volt
+    P_n.w = 0 * pamp
 
     # -----------------------------------------------------------------
     # Add synaptic input into the network.
-    P_stim = SpikeGeneratorGroup(np.max(ns) + 1, ns, ts * second)
-    C_stim = Synapses(
-        P_stim, P_n, model='w_in : siemens', on_pre='g_in += w_in')
-    C_stim.connect()
+    if ns.size > 0:
+        P_stim = SpikeGeneratorGroup(np.max(ns) + 1, ns, ts * second)
+        C_stim = Synapses(
+            P_stim, P_n, model='w_in : siemens', on_pre='g_in += w_in')
+        C_stim.connect()
 
-    # (Finally) Potentially random weights
-    w_in, prng = _parse_membrane_param(w_in, len(C_stim), prng)
-    C_stim.w_in = w_in * siemens
+        # (Finally) Potentially random weights
+        w_in, prng = _parse_membrane_param(w_in, len(C_stim), prng)
+        C_stim.w_in = w_in * siemens
 
     # -----------------------------------------------------------------
     # Record input and voltage 
     spikes_n = SpikeMonitor(P_n)
+
     record = ['v', 'I_ext']
     traces_n = StateMonitor(P_n, record, record=True)
 
     # -----------------------------------------------------------------
     # Build the model!
-    net = Network(P_n, traces_n)
+    net = Network(P_n, traces_n, spikes_n)
     net.store('no_stim')
 
+    # -
     # Run the net without any stimulation. 
     # (This strictly speaking isn't
     # necessary, but I can't get Brian to express the needed
@@ -226,13 +232,18 @@ def adex(N,
     net.run(time * second, report=report)
     V_osc = deepcopy(np.asarray(traces_n.v_))
 
+    # -
+    # Run with stim
     net.restore('no_stim')
-    net.add([P_stim, C_stim, spikes_n])
+
+    # Add spikes?
+    if ns.size > 0:
+        net.add([P_stim, C_stim])
+
     net.run(time * second, report=report)
 
     # -----------------------------------------------------------------
     # Extract data from the run model
-
     # Spikes
     ns_e = np.asarray(spikes_n.i_)
     ts_e = np.asarray(spikes_n.t_)
@@ -243,11 +254,13 @@ def adex(N,
     # Define the terms that go into the budget
     # (these get added to result at the end)
     if budget:
-        V_leak = float(V_l)
         V_cut = float(V_cut)
         V_t = float(V_t)
+        V_thresh = float(V_thresh)
         V_max = float(V_max)
+
         V_rheo = np.asarray(V_rheo)
+        V_leak = np.asarray(V_l)
 
         # Get Vm
         V_m = np.asarray(traces_n.v_)
@@ -264,7 +277,10 @@ def adex(N,
         V_comp[V_comp > 0] = 0
 
         # Recenter osc so unit scale matches comp
-        V_osc = V_leak - V_osc
+        if V_leak.size > 2:
+            V_osc = V_leak[:, None] - V_osc
+        else:
+            V_osc = V_leak - V_osc
 
         # Est free.
         V_free = V_max - V_m_thresh
@@ -289,7 +305,8 @@ def adex(N,
             V_rest=V_rest,
             V_leak=V_leak,
             V_cut=V_cut,
-            V_thresh=V_t)
+            V_thresh=V_thresh,
+            V_t=V_t)
 
         # Add the budget to the return var, result
         result.append(vs)
