@@ -914,7 +914,7 @@ exp90:
 	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp90.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp90_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp90_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=100 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
 		::: 1.0e-9 5.0e-9 10.0e-9
 
 # -----------------------------------------------
