@@ -32,8 +32,8 @@
     "delta_t": 2e-3,
     "initial_inputs": {
       "w_in": [
-        0.2e-09,
-        2e-09
+        1.5e-09,
+        15e-09
       ],
       "bias_in": 10e-12,
       "sigma": 3.0e-9
@@ -56,8 +56,8 @@
     "delta_t": 2e-3,
     "initial_inputs": {
       "w_in": [
-        2.0e-09,
-        20.0e-09
+        1.5e-09,
+        15e-09
       ],
       "bias_in": 50e-12,
       "sigma": 3.0e-9
@@ -74,8 +74,8 @@
     "delta_t": 2e-3,
     "initial_inputs": {
       "w_in": [
-        1.60e-09,
-        16.0e-09
+        1.5e-09,
+        15e-09
       ],
       "bias_in": 50e-12,
       "sigma": 3.0e-9
@@ -92,8 +92,8 @@
     "delta_t": 2e-3,
     "initial_inputs": {
       "w_in": [
-        0.32000000000000003e-08,
-        3.2000000000000003e-08
+        1.5e-09,
+        15e-09
       ],
       "bias_in": 40e-12,
       "sigma": 3.0e-9
@@ -111,8 +111,8 @@
     "delta_t": 2e-3,
     "initial_inputs": {
       "w_in": [
-        0.32000000000000003e-08,
-        3.2000000000000003e-08
+        1.5e-09,
+        15e-09
       ],
       "bias_in": 21e-12,
       "sigma": 3.0e-9
@@ -129,8 +129,8 @@
     "delta_t": 2e-3,
     "initial_inputs": {
       "w_in": [
-        1.6e-09,
-        16.0e-09
+        1.5e-09,
+        15e-09
       ],
       "bias_in": 30e-12,
       "sigma": 3.0e-9
@@ -147,8 +147,8 @@
     "delta_t": 2e-3,
     "initial_inputs": {
       "w_in": [
-        1.60e-09,
-        16.0e-09
+        1.5e-09,
+        15e-09
       ],
       "bias_in": 11e-12,
       "sigma": 3.0e-9
@@ -164,7 +164,10 @@
     "V_rheo": -48e-3,
     "delta_t": 2e-3,
     "initial_inputs": {
-      "w_in": 16.0e-09,
+      "w_in": [
+        1.5e-09,
+        15e-09
+      ],
       "bias_in": 16e-12,
       "sigma": 3.0e-9
     }
