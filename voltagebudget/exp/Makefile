@@ -939,7 +939,8 @@ exp92:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp92_d{1}_f{3}_Z{4} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --Z={4} --N=250 --n_samples=100 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp72.txt ::: 0.1 0.2 0.3 
 
-
+# -----------------------------------------------
+# 3-30-2017
 # Running first set of exps with a 'hetero' population
 exp93:
 	parallel -j 8 -v \
