@@ -253,6 +253,8 @@ def adex(N,
     # Define the terms that go into the budget
     # (these get added to result at the end)
     if budget:
+        # -
+        # Drop brian units...
         V_cut = float(V_cut)
         V_t = float(V_t)
         V_thresh = float(V_thresh)
@@ -260,34 +262,51 @@ def adex(N,
         V_rheo = np.asarray(V_rheo)
         V_leak = np.asarray(V_l)
 
+        # -
         # Get Vm
         V_m = np.asarray(traces_n.v_)
 
-        # Rectify Vm
+        # -
+        # Rectify away spikes
+        # V_m
         V_m_thresh = V_m.copy()
-        V_m_thresh[V_m_thresh > V_rheo] = V_rheo
+        if V_rheo.size > 1:
+            # V_m 
+            rect_mask = V_m_thresh > V_rheo[:, None]
+            for i in range(V_m_thresh.shape[0]):
+                V_m_thresh[i, rect_mask[i, :]] = V_rheo[i]
 
-        # Rectify V_osc
-        V_osc[V_osc > V_rheo] = V_rheo
+            # and V_osc
+            rect_mask = V_osc > V_rheo[:, None]
+            for i in range(V_osc.shape[0]):
+                V_osc[i, rect_mask[i, :]] = V_rheo[i]
+        else:
+            # V_m and V_osc
+            V_m_thresh[V_m_thresh > V_rheo] = V_rheo
+            V_osc[V_osc > V_rheo] = V_rheo
 
-        # Est. Comp; 0 rectify
-        V_comp = V_osc - V_m_thresh  # swtiched
-        V_comp[V_comp > 0] = 0
+        # Est. Comp AFTER spikes have been removed
+        V_comp = V_osc - V_m_thresh
+        V_comp[V_comp > 0] = 0  # Nonsense < 0 values creep in. Drop 'em.
 
-        # Recenter osc so unit scale matches comp
-        if V_leak.size > 2:
+        # Recenter V_osc so unit scale matches comp
+        if V_leak.size > 1:
             V_osc = V_leak[:, None] - V_osc
         else:
             V_osc = V_leak - V_osc
 
         # Est free.
-        V_free = V_rheo - V_m_thresh
+        if V_rheo.size > 1:
+            V_free = V_rheo[:, None] - V_m_thresh
+        else:
+            V_free = V_rheo - V_m_thresh
 
         # Budget
         V_rest = np.asarray(V_rest)
         V_budget = V_rheo - V_rest
 
-        # Build budget dict
+        # -
+        # Build final budget for return
         vs = dict(
             tau_m=np.asarray(C / g_l),
             times=np.asarray(traces_n.t_),
@@ -305,6 +324,7 @@ def adex(N,
             V_thresh=V_thresh,
             V_t=V_t)
 
+        # -
         # Add the budget to the return var, result
         result.append(vs)
 
