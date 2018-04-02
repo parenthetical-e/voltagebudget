@@ -87,7 +87,7 @@ def sweep_A(name,
         f=0.0,
         A=0,
         phi=0,
-        sigma=0,  # No noise in the ref...
+        sigma=sigma,
         budget=True,
         save_args=None,
         time_step=time_step,
