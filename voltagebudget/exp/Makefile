@@ -1018,8 +1018,8 @@ exp99:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp99_d{1}_f{3} $(DATADIR)/stim4.csv 0 --mode=regular --w_in_0=3e-10 --w_in_max=3e-09 --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 
-# Explore strong stim5 (from 1000 cells)
-# with much reduced w_in
+# Explore strong stim5 (from 10 cells)
+# with much increased min w_in
 # (Re-run of exp72)
 exp100:
 	parallel -j 3 -v \
