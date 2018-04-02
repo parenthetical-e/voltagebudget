@@ -1,0 +1,357 @@
+---
+title: "Sweep Z - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+data_summary <- function(x) {
+   m <- mean(x)
+   ymin <- m-mad(x)
+   ymax <- m+mad(x)
+   return(c(y=m,ymin=ymin,ymax=ymax))
+}
+mean_summary <- function(x) {
+   m <- mean(x)
+   return(c(y=m))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+# Osc
+freq <- "20"
+
+# sigma scan
+exp <- "90"
+sigmas <- c("1.0e-9", "5.0e-9", "10.0e-9")
+
+results <- NULL
+for(sigma in sigmas){
+  name <- paste("../data/exp", exp, "_sigma", sigma, ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  
+  df$sigma <- rep(as.numeric(sigma), nrow(df))
+  results <- rbind(results, df)
+}
+
+# Ref (Z=0)
+exp <- "91"
+name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$sigma <- rep(0, nrow(df))
+results <- rbind(df, results)
+
+# Process
+results %>% 
+  filter(n_spikes_ref > 0) %>% 
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  mutate(V_osc = V_osc - V_osc_ref) -> results
+
+rm(df, exp, freq, sigmas, sigma, name)
+```
+
+# As
+
+```{r, fig.width=1.9, fig.height=1.5}
+results %>% 
+  # filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=n_spikes_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  # filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=variances_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  # filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=errors_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+# V_osc/V_b
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=V_osc/V_b, y=n_spikes_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+### Errors
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=V_osc/V_b, y=errors_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.9, fig.height=1}
+results %>% 
+  ggplot(aes(x=V_osc/V_b, y=errors*1e3)) +
+  geom_point(size=0.01, alpha=0.01) + 
+  theme_classic() +
+  facet_grid(.~sigma) +
+  # scale_colour_brewer(palette="Greys", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.9, fig.height=1}
+results %>% 
+  filter(V_osc/V_comp <= 1) %>% 
+  filter(n_spikes >0) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors*1e3)) +
+  geom_point(size=0.01, alpha=0.01) + 
+  theme_classic() +
+  facet_grid(.~sigma) +
+  geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.1, alpha=0.5, color="purple", linetype="dashed") +
+  # scale_colour_brewer(palette="Greys", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=5.5, fig.height=2.5}
+M1 <- mean(filter(results, sigma == 0)$errors*1e3)
+max_N <- max(results$N)
+
+
+results %>% 
+  filter(V_osc/V_comp <= 3) %>%
+  filter(N %in% sample(1:max_N, 10, replace = FALSE)) %>% 
+  ggplot(aes(x=V_osc/V_b, y=errors*1e3, color=factor(delta_spikes))) +
+  geom_point(size=1, alpha=1) + 
+  facet_grid(sigma~rank) +
+  scale_colour_brewer(palette = "Accent", name="Spike count") +
+  labs(x=expression(V[o]/V[b]), y="Error (ms)") +
+  geom_hline(yintercept = M1, alpha=0.7, color="black") +
+  theme_classic() + theme(
+    # legend.position="bottom",
+    strip.text.x = element_text(size=0),
+    strip.background = element_blank(),
+    legend.position="right", 
+    legend.key.size = unit(.5, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    # axis.line=element_blank(),
+    # axis.text.x=element_blank(),
+    # axis.text.y=element_blank(),
+    # axis.ticks=element_blank(),
+    # axis.title.x=element_blank(),
+    # axis.title.y=element_blank(),
+    panel.background=element_blank(),
+    # panel.border=element_blank(),
+    # panel.grid.major=element_blank(),
+    # panel.grid.minor=element_blank(),
+    plot.background=element_blank())
+
+rm(max_N, M1)
+```
+
+
+### Variances
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=V_osc/V_b, y=variances_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0, V_osc/V_comp <= 3) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.9, fig.height=1}
+results %>% 
+  # filter(V_osc/V_comp <= 3) %>% 
+  ggplot(aes(x=V_osc/V_b, y=variances*1e3)) +
+  geom_point(size=0.01, alpha=0.01) + 
+  theme_classic() +
+  facet_grid(.~sigma) +
+  # scale_colour_brewer(palette="Greys", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom")
+```
+
+```{r, fig.width=1.9, fig.height=1}
+results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances*1e3)) +
+  geom_point(size=0.01, alpha=0.01) + 
+  theme_classic() +
+  facet_grid(.~sigma) +
+  geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
+  # scale_colour_brewer(palette="Greys", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=5.5, fig.height=2.5}
+max_N <- max(results$N)
+
+results %>% 
+  filter(V_osc/V_comp <= 3) %>%
+  filter(N %in% sample(1:max_N, 10, replace = FALSE)) %>% 
+  ggplot(aes(x=V_osc/V_b, y=variances*1e3, color=factor(delta_spikes))) +
+  geom_point(size=1, alpha=1) + 
+  facet_grid(sigma~rank) +
+  scale_colour_brewer(palette = "Accent", name="Spike count") +
+  labs(x=expression(V[o]/V[b]), y="Variance (ms)") +
+  theme_classic() + theme(
+    # legend.position="bottom",
+    strip.text.x = element_text(size=0),
+    strip.background = element_blank(),
+    legend.position="right", 
+    legend.key.size = unit(.5, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    # axis.line=element_blank(),
+    # axis.text.x=element_blank(),
+    # axis.text.y=element_blank(),
+    # axis.ticks=element_blank(),
+    # axis.title.x=element_blank(),
+    # axis.title.y=element_blank(),
+    panel.background=element_blank(),
+    # panel.border=element_blank(),
+    # panel.grid.major=element_blank(),
+    # panel.grid.minor=element_blank(),
+    plot.background=element_blank())
+
+
+rm(max_N)
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(rank == 0) %>% 
+  ggplot(aes(x=errors_pop, y=variances_pop, color=factor(sigma))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.9, fig.height=1}
+M1 = mean(filter(results, sigma == 0)$errors*1e3)
+M2 = mean(filter(results, sigma == 0)$variances*1e3)
+
+results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
+  ggplot(aes(x=errors*1e3, y=variances*1e3)) +
+  geom_point(size=0.01, alpha=0.01, color="grey") + 
+  theme_classic() +
+  facet_grid(.~sigma) +
+  geom_vline(xintercept = M1, alpha=0.7, color="black") +
+  geom_hline(yintercept = M2, alpha=0.7, color="black") +
+  # scale_colour_brewer(palette="Greys", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+
+rm(M1, M2)
+```
+
+
+```{r, fig.width=6.5, fig.height=2.5}
+M1 <- mean(filter(results, sigma == 0)$errors*1e3)
+M2 <- mean(filter(results, sigma == 0)$variances*1e3)
+max_N <- max(results$N)
+
+
+results %>% 
+  filter(V_osc/V_comp <= 3) %>%
+  filter(N %in% sample(1:max_N, 10, replace = FALSE)) %>% 
+  ggplot(aes(x=errors*1e3, y=variances*1e3, color=factor(delta_spikes))) +
+  geom_point(size=1, alpha=1) + 
+  facet_grid(sigma~rank) +
+  scale_colour_brewer(palette = "Accent", name="Spike count") +
+  labs(x="Error (ms)", y="Variance (ms)") +
+  geom_vline(xintercept = M1, alpha=0.7, color="black") +
+  geom_hline(yintercept = M2, alpha=0.7, color="black") +
+  theme_classic() + theme(
+    # legend.position="bottom",
+    strip.text.x = element_text(size=0),
+    strip.background = element_blank(),
+    legend.position="right", 
+    legend.key.size = unit(.5, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    # axis.line=element_blank(),
+    # axis.text.x=element_blank(),
+    # axis.text.y=element_blank(),
+    # axis.ticks=element_blank(),
+    # axis.title.x=element_blank(),
+    # axis.title.y=element_blank(),
+    panel.background=element_blank(),
+    # panel.border=element_blank(),
+    # panel.grid.major=element_blank(),
+    # panel.grid.minor=element_blank(),
+    plot.background=element_blank())
+
+rm(max_N, M1)
+```
+
+
+## n_spikes v rest
+
+```{r, fig.width=2.25, fig.height=1}
+results %>% 
+  ggplot(aes(x=delta_spikes, y=errors)) +
+  facet_grid(.~sigma) +
+  lims(y=c(0, 0.03)) +
+  geom_jitter(size=0.1, alpha=0.01) +
+  stat_summary(fun.data=data_summary, color="darkgrey", size=0.6, geom="linerange") +
+  stat_summary(fun.data=mean_summary, color="darkgrey", size=0.4, geom="point") +
+  theme_classic() 
+```
+
+```{r, fig.width=2.25, fig.height=1}
+results %>% 
+  ggplot(aes(x=delta_spikes, y=variances)) +
+  facet_grid(.~sigma) +
+  # lims(y=c(0, 0.03)) +
+  geom_jitter(size=0.1, alpha=0.01) +
+  stat_summary(fun.data=data_summary, color="darkgrey", size=0.6, geom="linerange") +
+  stat_summary(fun.data=mean_summary, color="darkgrey", size=0.4, geom="point") +
+  theme_classic() 
+```
+
