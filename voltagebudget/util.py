@@ -180,16 +180,16 @@ def filter_voltages(budget,
     return filtered
 
 
-def mad(x, pop_mean=None, axis=None):
+def mad(x, M=None, axis=None):
     """Mean absolute deviation"""
 
     if np.isclose(x.size, 0.0):
         return 0.0
 
-    if pop_mean is None:
-        pop_mean = np.mean(x, axis)
+    if M is None:
+        M = np.mean(x, axis)
 
-    return np.mean(np.absolute(x - pop_mean), axis)
+    return np.mean(np.absolute(x - M), axis)
 
 
 def mae(x, y, axis=None):
