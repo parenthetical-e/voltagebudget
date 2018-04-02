@@ -948,3 +948,21 @@ exp93:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp93_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=heterogenous --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
+
+# 4-1-2018
+# More re-run - this time of fast/flow f
+# Explore more slow freq (re-run of 75)
+exp94:
+	parallel -j 9 -v \
+		--joblog '$(DATADIR)/exp94.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp94_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp75.txt
+
+# Explore more fast freqs 
+exp95:
+	parallel -j 9 -v \
+		--joblog '$(DATADIR)/exp95.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp95_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp80.txt
