@@ -91,13 +91,13 @@ stim3:
 # A large N burst. (must reduce w_in -> w_in * 0.2)
 # with weak synapses
 stim4:
-	python budget_experiments.py create_stim $(DATADIR)/stim1 0.4 \
+	python budget_experiments.py create_stim $(DATADIR)/stim4 0.4 \
 	--stim_number=1000 --stim_onset=0.2 --stim_offset=0.250 --stim_rate=2 \
 	--seed_stim=7525 --time_step=1e-5 --verbose
 
 # A small N burst. (must increase min of w_in -> w_in[0] * 2)
 stim5:
-	python budget_experiments.py create_stim $(DATADIR)/stim1 0.4 \
+	python budget_experiments.py create_stim $(DATADIR)/stim5 0.4 \
 	--stim_number=10 --stim_onset=0.2 --stim_offset=0.250 --stim_rate=20 \
 	--seed_stim=7525 --time_step=1e-5 --verbose
 
