@@ -88,6 +88,20 @@ stim3:
 	--stim_number=1000 --stim_onset=0.0 --stim_offset=0.4 --stim_rate=1.6 \
 	--seed_stim=20 --time_step=1e-5 --verbose
 
+# A large N burst. (must reduce w_in -> w_in * 0.2)
+# with weak synapses
+stim4:
+	python budget_experiments.py create_stim $(DATADIR)/stim1 0.4 \
+	--stim_number=1000 --stim_onset=0.2 --stim_offset=0.250 --stim_rate=2 \
+	--seed_stim=7525 --time_step=1e-5 --verbose
+
+# A small N burst. (must increase min of w_in -> w_in[0] * 2)
+stim5:
+	python budget_experiments.py create_stim $(DATADIR)/stim1 0.4 \
+	--stim_number=10 --stim_onset=0.2 --stim_offset=0.250 --stim_rate=20 \
+	--seed_stim=7525 --time_step=1e-5 --verbose
+
+# 
 # ---------------------------------------------------------------------------
 # Budgets locked to stim1 (stim onset design), and first population spike
 
@@ -983,7 +997,7 @@ exp97:
 	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp97.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp97_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp97_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
 		::: 1.0e-9 2.0e-9 3.0e-9 4.0e-9 5.0e-9 
 
 # Rerun Z
@@ -991,5 +1005,25 @@ exp98:
 	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp98.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp98_Z{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --Z={1}' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp98_Z{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --Z={1}' \
 		::: 0.1 0.2 0.3
+	
+# Explore strong stim4 (from 1000 cells)
+# with much reduced w_in
+# (Re-run of exp72)
+exp99:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp99.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp99_d{1}_f{3} $(DATADIR)/stim4.csv 0 --mode=regular --w_in_0=3e-10 --w_in_max=3e-09 --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# Explore strong stim4 (from 1000 cells)
+# with much reduced w_in
+# (Re-run of exp72)
+exp100:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp100.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp100_d{1}_f{3} $(DATADIR)/stim5.csv 0 --mode=regular --w_in_0=3e-09 --w_in_max=15e-09 --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
