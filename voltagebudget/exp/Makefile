@@ -936,7 +936,7 @@ exp92:
 	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp92.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp92_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --Z={1}' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp92_Z{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --Z={1}' \
 		::: 0.1 0.2 0.3
 
 # -----------------------------------------------
@@ -949,7 +949,10 @@ exp93:
 		'python budget_experiments.py sweep_A $(DATADIR)/exp93_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=heterogenous --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 
-# 4-1-2018
+# 4-2-2018
+# mad for ith neurons now refers to the pop mean...
+# c5110d5ae92dd7f0511c00f5c7ea4266863df397 
+
 # More re-run - this time of fast/flow f
 # Explore more slow freq (re-run of 75)
 exp94:
@@ -966,3 +969,11 @@ exp95:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp95_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp80.txt
+
+# (Re-run of exp72)
+exp96:
+	parallel -j 8 -v \
+		--joblog '$(DATADIR)/exp96.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp96_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
