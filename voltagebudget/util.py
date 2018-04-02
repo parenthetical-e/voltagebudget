@@ -180,13 +180,16 @@ def filter_voltages(budget,
     return filtered
 
 
-def mad(x, axis=None):
+def mad(x, pop_mean=None, axis=None):
     """Mean absolute deviation"""
 
     if np.isclose(x.size, 0.0):
         return 0.0
 
-    return np.mean(np.absolute(x - np.mean(x, axis)), axis)
+    if pop_mean is None:
+        pop_mean = np.mean(x, axis)
+
+    return np.mean(np.absolute(x - pop_mean), axis)
 
 
 def mae(x, y, axis=None):
@@ -400,12 +403,14 @@ def step_waves(I, f, duty, t, dt):
 
 
 def find_time_index(times, t):
-     idx = (np.abs(times - t)).argmin()
-     return idx
+    idx = (np.abs(times - t)).argmin()
+    return idx
+
 
 def find_time(times, t):
     idx = find_time_index(times, t)
     return times[idx]
+
 
 def pulse(I, on, off, t, dt):
     times = create_times((0, 1), dt)
