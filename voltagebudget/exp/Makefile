@@ -977,3 +977,19 @@ exp96:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp96_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
+
+# Rerun noise
+exp97:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp97.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp97_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --sigma={1}' \
+		::: 1.0e-9 2.0e-9 3.0e-9 4.0e-9 5.0e-9 
+
+# Rerun Z
+exp98:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp98.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp98_Z{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=300 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --Z={1}' \
+		::: 0.1 0.2 0.3
