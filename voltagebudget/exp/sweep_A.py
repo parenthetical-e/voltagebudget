@@ -87,7 +87,7 @@ def sweep_A(name,
         f=0.0,
         A=0,
         phi=0,
-        sigma=sigma,
+        sigma=0,  # No noise in the ref...
         budget=True,
         save_args=None,
         time_step=time_step,
@@ -209,6 +209,8 @@ def sweep_A(name,
 
         # Pop var and error
         var_pop = mad(ts_i)
+        mean_pop = np.mean(ts_i)
+
         _, error_pop = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
 
         # Budget, all n
@@ -223,7 +225,7 @@ def sweep_A(name,
             ns_i_n, ts_i_n = select_n(n, ns_i, ts_i)
 
             # Score
-            var = mad(ts_i_n)
+            var = mad(ts_i_n, M=mean_pop)
             error = mae(ts_ref_n, ts_i_n)
             n_spike = ts_i_n.size
             n_spike_ref = ts_ref_n.size
