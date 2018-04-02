@@ -229,7 +229,7 @@ def sweep_A(name,
             n_spike_ref = ts_ref_n.size
 
             # Extract budget values
-            V_b = float(voltage_w['V_budget'])
+            V_b = np.abs(np.mean(budget_i['V_osc'][n]))
 
             V_osc = np.abs(np.mean(budget_i['V_osc'][n, :]))
             V_comp = np.abs(np.mean(budget_i['V_comp'][n, :]))
