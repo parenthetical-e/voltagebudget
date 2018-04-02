@@ -933,10 +933,10 @@ exp91:
 # rerun of 78
 # Explore a range of Z
 exp92:
-	parallel -j 4 -v \
+	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp92.log' \
-		--nice 19 --delay 2 --colsep ',' 
-		'python budget_experiments.py sweep_A $(DATADIR)/exp90_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=100 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --Z={1}' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp92_sigma{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=100 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --Z={1}' \
 		::: 0.1 0.2 0.3
 
 # -----------------------------------------------
