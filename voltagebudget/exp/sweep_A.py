@@ -44,6 +44,8 @@ def sweep_A(name,
             N=10,
             mode='regular',
             sigma=0,
+            w_in_0=None,
+            w_in_max=None,
             no_lock=False,
             verbose=False,
             save_only=False,
@@ -62,6 +64,12 @@ def sweep_A(name,
         print(">>> Setting mode.")
 
     params, w_in, bias_in, _ = read_modes(mode)
+
+    # Overide default w_in?
+    if w_in_0 is not None:
+        w_in[0] = w_in_0
+    if w_in_max is not None:
+        w_in[1] = w_in_max
 
     # --------------------------------------------------------------
     if verbose:
