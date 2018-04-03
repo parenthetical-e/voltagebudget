@@ -18,7 +18,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp92_Z0.1.csv"
+name <- "../data/exp96_d-2e-3_f20.csv"  
 
 results <- read_csv(paste(name, sep=""))
 
@@ -171,35 +171,15 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  # filter(rank == 0) %>% 
-  ggplot(aes(x=1e9*As, y=variances)) +
-  geom_point(size=0.1, alpha=0.11) + 
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=1e9*As, y=variances, group=N, color=factor(delta_spikes))) +
+  geom_line(size=0.4, alpha=0.6) + 
   scale_colour_brewer(palette = "Accent") +
   theme_classic() + theme(legend.position="bottom") 
 ```
 
-```{r, fig.width=1.7, fig.height=1.4}
-M = median(results$variances)
-results %>% 
-  ggplot(aes(x=1e9*As, y=variances)) +
-  geom_hline(yintercept = M, alpha=0.2, color="blue") +
-  geom_point(size=0.1, alpha=0.1) + 
-  facet_grid(delta_spikes~n_spikes_ref) +
-  xlab("As (namp)") +
-  theme_classic() 
-rm(M)
-```
-
-```{r, fig.width=4.0, fig.height=4}
-results %>% 
-  filter(rank < 30, n_spikes < 9) %>% 
-  ggplot(aes(x=1e9*As, y=variances, color=factor(delta_spikes))) +
-  geom_point(size=1, alpha=0.9) +
-  facet_wrap(~rank) +
-  theme_classic() + theme(legend.position="bottom") +
-  scale_colour_brewer(palette = "Accent") +
-  xlab("As (namp)") 
-```
 
 ## Vo
 
@@ -221,23 +201,40 @@ results %>%
   theme_classic() 
 ```
 
-```{r, fig.width=2.5, fig.height=3.15}
+```{r, fig.width=1.2, fig.height=1.5}
 results %>% 
-  ggplot(aes(x=V_osc*1e3, y=variances, color=As*1e9)) +
-  geom_point(size=0.01, alpha=0.68) +
-  facet_grid(delta_spikes ~ n_spikes_ref) +
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=V_osc*1e3, y=variances, group=N)) +
+  geom_line(size=0.4, alpha=0.9) + 
+  scale_colour_brewer(
+    palette = "Accent", guide=guide_legend(title="Spike count", nrow=3)) +
   xlab("V_osc (mvolt)") +
-  scale_color_gradient(low="darkgrey", high="red") +
-  theme_classic() + theme(legend.position="bottom")
+  theme_classic() + theme(legend.position="bottom") 
 ```
 
-```{r, fig.width=1.25, fig.height=1.15}
+```{r, fig.width=1.2, fig.height=1.5}
 results %>% 
-  ggplot(aes(y=1e3*V_osc, x=delta_spikes)) +
-  geom_jitter(alpha=0.01, size=0.1) + 
-  ylab("V_osc (mvolt)") +
-  theme_classic() +
-  coord_flip()
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=V_osc*1e3, y=variances, group=N, color=factor(delta_spikes))) +
+  geom_line(size=0.4, alpha=0.9) + 
+  scale_colour_brewer(
+    palette = "Accent", guide=guide_legend(title="Spike count", nrow=3)) +
+  xlab("V_osc (mvolt)") +
+  theme_classic() + theme(legend.position="bottom") 
+```
+```{r,fig.width=1.2, fig.height=0.8}
+M = min(fig1$variances_pop)
+
+results %>% 
+  ggplot(aes(x=variances, fill=factor(delta_spikes))) +
+  geom_density(alpha=0.6, size=0, color="black") +
+  scale_fill_brewer(palette = "Accent", name="Spike count") +
+  geom_vline(xintercept = M, color="black") +
+  theme_classic() + theme(legend.position="none") 
 ```
 
 ### Deciles
@@ -326,11 +323,11 @@ results %>%
   group_by(N) %>% 
   mutate(norm_errors = errors/max(errors)) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_errors)) +
-  geom_point(size=0.1, alpha=0.01) + 
+  geom_point(size=0.1, alpha=0.1) + 
   geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   theme_classic() +
-  xlab("V_osc/V_comp_ref") 
+  xlab("V_osc/V_comp") 
 ```
 
 
@@ -426,12 +423,22 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  ggplot(aes(y=V_osc/V_comp_ref, x=delta_spikes)) +
+  filter(V_osc/V_comp < 3) %>% 
+  ggplot(aes(y=V_osc/V_comp, x=delta_spikes)) +
   geom_jitter(size=0.1, alpha=0.01) + 
   geom_hline(yintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
   geom_hline(yintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   theme_classic() +
   ylab("V_osc/V_comp") 
+```
+
+```{r, fig.width=1.25, fig.height=1.15}
+results %>% 
+  # filter(V_osc/V_comp < 3) %>% 
+  ggplot(aes(y=V_free, x=delta_spikes)) +
+  geom_jitter(size=0.1, alpha=0.01) + 
+  theme_classic() +
+  ylab("V_comp") 
 ```
 
 ```{r, fig.width=1.25, fig.height=1.15}
