@@ -28,15 +28,15 @@ mean_summary <- function(x) {
 
 ```{r, message=FALSE}
 # Osc
-freq <- "8"
+freq <- "20"
 
 # Zs scan
-exp <- "78"
+exp <- "92"
 Zs <- c("0.1", "0.2", "0.3")
 
 results <- NULL
 for(Z in Zs){
-  name <- paste("../data/exp", exp, "_d-2e-3_f", freq, "_Z", Z, ".csv", sep="")
+  name <- paste("../data/exp", exp, "_Z", Z, ".csv", sep="")
   df <- read_csv(paste(name, sep=","))
   
   df$Zs <- rep(as.numeric(Z), nrow(df))
@@ -44,7 +44,7 @@ for(Z in Zs){
 }
 
 # Ref (Z=0)
-exp <- "77"
+exp <- "91"
 name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
 df <- read_csv(paste(name, sep=","))
 df$Zs <- rep(0, nrow(df))
@@ -52,6 +52,7 @@ results <- rbind(df, results)
 
 # Process
 results %>% 
+  filter(n_spikes_ref > 0) %>% 
   mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
   mutate(V_osc = V_osc - V_osc_ref) %>% 
   mutate(silent = n_spikes_ref == 0) -> results
@@ -127,13 +128,14 @@ results %>%
 
 ```{r, fig.width=1.9, fig.height=1}
 results %>% 
-  filter(V_osc/V_comp <= 3) %>% 
+  filter(V_osc/V_comp <= 1) %>% 
+  filter(n_spikes >0) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors*1e3)) +
   geom_point(size=0.01, alpha=0.01) + 
   theme_classic() +
   facet_grid(.~Zs) +
   geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
-  geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.1, alpha=0.5, color="purple", linetype="dashed") +
   # scale_colour_brewer(palette="Greys", guide=guide_legend(nrow=3)) +
   theme(legend.position="bottom") 
 ```
