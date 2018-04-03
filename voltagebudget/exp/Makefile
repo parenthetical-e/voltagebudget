@@ -1022,7 +1022,7 @@ exp99:
 # with much increased min w_in
 # (Re-run of exp72)
 exp100:
-	parallel -j 3 -v \
+	parallel -j 8 -v \
 		--joblog '$(DATADIR)/exp100.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp100_d{1}_f{3} $(DATADIR)/stim5.csv 0 --mode=regular --w_in_0=4.5e-09 --w_in_max=45e-09 --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
