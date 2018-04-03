@@ -18,7 +18,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp77_d-2e-3_f20.csv"
+name <- "../data/exp94_d-2e-3_f20.csv"
 
 results <- read_csv(paste(name, sep=""))
 
@@ -26,11 +26,9 @@ rm(name)
 
 # Add delta_spikes
 results %>% 
-  filter(As <= 0.15e-9) %>% 
+  filter(n_spikes_ref > 0) %>%
   mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
-  mutate(V_osc = V_osc - V_osc_ref) %>% 
-  mutate(silent = n_spikes_ref == 0) -> results
-  # filter(n_spikes_ref > 0) -> results
+  mutate(V_osc = V_osc - V_osc_ref) -> results
 ```
 
 
@@ -90,7 +88,7 @@ rm(p1, p2, p3, p4, p5, p6, p7)
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  filter(rank == 0) %>% 
+  # filter(rank == 0) %>% 
   ggplot(aes(x=As*1e9, y=variances_pop)) +
   geom_point(size=0.1) + 
   theme_classic() +
@@ -99,7 +97,7 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  filter(rank == 0) %>% 
+  # filter(rank == 0) %>% 
   ggplot(aes(x=As*1e9, y=errors_pop)) +
   geom_point(size=0.1) + 
   theme_classic() 
@@ -107,7 +105,7 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  filter(rank == 0) %>% 
+  # filter(rank == 0) %>%
   ggplot(aes(x=As*1e9, y=n_spikes_pop)) +
   geom_point(size=0.1) + 
   theme_classic() 
@@ -118,14 +116,13 @@ results %>%
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  filter(rank == 0) %>%
-  ggplot(aes(x=variances_pop, y=errors_pop)) +
+  # filter(rank == 0) %>%
+  ggplot(aes(x=variances_pop*1e3, y=errors_pop*1e3)) +
   geom_point(size=0.1) + 
   theme_classic() 
 ```
 
 # N level
-
 ## del. spikes
 
 ```{r, fig.width=1.25, fig.height=1.15}
@@ -142,18 +139,17 @@ results %>%
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   ggplot(aes(x=1e9*As, y=errors)) +
-  geom_point(size=0.1, alpha=0.01) + 
+  geom_point(size=0.1, alpha=0.1) + 
   theme_classic() 
 ```
 
 
-```{r, fig.width=4.2, fig.height=1.2}
+```{r, fig.width=3.2, fig.height=1.7}
 M = median(results$errors)
 results %>% 
   ggplot(aes(x=1e9*As, y=errors)) +
-  geom_hline(yintercept = M, alpha=0.5) +
-  geom_point(size=0.1, alpha=0.01) + 
-  facet_grid(.~delta_spikes) +
+  geom_point(size=0.1, alpha=0.1) + 
+  facet_grid(delta_spikes~n_spikes_ref) +
   xlab("As (namp)") +
   theme_classic() 
 rm(M)
@@ -170,23 +166,25 @@ results %>%
   xlab("As") 
 ```
 
+
 ## Var
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   # filter(rank == 0) %>% 
   ggplot(aes(x=1e9*As, y=variances)) +
-  geom_point(size=0.1, alpha=0.01) + 
-  theme_classic() 
+  geom_point(size=0.1, alpha=0.11) + 
+  scale_colour_brewer(palette = "Accent") +
+  theme_classic() + theme(legend.position="bottom") 
 ```
 
-```{r, fig.width=4.1, fig.height=1.2}
+```{r, fig.width=1.7, fig.height=1.4}
 M = median(results$variances)
 results %>% 
   ggplot(aes(x=1e9*As, y=variances)) +
-  geom_hline(yintercept = M, alpha=0.5) +
-  geom_point(size=0.1, alpha=0.01) + 
-  facet_grid(.~delta_spikes) +
+  geom_hline(yintercept = M, alpha=0.2, color="blue") +
+  geom_point(size=0.1, alpha=0.1) + 
+  facet_grid(delta_spikes~n_spikes_ref) +
   xlab("As (namp)") +
   theme_classic() 
 rm(M)
@@ -210,6 +208,7 @@ results %>%
   ggplot(aes(x=As*1e9, y=1e3*V_osc)) +
   geom_point(size=0.1, alpha=0.01) + 
   ylab("V_osc (mvolt)") +
+  xlim(0, .15) +
   theme_classic() 
 ```
 
@@ -222,12 +221,14 @@ results %>%
   theme_classic() 
 ```
 
-```{r, fig.width=1.25, fig.height=1.15}
+```{r, fig.width=2.5, fig.height=3.15}
 results %>% 
-  ggplot(aes(x=V_osc*1e3, y=variances)) +
-  geom_point(size=0.1, alpha=0.01) + 
+  ggplot(aes(x=V_osc*1e3, y=variances, color=As*1e9)) +
+  geom_point(size=0.01, alpha=0.68) +
+  facet_grid(delta_spikes ~ n_spikes_ref) +
   xlab("V_osc (mvolt)") +
-  theme_classic() 
+  scale_color_gradient(low="darkgrey", high="red") +
+  theme_classic() + theme(legend.position="bottom")
 ```
 
 ```{r, fig.width=1.25, fig.height=1.15}
@@ -242,25 +243,26 @@ results %>%
 ### Deciles
 
 ```{r, fig.width=2.25, fig.height=1.15}
-M = min(avg_results$variances)
-
-results %>% 
-  mutate(quantile = ntile(V_osc, 10)) %>%
-  filter(quantile %in% c(1, 10)) %>% 
-  ggplot(aes(x=variances, fill=factor(quantile), group=quantile)) +
-  # geom_histogram(bins=20, alpha=0.8, ) + 
-  geom_density(alpha=0.6, size=0.2, color="black") +
-  geom_vline(xintercept = M, color="black") +
-  # facet_wrap(~quantile) +
-  xlab("Variance (ms)") +
-  scale_fill_manual(
-    values=c("#FFDED3", "#FD0D11"), 
-    name=expression("Quantiles V"[o]), 
-    labels=c("0 - 10%", "90 - 100%")) +
-  theme_classic()
-
-rm(M)
+# M = min(avg_results$variances)
+# 
+# results %>% 
+#   mutate(quantile = ntile(V_osc, 10)) %>%
+#   filter(quantile %in% c(1, 10)) %>% 
+#   ggplot(aes(x=variances, fill=factor(quantile), group=quantile)) +
+#   # geom_histogram(bins=20, alpha=0.8, ) + 
+#   geom_density(alpha=0.6, size=0.2, color="black") +
+#   geom_vline(xintercept = M, color="black") +
+#   # facet_wrap(~quantile) +
+#   xlab("Variance (ms)") +
+#   scale_fill_manual(
+#     values=c("#FFDED3", "#FD0D11"), 
+#     name=expression("Quantiles V"[o]), 
+#     labels=c("0 - 10%", "90 - 100%")) +
+#   theme_classic()
+# 
+# rm(M)
 ```
+
 ## Metrics
 
 ```{r, fig.width=1.25, fig.height=1.15}
@@ -272,26 +274,15 @@ results %>%
   theme_classic() 
 ```
 
-```{r, fig.width=1.25, fig.height=1.15}
+```{r, fig.width=2.3, fig.height=2.5}
 results %>% 
-  group_by(As) %>% 
-  mutate(variances=median(variances), errors=median(errors)) %>% 
-  ggplot(aes(x=variances*1e3, y=errors*1e3)) +
-  geom_point(size=0.1, alpha=0.01) + 
-  xlab("Median variance (ms)") + ylab("Median error (ms)") +
-  theme_classic() 
-```
-
-```{r, fig.width=4.0, fig.height=4}
-results %>% 
-  filter(rank < 20) %>% 
-  ggplot(aes(x=variances*1e3, y=errors*1e3)) +
-  geom_point(size=1, alpha=.8) + 
-  facet_wrap(~rank) +
+  ggplot(aes(x=variances*1e3, y=errors*1e3, color=1e9*As)) +
+  geom_point(size=0.01, alpha=0.6) + 
+  facet_grid(delta_spikes ~ n_spikes_ref) +
   xlab("variances (ms)") + ylab("error (ms)") +
-  theme_classic() + theme(legend.position="bottom")
+  scale_color_gradient(low="darkgrey", high="red") +
+  theme_classic() + theme(legend.position="bottom") 
 ```
-
 
 ```{r, fig.width=4.0, fig.height=4}
 results %>% 
@@ -304,17 +295,6 @@ results %>%
   scale_colour_brewer(palette = "Accent") 
 ```
 
-
-```{r, fig.width=1.3, fig.height=3.0}
-results %>% 
-  ggplot(aes(x=variances*1e3, y=errors*1e3, color=1e9*As)) +
-  geom_point(size=0.05, alpha=0.1) + 
-  facet_grid(delta_spikes ~ .) +
-  xlab("variances (ms)") + ylab("error (ms)") +
-  scale_color_gradient2(low="white", high="black") +
-  theme_classic() + theme(legend.position="bottom") 
-```
-
 ## Vo by Vc
 
 ```{r, fig.width=1.25, fig.height=1.15}
@@ -325,68 +305,59 @@ results %>%
   theme_classic() 
 ```
 
-```{r, fig.width=3.5, fig.height=1.15}
-results %>% 
-  ggplot(aes(x=V_osc*1e3, y=V_comp*1e3, color=As*1e9)) +
-  geom_point(size=0.1, alpha=0.05) +
-  facet_grid(.~delta_spikes) +
-  xlab("V_osc (mvolt)") + ylab("V_comp (mvolt)") +
-  scale_color_gradient(name="A (namp)", low="white", high = "red") +
-  theme(legend.position="bottom") +
-  theme_classic() 
-```
-
-## Metrics, colored with Vo/Vc
-
-```{r, fig.width=2.5, fig.height=1.15}
-results %>% 
-  ggplot(aes(x=variances_pop, y=errors_pop, color=V_osc/V_comp_ref)) +
-  geom_point(size=0.2, alpha=1) + 
-  scale_color_gradient2(low="blue", high="red", midpoint = 1) +
-  theme_classic() 
-```
-
-```{r, fig.width=2.5, fig.height=1.15}
-results %>% 
-  ggplot(aes(x=variances_pop, y=errors_pop, color=V_osc/V_comp)) +
-  geom_point(size=0.2, alpha=1) + 
-  scale_color_gradient2(low="blue", high="red", midpoint = 1) +
-  theme_classic() 
-```
 
 ## Metrics by Vo/Vc
+#### Errors
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   filter(V_osc/V_comp <= 3) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors)) +
   geom_point(size=0.1, alpha=0.01) + 
-  geom_vline(xintercept = 1, alpha=0.8) +
-  geom_vline(xintercept = 0.5, alpha=0.4) +
+  geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   theme_classic() +
   xlab("V_osc/V_comp") 
 ```
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
-  ggplot(aes(x=V_osc/V_comp_ref, y=errors)) +
+  filter(V_osc/V_comp <= 3) %>% 
+  group_by(N) %>% 
+  mutate(norm_errors = errors/max(errors)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_errors)) +
   geom_point(size=0.1, alpha=0.01) + 
-  geom_vline(xintercept = 1, alpha=0.8) +
-  geom_vline(xintercept = 0.5, alpha=0.4) +
+  geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   theme_classic() +
   xlab("V_osc/V_comp_ref") 
 ```
 
-```{r, fig.width=1.25, fig.height=3}
+
+```{r, fig.width=2.5, fig.height=1.7}
 results %>% 
-  filter(V_osc/V_comp <= 3) %>% 
+  filter(V_osc/V_comp <= 2) %>% 
+  # filter(errors < 0.1) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors)) +
-  geom_point(size=0.1, alpha=0.01) + 
-  facet_grid(delta_spikes ~ .) +
-  geom_vline(xintercept = 1, alpha=0.8) +
-  geom_vline(xintercept = 0.5, alpha=0.4) +
+  geom_point(size=0.1, alpha=0.1) + 
+  facet_grid(delta_spikes ~ n_spikes_ref) +
+  geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   theme_classic() +
   xlab("V_osc/V_comp") 
+```
+
+```{r, fig.width=2.5, fig.height=1.7}
+results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
+  group_by(N) %>% 
+  mutate(norm_errors = errors/max(errors)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_errors)) +
+  geom_point(size=0.01, alpha=0.05) +
+  facet_grid(delta_spikes ~ n_spikes_ref) +
+  geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
+  theme_classic()
 ```
 
 
@@ -394,15 +365,19 @@ results %>%
 results %>% 
   filter(rank < 10) %>% 
   filter(V_osc/V_comp <= 3) %>% 
-  ggplot(aes(x=V_osc/V_comp, y=errors, color=factor(delta_spikes))) +
+  group_by(N) %>% 
+  mutate(norm_errors = errors/max(errors)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_errors, color=factor(delta_spikes))) +
   geom_point(size=1, alpha=0.9) + 
-  geom_vline(xintercept = 1, alpha=0.8) +
-  geom_vline(xintercept = 0.5, alpha=0.4) +
+  geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   facet_wrap(~rank) +
   theme_classic() + theme(legend.position="bottom") +
   scale_colour_brewer(palette = "Accent") +
   xlab("V_osc/V_comp") 
 ```
+
+#### Variances
 
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
@@ -410,42 +385,32 @@ results %>%
   ggplot(aes(x=V_osc/V_comp, y=variances)) +
   geom_point(size=0.1, alpha=0.01) + 
   theme_classic() +
-  geom_vline(xintercept = 1, alpha=0.8) +
-  geom_vline(xintercept = 0.5, alpha=0.4) +
-  xlab("V_osc/V_comp") 
-```
-
-```{r, fig.width=1.25, fig.height=1.15}
-results %>% 
-  filter(V_osc/V_comp <= 3) %>% 
-  ggplot(aes(x=V_osc/V_comp_ref, y=variances)) +
-  geom_point(size=0.1, alpha=0.01) + 
-  theme_classic() +
-  geom_vline(xintercept = 1, alpha=0.8) +
-  geom_vline(xintercept = 0.5, alpha=0.4) +
+  geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   xlab("V_osc/V_comp_ref") 
 ```
 
 
-```{r, fig.width=4.5, fig.height=4.5}
+```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   filter(V_osc/V_comp <= 3) %>% 
-  filter(rank > 230) %>% 
-  ggplot(aes(x=V_osc/V_comp, y=variances, color=factor(delta_spikes))) +
-  geom_point(size=1, alpha=1) + 
-  geom_vline(xintercept = 1, alpha=0.8) +
-  geom_vline(xintercept = 0.5, alpha=0.4) +
-  facet_wrap(~rank) +
-  theme_classic() + theme(legend.position="bottom") +
-  scale_colour_brewer(palette = "Accent") +
+  group_by(N) %>% 
+  mutate(norm_variances = variances/max(variances)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_variances)) +
+  geom_point(size=0.1, alpha=0.1) + 
+  theme_classic() +
+  geom_vline(xintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   xlab("V_osc/V_comp") 
 ```
+
+
 
 ```{r, fig.width=4.5, fig.height=4.5}
 results %>% 
   filter(V_osc/V_comp <= 3) %>% 
-  filter(rank > 230) %>% 
-  ggplot(aes(x=V_osc/V_comp_ref, y=variances, color=factor(delta_spikes))) +
+  filter(rank < 20) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances, color=factor(delta_spikes))) +
   geom_point(size=1, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.8) +
   geom_vline(xintercept = 0.5, alpha=0.4) +
@@ -463,8 +428,8 @@ results %>%
 results %>% 
   ggplot(aes(y=V_osc/V_comp_ref, x=delta_spikes)) +
   geom_jitter(size=0.1, alpha=0.01) + 
-  geom_hline(yintercept = 1, alpha=0.8) +
-  geom_hline(yintercept = 0.5, alpha=0.4) +
+  geom_hline(yintercept = 1, alpha=0.8, color="purple", linetype="dashed") +
+  geom_hline(yintercept = 0.5, alpha=0.6, color="purple", linetype="dashed") +
   theme_classic() +
   ylab("V_osc/V_comp") 
 ```
@@ -472,10 +437,8 @@ results %>%
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   ggplot(aes(y=V_osc/V_comp_ref, x=delta_spikes, color=1e3*errors)) +
-  geom_jitter(size=0.1, alpha=0.01) + 
-  geom_hline(yintercept = 1, alpha=0.8) +
-  geom_hline(yintercept = 0.5, alpha=0.4) +
-  scale_color_gradient(name="Error (ms)", low="white", high = "purple") +
+  geom_jitter(size=0.1, alpha=0.1) + 
+  scale_color_gradient(name="Error (ms)", low="grey", high = "purple") +
   theme_classic() +
   ylab("V_osc/V_comp") 
 ```
@@ -483,10 +446,10 @@ results %>%
 ```{r, fig.width=1.25, fig.height=1.15}
 results %>% 
   ggplot(aes(y=V_osc/V_comp_ref, x=delta_spikes, color=1e3*variances)) +
-  geom_jitter(size=0.01, alpha=0.01) + 
+  geom_jitter(size=0.01, alpha=0.1) + 
   geom_hline(yintercept = 1, alpha=0.8) +
   geom_hline(yintercept = 0.5, alpha=0.4) +
-  scale_color_gradient(name="Var (ms)", low="white", high = muted("blue")) +
+  scale_color_gradient(name="Var (ms)", low="grey", high = muted("blue")) +
   theme_classic() +
   ylab("V_osc/V_comp") 
 ```
