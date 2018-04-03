@@ -23,6 +23,15 @@ mean_summary <- function(x) {
    m <- mean(x)
    return(c(y=m))
 }
+sample_n_groups = function(tbl, size, replace = FALSE, weight = NULL) {
+  # regroup when done
+  grps = tbl %>% groups %>% lapply(as.character) %>% unlist
+  # check length of groups non-zero
+  keep = tbl %>% summarise() %>% ungroup() %>% sample_n(size, replace, weight)
+  # keep only selected groups, regroup because joins change count.
+  # regrouping may be unnecessary but joins do something funky to grouping variable
+  tbl %>% right_join(keep, by=grps) %>% group_by_(.dots = grps)
+}
 ```
 
 # Read and process all data
@@ -37,7 +46,7 @@ fig1 <- NULL
 
 # --------------------------
 # INITIAL
-exp <- "77"
+exp <- "96"
 freqs <- c(20, 30)
 
 for(freq in freqs){
@@ -52,7 +61,7 @@ for(freq in freqs){
 
 # --------------------------
 # SLOW
-exp <- "79"
+exp <- "94"
 freqs <- c(6, 8, 10, 12, 14, 16, 18)
 
 for(freq in freqs){
@@ -67,7 +76,7 @@ for(freq in freqs){
 
 # --------------------------
 # FAST
-exp <- "80"
+exp <- "95"
 freqs <- c(22, 24, 26, 28)#, 32, 34 ,36, 38)
 for(freq in freqs){
   name <- paste("../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
@@ -81,6 +90,7 @@ for(freq in freqs){
 
 # Process
 fig1 %>% 
+  filter(n_spikes_ref > 0) %>% 
   # Add delta_spikes
   mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
   # Re-norm V_osc
@@ -91,6 +101,7 @@ fig1 %>%
 fig1 %>% 
   group_by(As, freq) %>% 
   summarise(
+    N = 0,
     delta_spikes = mean(delta_spikes), 
     V_b = mean(V_b), 
     V_osc = mean(V_osc), 
@@ -268,9 +279,9 @@ fig2 %>%
   ggplot(aes(x=V_osc/V_b, y=errors_pop*1e3, color=V_osc/V_b)) +
   geom_point(size=0.05, alpha=1) + 
   labs(x=expression(V[o]/V[b]), y="Avg. error (ms)") +
-  lims(y=c(0, 10)) +
+  # lims(y=c(0, 10)) +
   scale_x_continuous(breaks=c(0, 0.5, 1.0), limits = c(0, 1)) +
-  scale_color_gradient(low="lightgrey", high="red") +
+  scale_color_gradient(low="darkgrey", high="red") +
   theme_classic() +
   theme(
     legend.position="none") -> p1
@@ -280,7 +291,7 @@ fig2 %>%
   ggplot(aes(x=V_osc/V_b, y=variances_pop*1e3, color=V_osc/V_b)) +
   geom_point(size=0.05, alpha=1) + 
   labs(x=expression(V[o]/V[b]), y="Pop. variance (ms)") +
-  scale_color_gradient(low="lightgrey", high="red") +
+  scale_color_gradient(low="darkgrey", high="red") +
   scale_x_continuous(breaks=c(0, 0.5, 1.0), limits = c(0, 1)) +
   theme_classic() +
   theme(
@@ -290,13 +301,14 @@ fig2 %>%
   filter(freq == 20) %>% 
   ggplot(aes(x=errors_pop*1e3, y=variances_pop*1e3, color=V_osc/V_b)) +
   geom_point(size=0.05, alpha=.6) +
-  scale_color_gradient(low="lightgrey", high="red", name=expression(V[o]/V[b])) +
-  # scale_color_gradient(low="lightgrey", high="red", name="A (namp)") +
-  geom_smooth(color="black", method=lm, alpha=0.2, size=.8, linetype='dotted') +
+  scale_color_gradient(low="darkgrey", high="red", name=expression(V[o]/V[b])) +
+  # scale_color_gradient(low="darkgrey", high="red", name="A (namp)") +
+  geom_smooth(color="red", method=lm, alpha=0.2, size=.15, se=FALSE, linetype='solid') +
   labs(x="Avg. error (ms)", y="Pop. variance (ms)") +
   theme_classic() +
   theme(
     legend.position="right", 
+    legend.background = element_rect(colour ="black"),
     legend.key.size = unit(.4, "cm"),
     legend.title = element_text(size=8),
     legend.text = element_text(size=8)) -> p3
@@ -326,10 +338,14 @@ rm(p1, p2, p3, plot_grid)
 
 ```{r, fig.width=2.7, fig.height=2.2}
 fig1 %>% 
+  group_by(N) %>% 
   filter(V_osc/V_comp <= 3) %>% 
   filter(freq == 20) %>% 
-  ggplot(aes(x=V_osc/V_comp, y=errors*1e3)) +
-  geom_point(size=0.01, alpha=0.01, color="grey") + 
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=V_osc/V_comp, y=errors*1e3, group=N)) +
+  geom_line(size=0.5, alpha=0.2, color="grey") + 
   geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
   theme_classic() +
@@ -341,25 +357,27 @@ fig1 %>%
 fig1 %>% 
   filter(V_osc/V_comp <= 3) %>% 
   filter(freq == 20) %>% 
-  ggplot(aes(x=V_osc/V_comp, y=variances*1e3)) +
-  geom_point(size=0.01, alpha=0.01, color="grey") + 
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=V_osc/V_comp, y=variances*1e3, group=N)) +
+  geom_line(size=0.5, alpha=0.2, color="grey") + 
   geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
   theme_classic() +
-  geom_line(data=filter(fig2, freq==20, V_osc/V_comp <= 3), 
-            aes(x=V_osc/V_comp, y=variances*1e3), 
+  geom_line(data=filter(fig1, freq==20, V_osc/V_comp <= 3), 
+            aes(x=V_osc/V_comp, y=variances_pop*1e3), 
             color="black", size=0.7, alpha=1) +
   labs(x=expression(V[o]/V[c]), y="Variance (ms)") -> p2
 
 max_N <- max(fig1$N)
 
 fig1 %>% 
-  filter(V_osc/V_comp <= 3) %>% 
   filter(freq==20) %>% 
   filter(V_osc/V_comp <= 3) %>% 
   filter(N %in% sample(1:max_N, 24, replace = FALSE)) %>% 
-  ggplot(aes(x=V_osc/V_comp, y=errors*1e3)) +
-  geom_point(size=.1, alpha=0.1, color="grey") + 
+  ggplot(aes(x=V_osc/V_comp, y=errors*1e3, group=N)) +
+  geom_line(size=.5, alpha=0.9, color="grey") + 
   geom_vline(xintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
   facet_wrap(~rank, nrow=3) +
@@ -400,13 +418,16 @@ rm(p1, p2, p3, plot_grid, max_N)
 
 # Bound 2 - n_spikes < (0, 1)
 
-```{r, fig.width=3.7, fig.height=3.1}
+```{r, fig.width=2.6, fig.height=3.2}
 max_N <- max(fig1$N)
 
 fig1 %>% 
   filter(freq == 20) %>% 
-  ggplot(aes(x=V_osc/V_b, y=variances*1e3)) +
-  geom_point(size=0.1, alpha=0.1, color="grey") + 
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=V_osc/V_b, y=variances*1e3, group=N)) +
+  geom_line(size=0.5, alpha=0.2, color="grey") + 
   theme_classic() +
   geom_line(aes(x=V_osc/V_b, y=variances_pop*1e3), 
             color="black", size=0.7, alpha=1) +
@@ -414,23 +435,75 @@ fig1 %>%
 
 
 fig1 %>% 
+  filter(freq == 20) %>% 
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=V_osc/V_b, y=variances*1e3, group=N, color=factor(delta_spikes))) +
+  geom_line(size=0.4, alpha=0.6) + 
+  scale_colour_brewer(
+    palette = "Reds", guide=guide_legend(title="Spike count", nrow=3)) +
+  labs(x=expression(V[o]/V[b]), y="Variance (ms)") +
+  theme_classic() + theme(legend.position="none") -> p2
+
+# -
+M = min(fig1$variances_pop)
+fig1 %>% 
+  filter(freq == 20) %>% 
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(x=variances*1e3, fill=factor(delta_spikes))) +
+  geom_density(alpha=0.6, size=0, color="black") +
+  scale_fill_brewer(palette = "Reds", name="Spike\ncount") +
+  geom_vline(xintercept = M*1e3, color="black", linetype="dotted") +
+  labs(x="Variance (ms)", y="Density (AU)") +
+  theme_classic() + 
+  theme(legend.position = c(1.25, 1.55), 
+        legend.background = element_rect(colour ="black"),
+        legend.key.size = unit(.5, "cm"),
+        legend.title = element_text(size=10),
+        legend.text = element_text(size=10)) -> p3
+
+fig1 %>% 
   filter(freq==20) %>% 
-  # filter(V_osc/V_comp <= 3) %>% 
-  filter(N %in% sample(1:max_N, 10, replace = FALSE)) %>% 
+  filter(V_osc/V_comp <= 3) %>% 
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ggplot(aes(y=V_osc/V_comp, x=factor(delta_spikes), group=delta_spikes)) +
+  geom_jitter(aes(color=factor(delta_spikes)), size=0.01, alpha=0.1, width=0.2) +
+  geom_boxplot(outlier.colour = NA, alpha=0.9, width=0.2) +
+  scale_colour_brewer(palette = "Reds", name="Spike count") +
+  geom_hline(yintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
+  geom_hline(yintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  labs(y=expression(V[o]/V[c]), x="Spike count") + 
+  coord_flip()  -> p4
+
+fig1 %>%
+  filter(freq==20) %>%
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  ungroup() %>% 
+  group_by(N) %>% 
+  sample_n_groups(8) %>% 
   ggplot(aes(x=V_osc/V_b, y=variances*1e3, color=factor(delta_spikes))) +
-  geom_point(size=1, alpha=1) + 
-  facet_wrap(~rank, ncol=2) +
-  geom_line(aes(x=V_osc/V_b, y=variances_pop*1e3), 
+  geom_point(size=1, alpha=1) +
+  facet_wrap(~N, nrow=8) +
+  geom_line(aes(x=V_osc/V_b, y=variances_pop*1e3),
             color="black", size=0.7, alpha=1) +
-  scale_colour_brewer(palette = "Accent", name="Spike count") +
+  scale_colour_brewer(palette = "Reds", name="Spike count") +
   scale_x_continuous(breaks=c(0, 0.5, 1.0), limits = c(0, 1)) +
-  scale_y_continuous(breaks=c(8, 12)) +
+  scale_y_continuous(breaks=c(6, 12)) +
   labs(x=expression(V[o]/V[b]), y="Variance (ms)") +
   theme_classic() + theme(
     # legend.position="bottom",
     strip.text.x = element_text(size=0),
     strip.background = element_blank(),
-    legend.position="none", 
+    legend.position="none",
     legend.key.size = unit(.5, "cm"),
     legend.title = element_text(size=8),
     legend.text = element_text(size=8),
@@ -444,18 +517,21 @@ fig1 %>%
     # panel.border=element_blank(),
     # panel.grid.major=element_blank(),
     # panel.grid.minor=element_blank(),
-    plot.background=element_blank()) -> p2
+    plot.background=element_blank()) -> p5
 
-fig1 %>% 
-  filter(freq==20) %>% 
-  # filter(V_osc/V_comp <= 3) %>% 
-  filter(N %in% sample(1:max_N, 5, replace = FALSE)) %>% 
+fig1 %>%
+  filter(freq==20) %>%
+  filter(V_osc/V_comp <= 3) %>%
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  sample_n_groups(8) %>% 
   ggplot(aes(x=V_osc/V_b, y=errors*1e3, color=factor(delta_spikes))) +
-  geom_point(size=1, alpha=1) + 
-  facet_wrap(~rank, ncol=1) +
-  geom_line(aes(x=V_osc/V_b, y=errors_pop*1e3), 
-            color="black", size=0.7, alpha=1) +
-  scale_colour_brewer(palette = "Accent", name="Spike count") +
+  geom_point(size=1, alpha=1) +
+  facet_wrap(~N, nrow=8) +
+  # geom_line(aes(x=V_osc/V_b, y=errors_pop*1e3),
+  #           color="black", size=0.7, alpha=1) +
+  scale_colour_brewer(palette = "Reds", name="Spike count") +
   scale_x_continuous(breaks=c(0, 0.5, 1), limits = c(0, 1)) +
   scale_y_continuous(breaks=c(2, 8)) +
   labs(x=expression(V[o]/V[b]), y="Error (ms)") +
@@ -463,7 +539,7 @@ fig1 %>%
     # legend.position="bottom",
     strip.text.x = element_text(size=0),
     strip.background = element_blank(),
-    legend.position="right", 
+    legend.position="none",
     legend.key.size = unit(.5, "cm"),
     legend.title = element_text(size=8),
     legend.text = element_text(size=8),
@@ -477,62 +553,23 @@ fig1 %>%
     # panel.border=element_blank(),
     # panel.grid.major=element_blank(),
     # panel.grid.minor=element_blank(),
-    plot.background=element_blank()) -> p3
-
-# -
-M = min(fig1$variances_pop)
-
-fig1 %>% 
-  filter(freq==20) %>% 
-  mutate(quantile = ntile(V_osc, 10)) %>%
-  filter(quantile %in% c(1, 10)) %>% 
-  ggplot(aes(x=variances, fill=factor(quantile), group=quantile)) +
-  geom_density(alpha=0.6, size=0.2, color="black") +
-  geom_vline(xintercept = M, color="black") +
-  labs(x="Variance (ms)", y="Density (AU)") +
-  scale_fill_manual(
-    # values=c("#FFDED3", "#FD0D11"), 
-    values=c("grey", "black"),
-    name=expression("Deciles V"[o]), 
-    labels=c("0 - 10%", "90 - 100%")) +
-  theme_classic() +
-  theme(
-    legend.position="bottom", 
-    legend.key.size = unit(.3, "cm"),
-    legend.title = element_text(size=8),
-    legend.text = element_text(size=8) ) -> p4
-
-fig1 %>% 
-  filter(freq==20) %>% 
-  ggplot(aes(x=delta_spikes, y=variances*1e3, color=factor(delta_spikes))) +
-  geom_boxplot(outlier.size = NA, size=0.8, show.legend=FALSE)+
-  labs(x="Spike count", y="Variance (ms)") +
-  scale_colour_brewer(palette = "Accent", name="Spike count") +
-  theme_classic() +
-  theme(legend.position="none") -> p5
-
-fig1 %>% 
-  filter(freq==20) %>% 
-  filter(V_osc/V_comp <= 3) %>% 
-  ggplot(aes(y=V_osc/V_comp, x=delta_spikes)) +
-  geom_jitter(size=0.1, alpha=0.01) + 
-  geom_hline(yintercept = 1, alpha=0.7, color="purple", linetype="dashed") +
-  geom_hline(yintercept = 0.5, alpha=0.5, color="purple", linetype="dashed") +
-  theme_classic() +
-  labs(y=expression(V[o]/V[c]), x="Spike count") -> p6
-
-plot_grid <- rbind(
-  c(1,  1,  1,  1,  2,  2,  2, 2, 3, 3,  3, 3),
-  c(1,  1,  1,  1,  2,  2,  2, 2, 3, 3,  3, 3),
-  c(1,  1,  1,  1,  2,  2,  2, 2, 3, 3,  3, 3),
-  c(4,  4,  4,  4,  2,  2,  2, 2, 3, 3,  3, 3),
-  c(4,  4,  4,  4,  2,  2,  2, 2, 3, 3,  3, 3),
-  c(4,  4,  4,  4,  2,  2,  2, 2, 3, 3,  3, 3),
-  c(NA, NA, NA, NA, NA, NA, 5, 5, 5, 6,  6, 6),
-  c(NA, NA, NA, NA, NA, NA, 5, 5, 5, 6,  6, 6),
-  c(NA, NA, NA, NA, NA, NA, 5, 5, 5, 6,  6, 6))
+    plot.background=element_blank()) -> p6
 
   
+plot_grid <- rbind(
+  c(1, 1, 1, NA, 5, 5, 6, 6),
+  c(1, 1, 1, NA, 5, 5, 6, 6),
+  c(1, 1, 1, NA, 5, 5, 6, 6),
+  c(2, 2, 2, NA, 5, 5, 6, 6),
+  c(2, 2, 2, NA, 5, 5, 6, 6),
+  c(2, 2, 2, NA, 5, 5, 6, 6),
+  c(3, 3, 3, NA, 5, 5, 6, 6),
+  c(3, 3, 3, NA, 5, 5, 6, 6),
+  c(3, 3, 3, NA, 5, 5, 6, 6),
+  c(4, 4, 4, NA, NA, NA, NA, NA),
+  c(4, 4, 4, NA, NA, NA, NA, NA),
+  c(4, 4, 4, NA, NA, NA, NA, NA))
+
 grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix=plot_grid)
 rm(p1, p2, p3, p4, plot_grid, max_N, M)
 ```
