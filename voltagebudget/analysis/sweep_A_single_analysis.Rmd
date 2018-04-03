@@ -18,7 +18,7 @@ normalize <- function(x) {
 # Load and process
 
 ```{r, message=FALSE}
-name <- "../data/exp94_d-2e-3_f20.csv"
+name <- "../data/exp92_Z0.1.csv"
 
 results <- read_csv(paste(name, sep=""))
 
@@ -306,7 +306,7 @@ results %>%
 ```
 
 
-## Metrics by Vo/Vc
+## Vo/Vc
 #### Errors
 
 ```{r, fig.width=1.25, fig.height=1.15}
