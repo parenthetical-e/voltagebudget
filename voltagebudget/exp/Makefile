@@ -1019,7 +1019,7 @@ exp99:
 		:::: exp64.txt
 
 # Explore strong stim5 (from 10 cells)
-# with much increased min w_in
+# with much increased w_in
 # (Re-run of exp72)
 exp100:
 	parallel -j 8 -v \
