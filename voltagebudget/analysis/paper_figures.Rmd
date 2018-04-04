@@ -106,6 +106,7 @@ fig1 %>%
     V_osc = mean(V_osc), 
     V_comp = mean(V_comp), 
     V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
     errors = mean(errors), 
     errors_pop = mean(errors_pop), 
     variances_pop = mean(variances_pop), 
@@ -190,6 +191,7 @@ fig8 %>%
     V_osc = mean(V_osc), 
     V_comp = mean(V_comp), 
     V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
     errors = mean(errors), 
     errors_pop = mean(errors_pop), 
     variances_pop = mean(variances_pop), 
@@ -242,6 +244,7 @@ fig10 %>%
     V_osc = mean(V_osc), 
     V_comp = mean(V_comp), 
     V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
     errors = mean(errors), 
     errors_pop = mean(errors_pop), 
     variances_pop = mean(variances_pop), 
@@ -278,6 +281,7 @@ fig12 %>%
     V_osc = mean(V_osc), 
     V_comp = mean(V_comp), 
     V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
     errors = mean(errors), 
     errors_pop = mean(errors_pop), 
     variances_pop = mean(variances_pop), 
@@ -425,7 +429,7 @@ fig2 %>%
 
 fig2 %>% 
   filter(freq == 20) %>% 
-  ggplot(aes(x=V_osc/V_b, y=variances_pop*1e3, color=V_osc/V_b)) +
+  ggplot(aes(x=V_osc/V_b, y=(variances_pop/n_spikes_pop)*1e3, color=V_osc/V_b)) +
   geom_point(size=0.05, alpha=1) + 
   labs(x=expression(V[o]/V[b]), y="Pop. variance (ms)") +
   scale_color_gradient(low="darkgrey", high="red") +
@@ -436,7 +440,7 @@ fig2 %>%
 
 fig2 %>% 
   filter(freq == 20) %>% 
-  ggplot(aes(x=errors_pop*1e3, y=variances_pop*1e3, color=V_osc/V_b)) +
+  ggplot(aes(x=errors_pop*1e3, y=(variances_pop/n_spikes_pop)*1e3, color=V_osc/V_b)) +
   geom_point(size=0.05, alpha=.6) +
   scale_color_gradient(low="darkgrey", high="red", name=expression(V[o]/V[b])) +
   # scale_color_gradient(low="darkgrey", high="red", name="A (namp)") +
@@ -497,13 +501,13 @@ fig1 %>%
   group_by(N) %>%
   mutate(V_free_initial = round(max(V_free), 3)) %>%
   filter(V_free_initial > 0) %>%
-  ggplot(aes(x=V_osc/V_comp, y=variances*1e3, group=N)) +
+  ggplot(aes(x=V_osc/V_comp, y=(variances/n_spikes)*1e3, group=N)) +
   geom_line(size=0.5, alpha=0.2, color="grey") + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
   theme_classic() +
-  geom_line(data=filter(fig1, freq==20, V_osc/V_comp <= 3), 
-            aes(x=V_osc/V_comp, y=variances_pop*1e3), 
+  geom_line(data=filter(fig2, freq==20, V_osc/V_comp <= 3), 
+            aes(x=V_osc/V_comp, y=(variances_pop/n_spikes_pop)*1e3), 
             color="black", size=0.7, alpha=1) +
   labs(x=expression(V[o]/V[c]), y="Variance (ms)") -> p2
 
@@ -563,10 +567,10 @@ fig1 %>%
   group_by(N) %>%
   mutate(V_free_initial = round(max(V_free), 3)) %>%
   filter(V_free_initial > 0) %>%
-  ggplot(aes(x=V_osc/V_b, y=variances*1e3, group=N)) +
+  ggplot(aes(x=V_osc/V_b, y=(variances/n_spikes)*1e3, group=N)) +
   geom_line(size=0.5, alpha=0.2, color="grey") + 
   theme_classic() +
-  geom_line(aes(x=V_osc/V_b, y=variances_pop*1e3), 
+  geom_line(data=filter(fig2, freq == 20), aes(x=V_osc/V_b, y=(variances_pop/n_spikes_pop)*1e3), 
             color="black", size=0.7, alpha=1) +
   labs(x=expression(V[o]/V[b]), y="Variance (ms)") -> p1
 
@@ -576,31 +580,16 @@ fig1 %>%
   group_by(N) %>%
   mutate(V_free_initial = round(max(V_free), 3)) %>%
   filter(V_free_initial > 0) %>%
-  ggplot(aes(x=V_osc/V_b, y=variances*1e3, group=N, color=factor(delta_spikes))) +
+  ggplot(aes(x=V_osc/V_b, y=(variances/n_spikes)*1e3, group=N, color=factor(delta_spikes))) +
   geom_line(size=0.4, alpha=0.6) + 
   scale_colour_brewer(
-    palette = "Reds", guide=guide_legend(title="Spike count", nrow=3)) +
+    palette = "Reds", guide=guide_legend(title="Spike\ncount", nrow=3)) +
   labs(x=expression(V[o]/V[b]), y="Variance (ms)") +
-  theme_classic() + theme(legend.position="none") -> p2
-
-# -
-M = min(fig1$variances_pop)
-fig1 %>% 
-  filter(freq == 20) %>% 
-  group_by(N) %>%
-  mutate(V_free_initial = round(max(V_free), 3)) %>%
-  filter(V_free_initial > 0) %>%
-  ggplot(aes(x=variances*1e3, fill=factor(delta_spikes))) +
-  geom_density(alpha=0.6, size=0, color="black") +
-  scale_fill_brewer(palette = "Reds", name="Spike\ncount") +
-  geom_vline(xintercept = M*1e3, color="black", linetype="dotted") +
-  labs(x="Variance (ms)", y="Density (AU)") +
-  theme_classic() + 
-  theme(legend.position = c(1.25, 1.55), 
+  theme_classic() + theme(legend.position = c(1.25, 0.8), 
         legend.background = element_rect(colour ="black"),
         legend.key.size = unit(.5, "cm"),
         legend.title = element_text(size=10),
-        legend.text = element_text(size=10)) -> p3
+        legend.text = element_text(size=10)) -> p2
 
 fig1 %>% 
   filter(freq==20) %>% 
@@ -617,7 +606,47 @@ fig1 %>%
   theme_classic() +
   theme(legend.position = "none") +
   labs(y=expression(V[o]/V[c]), x="Spike count") + 
-  coord_flip()  -> p4
+  coord_flip()  -> p3
+
+# -
+M = min(fig2$variances_pop/fig2$n_spikes_pop)
+fig1 %>% 
+  filter(freq==20) %>% 
+  mutate(quantile = ntile(V_osc, 10)) %>%
+  filter(quantile %in% c(1, 10)) %>% 
+  ggplot(aes(x=(variances/n_spikes)*1e3, fill=factor(quantile), group=quantile)) +
+  geom_density(alpha=0.6, size=0.2, color="black") +
+  geom_vline(xintercept = M*1e3, color="black") +
+  labs(x="Variance (ms)", y="Density (AU)") +
+  scale_fill_manual(
+    # values=c("#FFDED3", "#FD0D11"), 
+    values=c("grey", "black"),
+    name=expression("Deciles V"[o]), 
+    labels=c("0 - 10%", "90 - 100%")) +
+  theme_classic() +
+  theme(
+    legend.position="bottom", 
+    legend.key.size = unit(.3, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8) ) -> p4
+
+# fig1 %>% 
+#   filter(freq == 20) %>% 
+#   group_by(N) %>%
+#   mutate(V_free_initial = round(max(V_free), 3)) %>%
+#   filter(V_free_initial > 0) %>%
+#   ggplot(aes(x=(variances/n_spikes)*1e3, fill=factor(delta_spikes))) +
+#   geom_density(alpha=0.6, size=0, color="black") +
+#   scale_fill_brewer(palette = "Reds", name="Spike\ncount") +
+#   geom_vline(xintercept = M*1e3, color="black", linetype="dotted") +
+#   labs(x="Variance (ms)", y="Density (AU)") +
+#   theme_classic() + 
+#   theme(legend.position = c(1.25, 1.55), 
+#         legend.background = element_rect(colour ="black"),
+#         legend.key.size = unit(.5, "cm"),
+#         legend.title = element_text(size=10),
+#         legend.text = element_text(size=10)) -> p3
+
 
 fig1 %>%
   filter(freq==20) %>%
@@ -627,11 +656,11 @@ fig1 %>%
   ungroup() %>% 
   group_by(N) %>% 
   sample_n_groups(8) %>% 
-  ggplot(aes(x=V_osc/V_b, y=variances*1e3, color=factor(delta_spikes))) +
+  ggplot(aes(x=V_osc/V_b, y=(variances/n_spikes)*1e3, color=factor(delta_spikes))) +
   geom_point(size=1, alpha=1) +
   facet_wrap(~N, nrow=8) +
-  geom_line(aes(x=V_osc/V_b, y=variances_pop*1e3),
-            color="black", size=0.7, alpha=1) +
+  # geom_line(aes(x=V_osc/V_b, y=(variances_pop/n_spikes_pop)*1e3),
+  #           color="black", size=0.7, alpha=1) +
   scale_colour_brewer(palette = "Reds", name="Spike count") +
   scale_x_continuous(breaks=c(0, 0.5, 1.0), limits = c(0, 1)) +
   scale_y_continuous(breaks=c(6, 12)) +
@@ -723,7 +752,7 @@ fig2 %>%
   filter(freq <= 30) %>% 
   group_by(N, freq) %>% 
   mutate(norm_errors_pop = errors_pop/max(errors_pop)) %>% 
-  mutate(norm_variances_pop = variances_pop/max(variances_pop)) %>% 
+  mutate(norm_variances_pop = (variances_pop/n_spikes_pop)/max((variances_pop/n_spikes_pop))) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_errors_pop, color=freq, group=interaction(N, freq))) +
   geom_line(size=0.3, alpha=1) + 
   labs(x=expression(V[o]/V[c]), y="Norm. error") +
@@ -741,7 +770,7 @@ fig2 %>%
   filter(freq <= 30) %>% 
   group_by(N, freq) %>% 
   mutate(norm_errors_pop = errors_pop/max(errors_pop)) %>% 
-  mutate(norm_variances_pop = variances_pop/max(variances_pop)) %>% 
+  mutate(norm_variances_pop = (variances_pop/n_spikes_pop)/max((variances_pop/n_spikes_pop))) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_variances_pop, color=freq, group=interaction(N, freq))) +
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
@@ -779,7 +808,7 @@ fig9 %>%
   filter(V_osc/V_comp < 3) %>% 
   group_by(N, sigma) %>% 
   mutate(norm_errors_pop = errors_pop/max(errors_pop)) %>% 
-  mutate(norm_variances_pop = variances_pop/max(variances_pop)) %>% 
+  mutate(norm_variances_pop = (variances_pop/n_spikes_pop)/max((variances_pop/n_spikes_pop))) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_variances_pop, color=10e-3*(sigma/10e-9) * 1e3 /2, group=interaction(N, sigma))) +
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
@@ -818,7 +847,7 @@ fig11 %>%
   filter(V_osc/V_comp < 3) %>% 
   group_by(N, weight) %>% 
   mutate(norm_errors_pop = errors_pop/max(errors_pop)) %>% 
-  mutate(norm_variances_pop = variances_pop/max(variances_pop)) %>% 
+  mutate(norm_variances_pop = (variances_pop/n_spikes_pop)/max((variances_pop/n_spikes_pop))) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_variances_pop, color=weight*1e9, group=interaction(N, weight))) +
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
@@ -879,12 +908,32 @@ fig12 %>%
   geom_line(size=0.5, alpha=0.2, color="darkgrey") + 
   geom_line(data=filter(fig13, V_osc/V_comp <= 3), 
             aes(x=V_osc/V_comp, y=errors/max(errors)), 
-            color="black", size=0.8) +
+            color="black", size=0.7) +
+  geom_line(data=filter(fig2, freq==20, V_osc/V_comp <= 3), 
+            aes(x=V_osc/V_comp, y=errors/max(errors)), 
+            color="tan4", size=0.7, ) +
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.4, color="black", linetype="dashed") +
   theme_classic() +
   lims(x=c(0, 3)) +
   labs(x=expression(V[o]/V[c]), y="Norm. error") -> p1
+
+# fig1 %>% 
+#   group_by(N) %>% 
+#   filter(V_osc/V_comp <= 3) %>% 
+#   filter(freq == 20) %>% 
+#   group_by(N) %>%
+#   mutate(V_free_initial = round(max(V_free), 3)) %>%
+#   filter(V_free_initial > 0) %>%
+#   ggplot(aes(x=V_osc/V_comp, y=errors*1e3, group=N)) +
+#   geom_line(size=0.5, alpha=0.2, color="grey") + 
+#   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
+#   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
+#   theme_classic() +
+#   geom_line(data=filter(fig2, freq==20, V_osc/V_comp <= 3), 
+#             aes(x=V_osc/V_comp, y=errors*1e3), 
+#             color="black", size=0.8) +
+#   labs(x=expression(V[o]/V[c]), y="Error (ms)") -> p1
 
 fig12 %>%
   group_by(N) %>%
@@ -892,11 +941,14 @@ fig12 %>%
   filter(V_free_initial > 0) %>%
   filter(V_osc/V_comp <= 3) %>% 
   mutate(norm_variances = variances/max(variances)) %>% 
-  ggplot(aes(x=V_osc/V_comp, y=norm_variances, group=N)) +
+  ggplot(aes(x=V_osc/V_comp, y=norm_variances/n_spikes, group=N)) +
   geom_line(size=0.5, alpha=0.2, color="darkgrey") + 
   geom_line(data=filter(fig13, V_osc/V_comp <= 3), 
-            aes(x=V_osc/V_comp, y=variances/max(variances)), 
+            aes(x=V_osc/V_comp, y=(variances_pop/max(variances_pop))/n_spikes_pop), 
             color="black", size=0.8) +
+  geom_line(data=filter(fig2, freq==20, V_osc/V_comp <= 3), 
+            aes(x=V_osc/V_comp, y=(variances_pop/max(variances_pop))/n_spikes_pop), 
+            color="tan4", size=0.7, ) +
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.4, color="black", linetype="dashed") +
   theme_classic() +
