@@ -913,37 +913,49 @@ rm(p1, p2, plot_grid)
 
 # Optimal 
 
-```{r, fig.width=3, fig.height=1.4}
+```{r, fig.width=3, fig.height=1.6}
+min_t <- min(fig4$ts)
+
 fig4 %>% 
-  filter(alg != "coincidence") %>%
-  ggplot(aes(x=(ts - min(ts))*1e3, y=ns, color=set)) +
-  geom_point(size=0.7, alpha=1) +
+  filter(alg != "coincidence") %>% 
+  group_by(set, alg) %>% 
+  mutate(ts = ts - min_t) -> tmp
+
+tmp %>% 
+  filter(set == "synchronized") %>%
+  ggplot(aes(x=ts*1e3, y=ns, color=alg)) +
+  geom_point(size=1.6, alpha=.9, shape=4) +
+  geom_point(
+    data=filter(tmp, set == "initial"), 
+    mapping=aes(x=ts*1e3, y=ns), color="black", shape=16, alpha=0.7, size=0.5) +
   facet_grid(alg~.) +
-  scale_color_manual(values=c("black", "darkgrey"), name="") +
+  scale_color_brewer(palette = "Set1", guide=FALSE) +
   theme_classic() +
   labs(x="Time (ms)", y="Neuron") +
   theme(
-    legend.position="top", 
-    legend.key.size = unit(.5, "cm"),
-    legend.title = element_text(size=8),
-    legend.text = element_text(size=8),
+    legend.position="none", 
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     strip.background = element_blank(),
     strip.text.y = element_text(angle = 0)) -> p1
-  
 
 fig3 %>% 
   filter(alg != "coincidence") %>%
-  ggplot(aes(x=errors*1e3, y=obs_variances*1e3, linetype=alg)) +
-  geom_line(size=0.8, alpha=1, color="darkgrey") +
-  scale_linetype_manual(values=c("dashed", "solid", "dotted"), name="Algorithm") +
+  ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
+  geom_line(size=0.8, alpha=0.8) +
+  scale_color_brewer(palette = "Set1", name="Algorithm:") +
   theme_classic() +
+  labs(x="Time (ms)", y="Neuron") +
+  theme(legend.position="top",
+    legend.key.size = unit(.5, "cm"),
+    legend.title = element_text(size=10),
+    legend.text = element_text(size=10),
+    legend.background = element_rect(colour ="black")) +
   labs(x="Error (ms)", y="Variance (ms)") -> p2
 
 
 plot_grid <- rbind(
-  c(1, 1, 1, NA, NA, NA, NA),
+  # c(1, 1, 1, NA, NA, NA, NA),
   c(1, 1, 1, 2, 2, 2, 2),
   c(1, 1, 1, 2, 2, 2, 2),
   c(1, 1, 1, 2, 2, 2, 2))
