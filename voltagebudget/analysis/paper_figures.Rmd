@@ -726,7 +726,7 @@ fig2 %>%
   mutate(norm_variances_pop = variances_pop/max(variances_pop)) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_errors_pop, color=freq, group=interaction(N, freq))) +
   geom_line(size=0.3, alpha=1) + 
-  labs(x=expression(V[o]/V[b]), y="Norm. error") +
+  labs(x=expression(V[o]/V[c]), y="Norm. error") +
   scale_color_gradient2(low="gold", high="darkgreen", mid="grey", midpoint=20) +
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
@@ -746,7 +746,7 @@ fig2 %>%
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
-  labs(x=expression(V[o]/V[b]), y="Norm. variance") +
+  labs(x=expression(V[o]/V[c]), y="Norm. variance") +
   scale_color_gradient2(low="gold", high="darkgreen", mid="grey", midpoint=20, name="Freq. (Hz)") +
   theme_classic() +
   # lims(y=c(5, 10)) +
@@ -767,7 +767,7 @@ fig9 %>%
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
-  labs(x=expression(V[o]/V[b]), y="Norm. error") +
+  labs(x=expression(V[o]/V[c]), y="Norm. error") +
   scale_color_gradient(low="grey", high="orange") +
   theme_classic() +
   theme(legend.position="none", 
@@ -784,7 +784,7 @@ fig9 %>%
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
-  labs(x=expression(V[o]/V[b]), y="Norm. variance") +
+  labs(x=expression(V[o]/V[c]), y="Norm. variance") +
   scale_color_gradient(low="grey", high="orange", name="Noise (mV)") +
   theme_classic() +
   # lims(y=c(5, 10)) +
@@ -805,7 +805,7 @@ fig11 %>%
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
-  labs(x=expression(V[o]/V[b]), y="Norm. error") +
+  labs(x=expression(V[o]/V[c]), y="Norm. error") +
   scale_color_gradient2(
     low="cornflowerblue", high="darkblue", mid="grey", midpoint=8.25e-09*1e9) +
   theme_classic() +
@@ -823,7 +823,7 @@ fig11 %>%
   geom_line(size=0.3, alpha=1) + 
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
-  labs(x=expression(V[o]/V[b]), y="Norm. variance") +
+  labs(x=expression(V[o]/V[c]), y="Norm. variance") +
   scale_color_gradient2(
     low="cornflowerblue", high="darkblue", mid="grey", midpoint=8.25e-09*1e9, name="Weight (nS)") +
   theme_classic() +
@@ -884,7 +884,7 @@ fig12 %>%
   geom_vline(xintercept = 0.5, alpha=0.4, color="black", linetype="dashed") +
   theme_classic() +
   lims(x=c(0, 3)) +
-  labs(x=expression(V[o]/V[b]), y="Norm. error") -> p1
+  labs(x=expression(V[o]/V[c]), y="Norm. error") -> p1
 
 fig12 %>%
   group_by(N) %>%
@@ -901,7 +901,7 @@ fig12 %>%
   geom_vline(xintercept = 0.5, alpha=0.4, color="black", linetype="dashed") +
   theme_classic() +
   lims(x=c(0, 3)) +
-  labs(x=expression(V[o]/V[b]), y="Norm. variance") -> p2
+  labs(x=expression(V[o]/V[c]), y="Norm. variance") -> p2
 
 plot_grid <- rbind(
   c(1),
