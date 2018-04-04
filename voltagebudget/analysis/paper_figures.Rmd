@@ -283,6 +283,9 @@ fig12 %>%
     variances_pop = mean(variances_pop), 
     variances = mean(variances)) -> fig13
 
+# Load exmample timecourses for hetero
+fig14 <- read_csv("vm_hetero_timecourse.csv")
+
 # --------------------------------------------------------------------
 rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
 ```
@@ -840,7 +843,32 @@ grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix=plot_grid)
 rm(p1, p2, p3, p4, plot_grid)
 ```
 ## Heterocells
-```{r, fig.width=1.1, fig.height=1.5}
+
+```{r, fig.width=0.4, fig.height=1.2}
+fig14 %>% 
+  ggplot(aes(x=t, y=vm*1e3, group=cell)) +
+  geom_line(size=0.3, color="darkgrey") +
+  facet_grid(cell~.) +
+  theme_classic() +
+  labs(x="Time (s)", y="V (mV)") +
+  theme(
+    strip.text = element_blank(),
+    strip.background = element_blank(),
+    legend.position="none",
+    axis.line=element_blank(),
+    axis.text.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks=element_blank(),
+    axis.title.x=element_blank(),
+    axis.title.y=element_blank(),
+    panel.background=element_blank(),
+    panel.border=element_blank(),
+    panel.grid.major=element_blank(),
+    panel.grid.minor=element_blank(),
+    plot.background=element_blank())
+```
+
+```{r, fig.width=0.9, fig.height=1.5}
 fig12 %>%
   group_by(N) %>%
   mutate(V_free_initial = round(max(V_free), 3)) %>%
