@@ -101,7 +101,12 @@ stim5:
 	--stim_number=10 --stim_onset=0.2 --stim_offset=0.250 --stim_rate=20 \
 	--seed_stim=7525 --time_step=1e-5 --verbose
 
-# 
+# A long version of stim1
+stim6:
+	python budget_experiments.py create_stim $(DATADIR)/stim6 7.0 \
+	--stim_number=40 --stim_onset=0.2 --stim_offset=6.8 --stim_rate=8 \
+	--seed_stim=7525 --time_step=1e-5 --verbose
+
 # ---------------------------------------------------------------------------
 # Budgets locked to stim1 (stim onset design), and first population spike
 
@@ -1037,3 +1042,13 @@ exp101:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp101_d{1}_f{3} $(DATADIR)/stim1.csv 0.2 --mode=heterogenous --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
+
+# -----------------------------------------------
+# Fix the runtime to be long, and est sync error over it for many cycles
+# consider 4 f: 10, 20, 10 Hz
+exp102:
+	parallel -j 12 -v \
+		--joblog '$(DATADIR)/exp102.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp102_f{1}_nc{2} $(DATADIR)/stim6.csv 0 --mode=regular --t=7.0 --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=30 --d=-2e-3 --T=6.8 --f={1} --n_cycles={2} --verbose --save_only' \
+		::: 10 20 30 ::: 2 4 8 16 32 64
