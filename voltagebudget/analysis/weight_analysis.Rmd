@@ -1,0 +1,116 @@
+---
+title: "Sweep Z - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+data_summary <- function(x) {
+   m <- mean(x)
+   ymin <- m-mad(x)
+   ymax <- m+mad(x)
+   return(c(y=m,ymin=ymin,ymax=ymax))
+}
+mean_summary <- function(x) {
+   m <- mean(x)
+   return(c(y=m))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+# Osc
+freq <- "20"
+
+# Init
+results <- NULL
+
+# high w
+exp <- "100"
+name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$weight <- rep(2.48e-08, nrow(df))
+results <- rbind(df, results)
+
+
+# Ref (Z=0)
+exp <- "96"
+name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$weight <- rep(8.25e-09, nrow(df))
+results <- rbind(df, results)
+
+# low w
+exp <- "99"
+name <- paste("../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$weight <- rep(1.65e-09, nrow(df))
+results <- rbind(df, results)
+
+
+# Process
+results %>% 
+  filter(n_spikes_ref > 0) %>% 
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  mutate(V_osc = V_osc - V_osc_ref) -> results
+
+rm(df, exp, freq, name)
+```
+
+# As
+
+```{r, fig.width=1.9, fig.height=1.5}
+results %>% 
+  # filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=n_spikes_pop, color=factor(weight))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  # filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=variances_pop, color=factor(weight))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  # filter(rank == 0) %>% 
+  ggplot(aes(x=As, y=errors_pop, color=factor(weight))) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+# V_osc/V_comp
+
+```{r, fig.width=1.9, fig.height=1.3}
+results %>% 
+  filter(V_osc/V_comp <= 3) %>% 
+  group_by(N, weight) %>% 
+  mutate(norm_errors = errors/max(errors)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_errors, group=interaction(N, weight), color=factor(weight*1e9))) +
+  geom_line(size=0.3, alpha=0.4) + 
+  theme_classic() +
+  geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
+  geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
+  # scale_colour_brewer(palette="Greys", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
