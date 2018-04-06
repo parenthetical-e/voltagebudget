@@ -1,0 +1,131 @@
+---
+title: "Sweep A - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+results <- NULL
+
+# --------------------------"
+exp <- "102"
+freqs <- c(10, 20, 30)
+run_times <-  c("0.25", "0.5", "1", "1.5", "2", "2.5", "3.0")
+for(freq in freqs){
+  for(t in run_times) {
+    # exp102_f10_t1.5.csv
+    name <- paste("../data/exp", exp, "_f", freq, "_t", t, ".csv", sep="")
+    df <- read_csv(paste(name, sep=","))
+    df %>%
+      filter(n_spikes > 0) -> df
+  
+    df$freq <- rep(as.numeric(freq), nrow(df))
+    df$run_time <- rep(as.numeric(t), nrow(df))
+    results <- rbind(results, df)  
+  }
+}
+
+# --------------------------
+# Process
+results %>% 
+  # Add delta_spikes
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  # Re-norm V_osc
+  mutate(V_osc = V_osc - V_osc_ref) -> results
+
+# --------------------------
+# Est avg pop responses
+results %>% 
+  group_by(freq, run_time) %>% 
+  summarise(
+    N = 0,
+    V_b = mean(V_b),
+    V_osc = mean(V_osc),
+    n_spikes = mean(n_spikes),
+    n_spikes_pop = mean(n_spikes_pop),
+    delta_spikes = mean(delta_spikes),
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    V_comp = mean(V_comp), 
+    errors = mean(errors), 
+    variances_pop = mean(variances_pop),
+    variances = mean(variances)) -> avg_results
+
+rm(df, exp, freq, freqs, t, run_times, name)
+```
+
+# Population
+
+```{r, fig.width=1.5, fig.height=0.7}
+avg_results %>%
+  ggplot(aes(x=run_time, y=(variances_pop/n_spikes_pop)*1e3, color=freq, group=interaction(freq, run_time))) +
+  geom_point(size=1, alpha=0.8) +
+  labs(x="Run time (s)", y="Variance (ms)") +
+  theme_classic() +
+  facet_grid(.~freq) +
+  scale_color_gradient2(low="gold", high="darkgreen", mid="grey", midpoint=20, name="Freq. (Hz)") +
+  theme(legend.position="right", 
+    legend.key.size = unit(.4, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    strip.text.x = element_blank()) 
+```
+
+# Individual cells
+## Error
+
+```{r, fig.width=1.5, fig.height=0.7}
+results %>%
+  ggplot(aes(x=run_time, y=(errors/n_spikes)*1e3, color=freq, group=interaction(freq, run_time))) +
+  # geom_point(size=0.05, alpha=0.2) + 
+  geom_boxplot(outlier.size = NA) +
+  labs(x="Run time (s)", y="Variance (ms)") +
+  theme_classic() +
+  facet_grid(.~freq) +
+  scale_color_gradient2(low="gold", high="darkgreen", mid="grey", midpoint=20, name="Freq. (Hz)") +
+  theme(legend.position="right", 
+    legend.key.size = unit(.4, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    strip.text.x = element_blank()) 
+```
+
+## Var
+
+```{r, fig.width=1.5, fig.height=0.7}
+results %>%
+  ggplot(aes(x=run_time, y=(variances/n_spikes)*1e3, color=freq, group=interaction(freq, run_time))) +
+  # geom_point(size=0.05, alpha=0.2) + 
+  geom_boxplot(outlier.size = NA) +
+  labs(x="Run time (s)", y="Variance (ms)") +
+  theme_classic() +
+  facet_grid(.~freq) +
+  scale_color_gradient2(low="gold", high="darkgreen", mid="grey", midpoint=20, name="Freq. (Hz)") +
+  theme(legend.position="right", 
+    legend.key.size = unit(.4, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    strip.text.x = element_blank()) 
+```
+
