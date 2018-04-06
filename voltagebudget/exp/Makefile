@@ -1050,5 +1050,5 @@ exp102:
 	parallel -j 6 -v \
 		--joblog '$(DATADIR)/exp102.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp102_f{1}_t{2} $(DATADIR)/stim6.csv 0 --mode=regular --t=3.2 --A_0=0.00e-9 --A_max=0.1e-9 --N=50 --n_samples=20 --d=-2e-3 --T={2} --f={1} --n_cycles=100 --verbose --save_only' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp102_f{1}_t{2} $(DATADIR)/stim6.csv 0.2 --mode=regular --t={2} --t_pad=0.1 --A_0=0.00e-9 --A_max=0.1e-9 --N=50 --n_samples=20 --d=-2e-3 --T={2} --f={1} --n_cycles=100 --verbose --save_only' \
 		::: 10 20 30 ::: 0.25 0.5 1 1.5 2 2.5 3.0
