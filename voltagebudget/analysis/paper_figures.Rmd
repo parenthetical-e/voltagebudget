@@ -441,7 +441,7 @@ fig2 %>%
 fig2 %>% 
   filter(freq == 20) %>% 
   ggplot(aes(x=errors_pop*1e3, y=(variances_pop/n_spikes_pop)*1e3, color=V_osc/V_b)) +
-  geom_point(size=0.05, alpha=.6) +
+  geom_point(size=0.2, alpha=.6) +
   scale_color_gradient(low="darkgrey", high="red", name=expression(V[o]/V[b])) +
   # scale_color_gradient(low="darkgrey", high="red", name="A (namp)") +
   geom_smooth(color="red", method=lm, alpha=0.2, size=.15, se=FALSE, linetype='solid') +
@@ -465,13 +465,9 @@ fig2 %>%
 
 plot_grid <- rbind(
   c(NA),
-  c(1, 2),
-  c(1, 2),
-  c(3, 3),
-  c(3, 3),
   c(3, 3))
 
-grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
+grid.arrange(p3, layout_matrix=plot_grid)
 rm(p1, p2, p3, plot_grid)
 ```
 
@@ -876,7 +872,7 @@ rm(p1, p2, p3, p4, plot_grid)
 ```{r, fig.width=0.4, fig.height=1.2}
 fig14 %>% 
   ggplot(aes(x=t, y=vm*1e3, group=cell)) +
-  geom_line(size=0.3, color="darkgrey") +
+  geom_line(size=0.2, color="black") +
   facet_grid(cell~.) +
   theme_classic() +
   labs(x="Time (s)", y="V (mV)") +
