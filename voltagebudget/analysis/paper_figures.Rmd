@@ -444,7 +444,7 @@ fig2 %>%
   geom_point(size=0.2, alpha=.6) +
   scale_color_gradient(low="darkgrey", high="red", name=expression(V[o]/V[b])) +
   # scale_color_gradient(low="darkgrey", high="red", name="A (namp)") +
-  geom_smooth(color="red", method=lm, alpha=0.2, size=.15, se=FALSE, linetype='solid') +
+  # geom_smooth(color="red", method=lm, alpha=0.2, size=.15, se=FALSE, linetype='solid') +
   labs(x="Avg. error (ms)", y="Pop. variance (ms)") +
   theme_classic() +
   theme(
