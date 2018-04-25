@@ -294,60 +294,6 @@ fig14 <- read_csv("vm_hetero_timecourse.csv")
 rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
 ```
 
-# Shift-add cartoon
-
-```{r, fig.width=1.2, fig.height=0.5}
-t_start <- 0.2
-t_stop <- 0.3
-
-fig6 %>% 
-  filter(t > t_start, t < t_stop) %>%
-  ggplot(aes(x=t, ymin=-70e-3*1e3, ymax=osc*1e3)) +
-  geom_ribbon(fill="red", alpha=0.5) +
-  geom_line(aes(x=t, y=vm*1e3),color="black", alpha=1, size=.2) +
-  geom_hline(yintercept=-55e-3*1e3, color="black", linetype="dotted", size=0.5) +
-  geom_hline(yintercept=-70e-3*1e3, color="black", linetype="dotted", size=0.5) +
-  labs(x="", y="") +
-  theme_classic() +
-  theme(axis.line=element_blank(),
-      axis.text.x=element_blank(),
-      axis.text.y=element_blank(),
-      axis.ticks=element_blank(),
-      # axis.title.x=element_blank(),
-      # axis.title.y=element_blank(),
-      legend.position="none",
-      panel.background=element_blank(),
-      panel.border=element_blank(),
-      panel.grid.major=element_blank(),
-      panel.grid.minor=element_blank(),
-      plot.background=element_blank()) -> p1
-
-fig7 %>% 
-  filter(t > t_start, t < t_stop) %>%
-  ggplot(aes(x=t, ymin=-70e-3*1e3, ymax=osc*1e3)) +
-  geom_ribbon(fill="red", alpha=0.5) +
-  geom_line(aes(x=t, y=vm*1e3),color="black", alpha=1, size=.2) +
-  geom_hline(yintercept=-55e-3*1e3, color="black", linetype="dotted", size=0.5) +
-  geom_hline(yintercept=-70e-3*1e3, color="black", linetype="dotted", size=0.5) +
-  labs(x="", y="") +
-  theme_classic() +
-  theme(axis.line=element_blank(),
-      axis.text.x=element_blank(),
-      axis.text.y=element_blank(),
-      axis.ticks=element_blank(),
-      # axis.title.x=element_blank(),
-      # axis.title.y=element_blank(),
-      legend.position="none",
-      panel.background=element_blank(),
-      panel.border=element_blank(),
-      panel.grid.major=element_blank(),
-      panel.grid.minor=element_blank(),
-      plot.background=element_blank()) -> p2
-
-plot_grid <- rbind(c(1, 1, 1, 2, 2, 2))
-grid.arrange(p1, p2, layout_matrix=plot_grid)
-rm(p1, p2, plot_grid)
-```
 
 # Budget intro
 
@@ -484,9 +430,10 @@ grid.arrange(p3, layout_matrix=plot_grid)
 rm(p1, p2, p3, plot_grid)
 ```
 
-# Bound 1 - V_osc/V_comp (f = 20)
+# V_o/V_c
 
 ```{r, fig.width=2.7, fig.height=2.2}
+
 fig1 %>% 
   group_by(N) %>% 
   filter(V_osc/V_comp <= 3) %>% 
@@ -520,10 +467,44 @@ fig1 %>%
             color="black", size=0.7, alpha=1) +
   labs(x=expression(V[o]/V[c]), y="Variance (ms)") -> p2
 
+# # Norm error here
+# fig1 %>% 
+# filter(V_osc/V_comp < 3) %>% 
+#   filter(freq == 20) %>% 
+#   group_by(N, freq) %>% 
+#   mutate(norm_errors = errors/max(errors)) -> tmp1
+# 
+# tmp1 %>% 
+#   group_by(As) %>% 
+#   summarise(
+#     N = 0,
+#     norm_errors = mean(norm_errors),
+#     V_b = mean(V_b), 
+#     V_osc = mean(V_osc), 
+#     V_comp = mean(V_comp)) -> tmp2
+# 
+# tmp1 %>% 
+#   group_by(N) %>% 
+#   filter(V_osc/V_comp <= 3) %>% 
+#   filter(freq == 20) %>%
+#   group_by(N) %>%
+#   mutate(V_free_initial = round(max(V_free), 3)) %>%
+#   filter(V_free_initial > 0) %>%
+#   ggplot(aes(x=V_osc/V_comp, y=norm_errors, group=N)) +
+#   geom_line(size=0.5, alpha=0.2, color="grey") + 
+#   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
+#   geom_vline(xintercept = 0.5, alpha=0.5, color="black", linetype="dashed") +
+#   theme_classic() +
+#   geom_line(data=tmp2, 
+#             aes(x=V_osc/V_comp, y=norm_errors), 
+#             color="black", size=0.8) +
+#   labs(x=expression(V[o]/V[c]), y="Norm. error") -> p2
+
+
 max_N <- max(fig1$N)
 
 fig1 %>% 
-  filter(freq==20) %>% 
+  filter(freq==20) %>%
   filter(V_osc/V_comp <= 3) %>% 
   filter(N %in% sample(1:max_N, 24, replace = FALSE)) %>% 
   ggplot(aes(x=V_osc/V_comp, y=errors*1e3, group=N)) +
@@ -566,23 +547,10 @@ grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
 rm(p1, p2, p3, plot_grid, max_N)
 ```
 
-# Bound 2 - n_spikes < (0, 1)
+$ V_o and variance
 
-```{r, fig.width=2.6, fig.height=3.2}
+```{r, fig.width=2.8, fig.height=3.2}
 max_N <- max(fig1$N)
-
-fig1 %>% 
-  filter(freq == 20) %>% 
-  group_by(N) %>%
-  mutate(V_free_initial = round(max(V_free), 3)) %>%
-  filter(V_free_initial > 0) %>%
-  ggplot(aes(x=V_osc/V_b, y=(variances/n_spikes)*1e3, group=N)) +
-  geom_line(size=0.5, alpha=0.2, color="grey") + 
-  theme_classic() +
-  geom_line(data=filter(fig2, freq == 20), aes(x=V_osc/V_b, y=(variances_pop/n_spikes_pop)*1e3), 
-            color="black", size=0.7, alpha=1) +
-  labs(x=expression(V[o]/V[b]), y="Variance (ms)") -> p1
-
 
 fig1 %>% 
   filter(freq == 20) %>% 
@@ -594,11 +562,11 @@ fig1 %>%
   scale_colour_brewer(
     palette = "Reds", guide=guide_legend(title="Spike\ncount", nrow=3)) +
   labs(x=expression(V[o]/V[b]), y="Variance (ms)") +
-  theme_classic() + theme(legend.position = c(1.25, 0.8), 
+  theme_classic() + theme(legend.position = c(1.25, -0.8), 
         legend.background = element_rect(colour ="black"),
         legend.key.size = unit(.5, "cm"),
         legend.title = element_text(size=10),
-        legend.text = element_text(size=10)) -> p2
+        legend.text = element_text(size=10)) -> p1
 
 fig1 %>% 
   filter(freq==20) %>% 
@@ -615,7 +583,7 @@ fig1 %>%
   theme_classic() +
   theme(legend.position = "none") +
   labs(y=expression(V[o]/V[c]), x="Spike count") + 
-  coord_flip()  -> p3
+  coord_flip()  -> p2
 
 # -
 M = min(fig2$variances_pop/fig2$n_spikes_pop)
@@ -637,7 +605,7 @@ fig1 %>%
     legend.position="bottom", 
     legend.key.size = unit(.3, "cm"),
     legend.title = element_text(size=8),
-    legend.text = element_text(size=8) ) -> p4
+    legend.text = element_text(size=8) ) -> p3
 
 # fig1 %>% 
 #   filter(freq == 20) %>% 
@@ -692,7 +660,7 @@ fig1 %>%
     # panel.border=element_blank(),
     # panel.grid.major=element_blank(),
     # panel.grid.minor=element_blank(),
-    plot.background=element_blank()) -> p5
+    plot.background=element_blank()) -> p4
 
 fig1 %>%
   filter(freq==20) %>%
@@ -728,24 +696,76 @@ fig1 %>%
     # panel.border=element_blank(),
     # panel.grid.major=element_blank(),
     # panel.grid.minor=element_blank(),
-    plot.background=element_blank()) -> p6
+    plot.background=element_blank()) -> p5
 
-  
+
+# Shift-add cartoon
+t_start <- 0.2
+t_stop <- 0.3
+
+fig6 %>% 
+  filter(t > t_start, t < t_stop) %>%
+  ggplot(aes(x=t, ymin=-70e-3*1e3, ymax=osc*1e3)) +
+  geom_ribbon(fill="red", alpha=0.5) +
+  geom_line(aes(x=t, y=vm*1e3),color="black", alpha=1, size=.3) +
+  geom_hline(yintercept=-55e-3*1e3, color="black", linetype="dotted", size=0.6) +
+  geom_hline(yintercept=-70e-3*1e3, color="black", linetype="dotted", size=0.6) +
+  labs(x="", y="") +
+  theme_classic() +
+  theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      # axis.title.x=element_blank(),
+      # axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.background=element_blank()) -> p6
+
+fig7 %>% 
+  filter(t > t_start, t < t_stop) %>%
+  ggplot(aes(x=t, ymin=-70e-3*1e3, ymax=osc*1e3)) +
+  geom_ribbon(fill="red", alpha=0.5) +
+  geom_line(aes(x=t, y=vm*1e3),color="black", alpha=1, size=.3) +
+  geom_hline(yintercept=-55e-3*1e3, color="black", linetype="dotted", size=0.6) +
+  geom_hline(yintercept=-70e-3*1e3, color="black", linetype="dotted", size=0.6) +
+  labs(x="", y="") +
+  theme_classic() +
+  theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      # axis.title.x=element_blank(),
+      # axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.background=element_blank()) -> p7
+
+
 plot_grid <- rbind(
-  c(1, 1, 1, NA, 5, 5, 6, 6),
-  c(1, 1, 1, NA, 5, 5, 6, 6),
-  c(1, 1, 1, NA, 5, 5, 6, 6),
-  c(2, 2, 2, NA, 5, 5, 6, 6),
-  c(2, 2, 2, NA, 5, 5, 6, 6),
-  c(2, 2, 2, NA, 5, 5, 6, 6),
-  c(3, 3, 3, NA, 5, 5, 6, 6),
-  c(3, 3, 3, NA, 5, 5, 6, 6),
-  c(3, 3, 3, NA, 5, 5, 6, 6),
-  c(4, 4, 4, NA, NA, NA, NA, NA),
-  c(4, 4, 4, NA, NA, NA, NA, NA),
-  c(4, 4, 4, NA, NA, NA, NA, NA))
+  c(1, 1, 1, NA, 4, 4, 5, 5),
+  c(1, 1, 1, NA, 4, 4, 5, 5),
+  c(1, 1, 1, NA, 4, 4, 5, 5),
+  c(2, 2, 2, NA, 4, 4, 5, 5),
+  c(2, 2, 2, NA, 4, 4, 5, 5),
+  c(2, 2, 2, NA, 4, 4, 5, 5),
+  c(3, 3, 3, NA, 4, 4, 5, 5),
+  c(3, 3, 3, NA, NA, NA, NA, NA),
+  c(3, 3, 3, NA, 6, 6, 7, 7),
+  c(NA, NA, NA, NA, 6, 6, 7, 7))
+  
+  # c(3, 3, 3, NA, 4, 4, 5, 5))
+  # c(3, 3, 3, NA, NA, NA, NA, NA))
+  # c(3, 3, 3, NA, NA, NA, NA, NA))
 
-grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix=plot_grid)
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, layout_matrix=plot_grid)
 rm(p1, p2, p3, p4, plot_grid, max_N, M)
 ```
 
@@ -920,7 +940,7 @@ fig12 %>%
             color="black", size=0.7) +
   geom_line(data=filter(fig2, freq==20, V_osc/V_comp <= 3), 
             aes(x=V_osc/V_comp, y=errors/max(errors)), 
-            color="tan4", size=0.7, ) +
+            color="black", size=0.7, linetype="dotdash") +
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.4, color="black", linetype="dashed") +
   theme_classic() +
@@ -957,7 +977,7 @@ fig12 %>%
             color="black", size=0.8) +
   geom_line(data=filter(fig2, freq==20, V_osc/V_comp <= 3), 
             aes(x=V_osc/V_comp, y=(variances_pop/max(variances_pop))/n_spikes_pop), 
-            color="tan4", size=0.7, ) +
+            color="black", size=0.7, linetype="dotdash") +
   geom_vline(xintercept = 1, alpha=0.7, color="black", linetype="dashed") +
   geom_vline(xintercept = 0.5, alpha=0.4, color="black", linetype="dashed") +
   theme_classic() +
@@ -978,7 +998,7 @@ rm(p1, p2, plot_grid)
 min_t <- min(fig4$ts)
 
 fig4 %>% 
-  filter(alg != "coincidence") %>% 
+  filter(alg != "coincidence", alg != "left") %>% 
   group_by(set, alg) %>% 
   mutate(ts = ts - min_t) -> tmp
 
@@ -995,19 +1015,20 @@ tmp %>%
   labs(x="Time (ms)", y="Neuron") +
   theme(
     legend.position="none", 
+    panel.border = element_rect(fill = NA, colour = "black"),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     strip.background = element_blank(),
     strip.text.y = element_text(angle = 0)) -> p1
 
 fig3 %>% 
-  filter(alg != "coincidence") %>%
+  filter(alg != "coincidence", alg != "left") %>%
   ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
   geom_line(size=0.8, alpha=0.8) +
   scale_color_brewer(palette = "Set1", name="Algorithm:") +
   theme_classic() +
   labs(x="Time (ms)", y="Neuron") +
-  theme(legend.position="top",
+  theme(legend.position="bottom",
     legend.key.size = unit(.5, "cm"),
     legend.title = element_text(size=10),
     legend.text = element_text(size=10),
@@ -1019,7 +1040,11 @@ plot_grid <- rbind(
   # c(1, 1, 1, NA, NA, NA, NA),
   c(1, 1, 1, 2, 2, 2, 2),
   c(1, 1, 1, 2, 2, 2, 2),
-  c(1, 1, 1, 2, 2, 2, 2))
+  c(1, 1, 1, 2, 2, 2, 2),
+  c(1, 1, 1, 2, 2, 2, 2),
+    c(NA, NA, NA, 2, 2, 2, 2))
+  # c(1, 1, 1, 2, 2, 2, 2),
+  # c(NA, NA, NA, 2, 2, 2, 2))
   
 grid.arrange(p1, p2, layout_matrix=plot_grid)
 rm(p1, p2, plot_grid)
