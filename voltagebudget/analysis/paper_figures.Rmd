@@ -1,5 +1,5 @@
 ---
-title: "Exp1 - Opt w_max and {A,phi)"
+title: "Paper figures"
 output: html_notebook
 ---
 
@@ -994,7 +994,7 @@ rm(p1, p2, plot_grid)
 
 # Optimal 
 
-```{r, fig.width=3, fig.height=1.6}
+```{r, fig.width=1.2, fig.height=2}
 min_t <- min(fig4$ts)
 
 fig4 %>% 
@@ -1029,23 +1029,19 @@ fig3 %>%
   theme_classic() +
   labs(x="Time (ms)", y="Neuron") +
   theme(legend.position="bottom",
-    legend.key.size = unit(.5, "cm"),
+    legend.key.size = unit(.2, "cm"),
     legend.title = element_text(size=10),
     legend.text = element_text(size=10),
     legend.background = element_rect(colour ="black")) +
   labs(x="Error (ms)", y="Variance (ms)") -> p2
 
-
 plot_grid <- rbind(
-  # c(1, 1, 1, NA, NA, NA, NA),
-  c(1, 1, 1, 2, 2, 2, 2),
-  c(1, 1, 1, 2, 2, 2, 2),
-  c(1, 1, 1, 2, 2, 2, 2),
-  c(1, 1, 1, 2, 2, 2, 2),
-    c(NA, NA, NA, 2, 2, 2, 2))
-  # c(1, 1, 1, 2, 2, 2, 2),
-  # c(NA, NA, NA, 2, 2, 2, 2))
-  
+  c(1),
+  c(1),
+  c(2),
+  c(2),
+  c(2))  
+
 grid.arrange(p1, p2, layout_matrix=plot_grid)
 rm(p1, p2, plot_grid)
 ```
