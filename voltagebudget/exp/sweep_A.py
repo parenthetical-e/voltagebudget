@@ -51,7 +51,8 @@ def sweep_A(name,
             no_lock=False,
             verbose=False,
             save_only=False,
-            save_details=False,
+            save_spikes=False,
+            save_traces=False,
             seed_value=42):
     """Optimize using the shadow voltage budget."""
 
@@ -119,6 +120,9 @@ def sweep_A(name,
     if verbose:
         print(">>> {} spikes in the analysis window.".format(ns_ref.size))
 
+    if save_spikes:
+        write_spikes("{}_ref_spks".format(name), ns_ref, ts_ref)
+
     # --------------------------------------------------------------
     # Rank the neurons
     budget_ref = budget_window(voltages_ref, E + d, w, select=None)
@@ -126,7 +130,7 @@ def sweep_A(name,
         [budget_ref["V_free"][j, :].mean() for j in range(N)])
 
     # --------------------------------------------------------------
-    # Init results 
+    # Init results
     neurons = []
     ranks = []
 
@@ -161,10 +165,10 @@ def sweep_A(name,
         bias_adj = bias_in - (A_i * Z)
 
         if verbose:
-            print(">>> Running A {:0.15f} ({}/{}).".format(A_i, i + 1,
-                                                           n_samples))
-            print(
-                ">>> (bias_in {}) -> (bias_adj {})".format(bias_in, bias_adj))
+            print(">>> Running A {:0.15f} ({}/{}).".format(
+                A_i, i + 1, n_samples))
+            print(">>> (bias_in {}) -> (bias_adj {})".format(
+                bias_in, bias_adj))
 
         # -
         # Run
@@ -188,8 +192,8 @@ def sweep_A(name,
             save_args=None,
             **params)
 
-        # Est budget contribution of osc as a 
-        # instant A_i pulse, at E+d+adjustment, 
+        # Est budget contribution of osc as a
+        # instant A_i pulse, at E+d+adjustment,
         tau_m = 20e-3
         E_adj = E + d - (1 * tau_m)
         pulse_params = (A_i, E_adj, E_adj + (1 * tau_m))
@@ -216,7 +220,7 @@ def sweep_A(name,
 
         # -
         # Analyze!
-        # Filter spikes in E    
+        # Filter spikes in E
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
         # Pop var and error
@@ -284,16 +288,16 @@ def sweep_A(name,
         # -
         if verbose:
             print(
-                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_i, ns_i.size / float(N), error_pop, var_pop))
+                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})"
+                .format(A_i, ns_i.size / float(N), error_pop, var_pop))
 
-        if save_details:
+        if save_spikes or save_traces:
             print(">>> Writing details for A {} (nA)".format(
                 np.round(A_i * 1e9, 3)))
-
+        if save_spikes:
             write_spikes("{}_A{}_spks".format(name, np.round(A_i * 1e9, 3)),
                          ns_i, ts_i)
-
+        if save_traces:
             write_voltages(
                 "{}_A{}_w".format(name, np.round(A_i * 1e9, 3)),
                 voltage_w,
@@ -341,7 +345,7 @@ def sweep_A(name,
     with open("{}.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
-        writer.writerows(zip(* [results[key] for key in keys]))
+        writer.writerows(zip(*[results[key] for key in keys]))
 
     # If running in a CL, returns are line noise?
     if not save_only:
