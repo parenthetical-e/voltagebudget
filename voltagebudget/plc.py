@@ -133,8 +133,7 @@ def max_deviant(ts,
     # -
     iter_count = 0
     while adjusted > target:
-        # TODO if you want to later def 'right' side you'll need to
-        # def custom masled argmax
+        # Find index of farthest spike
         k = np.argmax(deltas[mask])
 
         # and shift that spike toward the mean
@@ -151,12 +150,11 @@ def max_deviant(ts,
         # Update rolling MAD
         adjusted = mad(ts_opt)
 
-        # Let's not seak inifinity
+        # Avoid inf
         iter_count += 1
         if iter_count > max_iterations:
             print(">>> max_deviant stopped at {} iterations (c {})".format(
                 max_iterations, percent_change))
-
             break
 
     # Re-sort ts_opt to match the order in intial ts
