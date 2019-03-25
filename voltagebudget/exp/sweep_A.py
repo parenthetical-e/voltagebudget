@@ -379,7 +379,6 @@ def optimal_sweep_A(name,
                     verbose=False,
                     save_only=False,
                     save_spikes=False,
-                    save_traces=False,
                     seed_value=42):
     """Optimize using the shadow voltage budget."""
     np.random.seed(seed_value)
