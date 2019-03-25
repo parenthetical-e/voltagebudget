@@ -108,16 +108,13 @@ def max_deviant(ts,
     if ts.size == 0:
         return ts
 
-    # -
+    # Init
     ts = np.asarray(ts)
     initial, target = _create_target(ts, percent_change)
 
-    # Init
-    adjusted = initial
-
+    adjusted = deepcopy(initial)
     idx = np.argsort(ts)
     ts_opt = ts.copy()[idx]
-
     M = mode_fm(ts_opt)
 
     # Which side of ts too look at?
