@@ -7,24 +7,17 @@ import voltagebudget
 from copy import deepcopy
 from voltagebudget.util import mad
 
+# def _create_target(ts, percent_change):
+#     initial = mad(ts)
+#     target = initial - (initial * percent_change)
+#     return initial, target
 
-def _create_target(ts, percent_change):
-    initial = mad(ts)
-    target = initial - (initial * percent_change)
-    return initial, target
 
-
-def uniform(ts, percent_change):
-    if not (0 <= percent_change <= 1):
-        raise ValueError("p must be between (0-1).")
-
+def uniform(ts, initial, target):
+    # Init
+    ts = np.asarray(ts)
     if ts.size == 0:
         return ts
-
-    ts = np.asarray(ts)
-
-    # -
-    initial, target = _create_target(ts, percent_change)
 
     dt = np.absolute(initial - target)
 
@@ -62,19 +55,16 @@ def _diffs(ts):
     return np.asarray(ds)
 
 
-def coincidence(ts, percent_change):
+def coincidence(ts, initial, target):
     """Coordinate by increasing coincidences"""
 
-    if not (0 <= percent_change <= 1):
-        raise ValueError("p must be between (0-1).")
+    # Init
+    ts = np.asarray(ts)
     if ts.size == 0:
         return ts
 
     # Prelim...
     ts = np.sort(ts)
-
-    # Figure out initial and target MAD.
-    initial, target = _create_target(ts, percent_change)
 
     # Est the seq. differences between ts,
     # and index their order.
@@ -96,22 +86,22 @@ def coincidence(ts, percent_change):
 
 
 def max_deviant(ts,
-                percent_change,
+                initial,
+                target,
                 side='both',
                 mode_fm=np.mean,
                 dt=0.01e-3,
-                max_iterations=50000):
-    if dt < 0:
-        raise ValueError("dt must be positive.")
-    if not (0 <= percent_change <= 1):
-        raise ValueError("p must be between (0-1).")
+                max_iterations=250000):
+    # Init
+    ts = np.asarray(ts)
     if ts.size == 0:
         return ts
 
-    # Init
-    ts = np.asarray(ts)
-    initial, target = _create_target(ts, percent_change)
+    # Sanity
+    if dt < 0:
+        raise ValueError("dt must be positive.")
 
+    # -
     adjusted = deepcopy(initial)
     idx = np.argsort(ts)
     ts_opt = ts.copy()[idx]
@@ -150,8 +140,8 @@ def max_deviant(ts,
         # Avoid inf
         iter_count += 1
         if iter_count > max_iterations:
-            print(">>> max_deviant stopped at {} iterations (c {})".format(
-                max_iterations, percent_change))
+            print(">>> max_deviant stopped at {} iterations".format(
+                max_iterations))
             break
 
     # Re-sort ts_opt to match the order in intial ts

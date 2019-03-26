@@ -359,7 +359,7 @@ def optimal_sweep_A(name,
                     stim,
                     E_0,
                     A_0=0.00e-9,
-                    A_max=0.5e-9,
+                    A_max=0.02e-9,
                     Z=0.0,
                     n_samples=10,
                     t=0.4,
@@ -414,7 +414,7 @@ def optimal_sweep_A(name,
     if verbose:
         print(">>> Creating reference spikes.")
 
-    ns_ref, ts_ref, voltages_ref = adex(
+    ns_ref, ts_ref = adex(
         N,
         t,
         ns,
@@ -425,7 +425,7 @@ def optimal_sweep_A(name,
         A=0,
         phi=0,
         sigma=sigma,
-        budget=True,
+        budget=False,
         save_args=None,
         time_step=time_step,
         seed_value=seed_value,
@@ -458,6 +458,8 @@ def optimal_sweep_A(name,
     ranks = []
 
     variances_pop = []
+    variances_ref = []
+    variances_opt = []
     errors_pop = []
     errors_opt = []
     n_spikes_pop = []
@@ -511,18 +513,20 @@ def optimal_sweep_A(name,
         n_spikes = ts_i.size
 
         # Best possible pop error
-        percent_change = (var_pop - var_ref) / var_pop
-        if percent_change < 0:
-            ts_opt = ts_i
-            errors_opt = 0.0
-        else:
-            _, _, _, ts_opt = max_deviant(
-                ts_i, percent_change, side='both', mode_fm=np.median, dt=dt)
-            _, error_opt = score_by_n(N, ns_ref, ts_ref, ns_i, ts_opt)
+        # if (var_pop - var_ref) > 0:
+        #     ts_opt = -9999999
+        #     error_opt = -9999999
+        #     var_opt = -9999999
+        # else:
+        _, _, var_opt, ts_opt = max_deviant(
+            ts_ref, var_ref, var_pop, side='both', mode_fm=np.median, dt=dt)
+        _, error_opt = score_by_n(N, ns_ref, ts_ref, ns_ref, ts_opt)
 
         # -
         # Save
         variances_pop.append(var_pop)
+        variances_ref.append(var_ref)
+        variances_opt.append(var_opt)
         errors_pop.append(error_pop)
         errors_opt.append(error_opt)
         n_spikes_pop.append(n_spikes)
@@ -549,7 +553,9 @@ def optimal_sweep_A(name,
 
     # Build a dict of results,
     results = {}
+    results["variances_ref"] = variances_ref
     results["variances_pop"] = variances_pop
+    results["variances_opt"] = variances_opt
     results["errors_pop"] = errors_pop
     results["n_spikes_pop"] = n_spikes_pop
     results["errors_opt"] = errors_opt
