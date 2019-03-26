@@ -23,9 +23,9 @@ from voltagebudget.util import mae
 from voltagebudget.util import score_by_group
 from voltagebudget.util import score_by_n
 
-from platypus.algorithms import NSGAII
-from platypus.core import Problem
-from platypus.types import Real
+from platypus import NSGAII
+from platypus import Problem
+from platypus import Real
 
 
 def pareto(name,
@@ -108,7 +108,7 @@ def pareto(name,
         if verbose:
             print(">>> E_0 was {}, using closest at {}.".format(E_0, E))
 
-    # Find the phase begin a osc cycle at E 
+    # Find the phase begin a osc cycle at E
     phi_E = float(-E * 2 * np.pi * f)
 
     # Filter ref spikes into the window of interest
@@ -210,7 +210,7 @@ def pareto(name,
         # w_max = results['w_max'][m]
         # w_m = [w_in[0], w_max]
 
-        # Run 
+        # Run
         if verbose:
             print(">>> Running analysis for neuron {}/{}.".format(m + 1, M))
 
@@ -251,7 +251,7 @@ def pareto(name,
             **params)
 
         # Analyze spikes
-        # Filter spikes in E    
+        # Filter spikes in E
         ns_ref, ts_ref = filter_spikes(ns_ref, ts_ref, (E, E + T))
         ns_m, ts_m = filter_spikes(ns_m, ts_m, (E, E + T))
 
@@ -287,8 +287,8 @@ def pareto(name,
             #     ">>> (A {:0.12f}, w_max {:0.3f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
             #     format(A_m, w_max, ns_m.size, error, var))
             print(
-                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})".
-                format(A_m, ns_m.size, error, var))
+                ">>> (A {:0.12f})  ->  (N spks, {}, mae {:0.5f}, mad, {:0.5f})"
+                .format(A_m, ns_m.size, error, var))
     # --------------------------------------------------------------
     if verbose:
         print(">>> Saving results.")
@@ -310,7 +310,7 @@ def pareto(name,
     with open("{}.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
-        writer.writerows(zip(* [results[key] for key in keys]))
+        writer.writerows(zip(*[results[key] for key in keys]))
 
     # If running in a CL, returns are line noise?
     if not save_only:

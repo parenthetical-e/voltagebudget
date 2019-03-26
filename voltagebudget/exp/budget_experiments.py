@@ -35,11 +35,6 @@ from voltagebudget.exp import create_stim
 from voltagebudget.exp import autotune_membrane
 from voltagebudget.exp import autotune_w
 from voltagebudget.exp import homeostasis
-
-from platypus.algorithms import NSGAII
-from platypus.core import Problem
-from platypus.types import Real
-
 from scipy.optimize import least_squares
 
 if __name__ == "__main__":
