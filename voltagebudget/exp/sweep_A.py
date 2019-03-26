@@ -530,7 +530,8 @@ def optimal_sweep_A(name,
         errors_pop.append(error_pop)
         errors_opt.append(error_opt)
         n_spikes_pop.append(n_spikes)
-
+        phis.append(phi_E)
+        
         # -
         if verbose:
             print(
