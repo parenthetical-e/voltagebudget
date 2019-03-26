@@ -1062,5 +1062,5 @@ exp103:
 	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp103.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py optimal_sweep_A $(DATADIR)/exp103_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=A_max=0.02e-9 --N=250 --n_samples=10 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py optimal_sweep_A $(DATADIR)/exp103_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.02e-9 --N=250 --n_samples=10 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
