@@ -1,0 +1,60 @@
+---
+title: "Optimal coordination - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(ggplot2)
+library(magrittr)
+library(readr)
+library(dplyr)
+library(gridExtra)
+library(readr)
+library(scales)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+# Data
+exp <- "103"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+
+results <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  results <- rbind(results, df)
+}
+
+results$freq <- factor(results$freq, levels=freqs)
+rm(df, exp, freq, freqs, name)
+```
+
+
+```{r, fig.width=1, fig.height=3}
+ms <- 1e3
+results %>% 
+  filter(errors_pop > 0) %>% 
+  ggplot(aes(x=errors_pop*ms, y=variances_pop*ms)) +
+  geom_line(size=0.5) + 
+  geom_line(mapping=aes(x=errors_opt*ms, y=variances_opt*ms), color="#e41a1c", alpha=0.8, size=.5) +
+  scale_x_continuous(trans='log10') +
+  annotation_logticks(sides = "b") +
+  facet_grid(freq~.) +
+  labs(x="Pop. error (ms)", y="Pop. variance (ms)") +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle = 0), 
+        panel.grid.minor = element_blank(),
+         strip.background = element_blank())
+```
