@@ -507,17 +507,12 @@ def optimal_sweep_A(name,
         # Filter spikes in E
         ns_i, ts_i = filter_spikes(ns_i, ts_i, (E, E + T))
 
-        # Pop var and error
+        # Pop var and error by oscillation
         var_pop = mad(ts_i)
         _, error_pop = score_by_n(N, ns_ref, ts_ref, ns_i, ts_i)
         n_spikes = ts_i.size
 
-        # Best possible pop error
-        # if (var_pop - var_ref) > 0:
-        #     ts_opt = -9999999
-        #     error_opt = -9999999
-        #     var_opt = -9999999
-        # else:
+        # Pop var and error by oscillation by optimal method
         _, _, var_opt, ts_opt = max_deviant(
             ts_ref, var_ref, var_pop, side='both', mode_fm=np.median, dt=dt)
         _, error_opt = score_by_n(N, ns_ref, ts_ref, ns_ref, ts_opt)
@@ -531,7 +526,7 @@ def optimal_sweep_A(name,
         errors_opt.append(error_opt)
         n_spikes_pop.append(n_spikes)
         phis.append(phi_E)
-        
+
         # -
         if verbose:
             print(
