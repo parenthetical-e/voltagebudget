@@ -22,11 +22,12 @@ normalize <- function(x) {
 
 ```{r, message=FALSE}
 # Data
-exp <- "103"
+exp <- "104"
 freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
 
 
 results <- NULL
+N <- 0
 for(freq in freqs){
   name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
   df <- read_csv(paste(name, sep=""))
@@ -34,6 +35,9 @@ for(freq in freqs){
     # filter(n_spikes_pop > 0) -> df
   
   df$freq <- rep(freq, nrow(df))
+  df$N <- rep(N, nrow(df))
+  N <- N + 1
+  df$i <- 1:nrow(df)
   results <- rbind(results, df)
 }
 
@@ -42,14 +46,21 @@ rm(df, exp, freq, freqs, name)
 ```
 
 
-```{r, fig.width=1, fig.height=3}
+```{r, fig.width=1.2, fig.height=4}
+# Make lof x look right, be more compact
+point <- format_format(big.mark = "", decimal.mark = ".", 
+                       scientific = FALSE, digits=1, drop0trailing=TRUE)
+
+# -
 ms <- 1e3
 results %>% 
-  filter(errors_pop > 0) %>% 
+  filter(errors_opt > 0, errors_pop > 0, variances_pop > 0) %>% 
   ggplot(aes(x=errors_pop*ms, y=variances_pop*ms)) +
-  geom_line(size=0.5) + 
-  geom_line(mapping=aes(x=errors_opt*ms, y=variances_opt*ms), color="#e41a1c", alpha=0.8, size=.5) +
-  scale_x_continuous(trans='log10') +
+  geom_point(size=0.1, alpha=0.6) + 
+  geom_point(
+    mapping=aes(x=errors_opt*ms, y=variances_opt*ms), 
+    color="#e41a1c", alpha=0.6, size=.1) +
+  scale_x_continuous(trans='log10', labels = point) +
   annotation_logticks(sides = "b") +
   facet_grid(freq~.) +
   labs(x="Pop. error (ms)", y="Pop. variance (ms)") +
