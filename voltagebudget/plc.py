@@ -14,6 +14,10 @@ from voltagebudget.util import mad
 
 
 def uniform(ts, initial, target):
+    """Shift each spike time a uniform amount
+
+    This is the min. max. or optimal policy for individual neuron errors"""
+
     # Init
     ts = np.asarray(ts)
     if ts.size == 0:
@@ -34,9 +38,9 @@ def uniform(ts, initial, target):
         ts_opt.append(t)
     ts_opt = np.asarray(ts_opt)
 
-    obs = mad(ts_opt)
+    adjusted = mad(ts_opt)
 
-    return initial, target, obs, ts_opt
+    return initial, target, adjusted, ts_opt
 
 
 def _delta(ts):
@@ -56,7 +60,10 @@ def _diffs(ts):
 
 
 def coincidence(ts, initial, target):
-    """Coordinate by increasing coincidences"""
+    """Coordinate by increasing coincidences.
+    
+    An approach inspired by neural oscillations.
+    """
 
     # Init
     ts = np.asarray(ts)
@@ -92,6 +99,11 @@ def max_deviant(ts,
                 mode_fm=np.mean,
                 dt=0.01e-3,
                 max_iterations=250000):
+    """Coordinate by adjusting the max variance neurons
+
+    This is the optimal policy for the network as a whole.
+    """
+
     # Init
     ts = np.asarray(ts)
     if ts.size == 0:

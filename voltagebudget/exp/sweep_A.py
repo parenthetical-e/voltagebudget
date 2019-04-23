@@ -28,6 +28,7 @@ from voltagebudget.util import score_by_n
 from voltagebudget.util import find_E
 from voltagebudget.util import find_phis
 from voltagebudget.plc import max_deviant
+from voltagebudget.plc import uniform
 
 
 def sweep_A(name,
@@ -371,6 +372,7 @@ def optimal_sweep_A(name,
                     N=10,
                     n_cycles=2,
                     mode='regular',
+                    optimal_method='max_deviant',
                     sigma=0,
                     dt=0.01e-3,
                     w_in_0=None,
@@ -513,8 +515,20 @@ def optimal_sweep_A(name,
         n_spikes = ts_i.size
 
         # Pop var and error by oscillation by optimal method
-        _, _, var_opt, ts_opt = max_deviant(
-            ts_ref, var_ref, var_pop, side='both', mode_fm=np.median, dt=dt)
+        if optimal_method == 'max_deviant':
+            _, _, var_opt, ts_opt = max_deviant(
+                ts_ref,
+                var_ref,
+                var_pop,
+                side='both',
+                mode_fm=np.median,
+                dt=dt)
+        elif optimal_method == 'uniform':
+            _, _, var_opt, ts_opt = uniform(ts_ref, var_ref, var_pop)
+        else:
+            raise ValueError("Otimmal method not known")
+
+        # Est error for opt
         _, error_opt = score_by_n(N, ns_ref, ts_ref, ns_ref, ts_opt)
 
         # -
