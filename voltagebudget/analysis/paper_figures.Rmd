@@ -322,6 +322,25 @@ for(freq in freqs){
 fig15$freq <- factor(fig15$freq, levels=freqs)
 
 
+exp <- "105"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+fig16 <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig16 <- rbind(fig16, df)
+}
+
+fig16$freq <- factor(fig16$freq, levels=freqs)
+
+fig15$alg <- rep("max", nrow(fig15))
+fig16$alg <- rep("uniform", nrow(fig16))
+fig17 <- rbind(fig15, fig16)
 # --------------------------------------------------------------------
 rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
 ```
@@ -1037,12 +1056,12 @@ fig4 %>%
 tmp %>% 
   filter(set == "synchronized") %>%
   ggplot(aes(x=ts*1e3, y=ns, color=alg)) +
-  geom_point(size=1.4, alpha=.8, shape=4) +
+  geom_point(size=1.4, alpha=1, shape=4) +
   geom_point(
     data=filter(tmp, set == "initial"),
-    mapping=aes(x=ts*1e3, y=ns), color="black", shape=1, alpha=0.5, size=1.35) +
+    mapping=aes(x=ts*1e3, y=ns), color="black", shape=1, alpha=1, size=1.35) +
   facet_grid(alg~.) +
-  scale_color_brewer(palette = "Set1", guide=FALSE) +
+  scale_color_brewer(palette = "Dark2", guide=FALSE) +
   theme_classic() +
   labs(x="Time (ms)", y="Neuron") +
   theme(
@@ -1056,8 +1075,8 @@ tmp %>%
 fig3 %>% 
   filter(alg != "coincidence", alg != "left") %>%
   ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
-  geom_line(size=0.8, alpha=0.8) +
-  scale_color_brewer(palette = "Set1", name="Algorithm:") +
+  geom_line(size=0.6, alpha=0.99) +
+  scale_color_brewer(palette = "Dark2", name="Algorithm:") +
   theme_classic() +
   labs(x="Time (ms)", y="Neuron") +
   theme(legend.position="bottom",
@@ -1068,11 +1087,10 @@ fig3 %>%
   labs(x="Error (ms)", y="Variance (ms)") -> p2
 
 plot_grid <- rbind(
-  c(1, 1),
-  c(1, 1),
-  c(2, 2),
-  c(2, 2),
-  c(2, 2))  
+  c(1, 1, 1, 1, 1),
+  c(1, 1, 1, 1, 1),
+  c(2, 2, 2, 2, NA),
+  c(2, 2, 2, 2, NA))  
 
 grid.arrange(p1, p2, layout_matrix=plot_grid)
 rm(p1, p2, plot_grid)
@@ -1080,20 +1098,27 @@ rm(p1, p2, plot_grid)
 
 # Optimal versus oscillation
 
-```{r, fig.width=1.2, fig.height=1}
+```{r, fig.width=1.2, fig.height=1.2}
 ms <- 1e3
-fig15 %>% 
+
+fig17 %>% 
   filter(errors_pop > 0, freq == "8") %>% 
   ggplot(aes(x=errors_pop*ms, y=variances_pop*ms)) +
-  geom_point(size=0.2, alpha=0.8) + 
-  geom_point(mapping=aes(x=errors_opt*ms, y=variances_opt*ms), color="#e41a1c", alpha=0.6, size=.2) +
+  geom_point(size=0.2, alpha=0.99) + 
+  geom_point(mapping=aes(x=errors_opt*ms, y=variances_opt*ms, color=alg), 
+             alpha=0.99, size=.2) +
   scale_x_continuous(trans='log10') +
   annotation_logticks(sides = "b") +
-  labs(x="Pop. error (ms)", y="Pop. variance (ms)") +
+  scale_color_brewer(palette = "Dark2", name="Algorithm:") +
+  labs(x="Error (ms)", y="Variance (ms)") +
   theme_classic() +
-  theme(strip.text.y = element_text(angle = 0), 
-        panel.grid.minor = element_blank(),
-         strip.background = element_blank())
-
+  theme(legend.position="bottom",
+    legend.key.size = unit(.2, "cm"),
+    legend.title = element_text(size=10),
+    legend.text = element_text(size=10),
+    legend.background = element_rect(colour ="black"),
+    strip.text.y = element_text(angle = 0), 
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank())
 rm(ms)
 ```
