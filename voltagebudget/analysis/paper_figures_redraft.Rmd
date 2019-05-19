@@ -1,0 +1,565 @@
+---
+title: "Paper figures"
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(readr)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+
+data_summary <- function(x) {
+   m <- mean(x)
+   ymin <- m-mad(x)
+   ymax <- m+mad(x)
+   return(c(y=m, ymin=ymin, ymax=ymax))
+}
+
+mean_summary <- function(x) {
+   m <- mean(x)
+   return(c(y=m))
+}
+sample_n_groups = function(tbl, size, replace = FALSE, weight = NULL) {
+  # regroup when done
+  grps = tbl %>% groups %>% lapply(as.character) %>% unlist
+  # check length of groups non-zero
+  keep = tbl %>% summarise() %>% ungroup() %>% sample_n(size, replace, weight)
+  # keep only selected groups, regroup because joins change count.
+  # regrouping may be unnecessary but joins do something funky to grouping variable
+  tbl %>% right_join(keep, by=grps) %>% group_by_(.dots = grps)
+}
+
+ms <- 1000
+mV <- 1000
+```
+
+# Read and process all data
+
+__NOTE__: to generate the needed 'vm_*.csv' files (which are voltage timecourses used in various figs) you have to 'run all' cells in the following:
+ 1. `../ipynb/figures_shit_add.ipynb`
+ 2. `../ipynb/figures_heterogenous.ipynb`
+ 3. `../ipynb/figures_SFN.ipynb`
+
+
+```{r, message=FALSE}
+# --------------------------------------------------------------------
+# Example voltage timecourses
+fig0 <- read_csv("vm_comp_timecourse.csv")
+
+# --------------------------------------------------------------------
+fig1 <- NULL
+
+# --------------------------
+# INITIAL
+exp <- "96"
+freqs <- c(20, 30)
+
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig1 <- rbind(fig1, df)
+}
+
+# --------------------------
+# SLOW
+exp <- "94"
+freqs <- c(6, 8, 10, 12, 14, 16, 18)
+
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig1 <- rbind(fig1, df)
+}
+
+# --------------------------
+# FAST
+exp <- "95"
+freqs <- c(22, 24, 26, 28)#, 32, 34 ,36, 38)
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig1 <- rbind(fig1, df)
+}
+
+# Process
+fig1 %>% 
+  filter(n_spikes_ref > 0) %>% 
+  # Add delta_spikes
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  # Re-norm V_osc
+  mutate(V_osc = V_osc - V_osc_ref) -> fig1
+
+# Summarize over As 
+fig1 %>% 
+  group_by(N, freq) %>% 
+  mutate(errors=normalize(errors),
+            variances=normalize(variances)) -> fig1
+
+fig1 %>% 
+  group_by(As, freq) %>% 
+  summarise(
+    N = 0,
+    delta_spikes = mean(delta_spikes), 
+    V_b = mean(V_b), 
+    V_osc = mean(V_osc), 
+    V_free = mean(V_free), 
+    V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    variances_pop = mean(variances_pop), 
+    variances = mean(variances)) -> fig2
+
+# --------------------------------------------------------------------
+# Data
+algs <- c("max", "left", "uni", "cc")
+alg_names <- c("max", "left", "uniform", "coincidence")
+exps <- c(82, 83, 84, 85)
+
+fig3 <- NULL
+for (n in 1:4){
+  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], ".csv", sep=""))
+  df$alg <- rep(alg_names[n], nrow(df))
+  
+  fig3 <- rbind(fig3, df)
+}
+
+# Spikes
+# Load ref spikes
+ref <- read_csv("../../data/stim1.csv")
+ref$set <- rep("initial", nrow(ref))
+
+# Load exp spikes
+exps <- c(86, 87, 88, 89)
+fig4 <- NULL
+for (n in 1:4){
+  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_c0.1_spikes.csv", sep=""))
+  df$set <- rep("synchronized", nrow(df))
+  
+  # Add ref
+  df <- rbind(df, ref)
+  
+  df$alg <- rep(alg_names[n], nrow(df))
+  fig4 <- rbind(fig4, df)
+}
+
+# Shift-add cartoon
+fig5 <- read_csv("vm_ref_timecourse.csv")
+fig6 <- read_csv("vm_shift_timecourse.csv")
+fig7 <- read_csv("vm_add_timecourse.csv")
+
+# --------------------------------------------------------------------
+# Load noise exp data...
+# Osc
+freq <- "20"
+
+# sigma scan
+exp <- "97"
+
+sigmas <- c("1.0e-9", "2.0e-9", "3.0e-9", "4.0e-9", "5.0e-9")
+
+fig8 <- NULL
+for(sigma in sigmas){
+  name <- paste("../../data/exp", exp, "_sigma", sigma, ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  
+  df$sigma <- rep(as.numeric(sigma), nrow(df))
+  fig8 <- rbind(fig8, df)
+}
+
+exp <- "96"
+name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$sigma <- rep(0, nrow(df))
+fig8 <- rbind(df, fig8)
+
+# Process
+fig8 %>% 
+  filter(n_spikes_ref > 0) %>% 
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  mutate(V_osc = V_osc - V_osc_ref) -> fig8
+
+# Summarize over As 
+fig8 %>% 
+  group_by(As, sigma) %>% 
+  summarise(
+    N = 0,
+    delta_spikes = mean(delta_spikes), 
+    V_b = mean(V_b), 
+    V_osc = mean(V_osc), 
+    V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    variances_pop = mean(variances_pop), 
+    variances = mean(variances)) -> fig9
+
+# --------------------------------------------------------------------
+# Load weight exps
+# Osc
+freq <- "20"
+
+# Init
+fig10 <- NULL
+
+# high w
+exp <- "100"
+name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$weight <- rep(2.48e-08, nrow(df))
+fig10 <- rbind(df, fig10)
+
+
+# Ref (Z=0)
+exp <- "96"
+name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$weight <- rep(8.25e-09, nrow(df))
+fig10 <- rbind(df, fig10)
+
+# low w
+exp <- "99"
+name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$weight <- rep(1.65e-09, nrow(df))
+fig10 <- rbind(df, fig10)
+
+
+# Process
+fig10 %>% 
+  filter(n_spikes_ref > 0) %>% 
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  mutate(V_osc = V_osc - V_osc_ref) -> fig10
+
+# Summarize over As 
+fig10 %>% 
+  group_by(As, weight) %>% 
+  summarise(
+    N = 0,
+    delta_spikes = mean(delta_spikes), 
+    V_b = mean(V_b), 
+    V_osc = mean(V_osc), 
+    V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    variances_pop = mean(variances_pop), 
+    variances = mean(variances)) -> fig11
+
+# --------------------------------------------------------------------
+# Hetero cells
+# Osc
+freq <- "20"
+
+# Init
+fig12 <- NULL
+
+# high w
+exp <- "101"
+name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+df <- read_csv(paste(name, sep=","))
+df$weight <- rep(2.48e-08, nrow(df))
+fig12 <- rbind(df, fig12)
+
+# Process
+fig12 %>% 
+  filter(n_spikes_ref > 0) %>% 
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  mutate(V_osc = V_osc - V_osc_ref) -> fig12
+
+# Summarize over As 
+fig12 %>% 
+  group_by(As, weight) %>% 
+  summarise(
+    N = 0,
+    delta_spikes = mean(delta_spikes), 
+    V_b = mean(V_b), 
+    V_osc = mean(V_osc), 
+    V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    variances_pop = mean(variances_pop), 
+    variances = mean(variances)) -> fig13
+
+# Load exmample timecourses for hetero
+fig14 <- read_csv("vm_hetero_timecourse.csv")
+
+
+# -------------------------------------------------------------------
+# Optimal versus oscillation
+
+# Data
+exp <- "104"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+
+fig15 <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig15 <- rbind(fig15, df)
+}
+
+fig15$freq <- factor(fig15$freq, levels=freqs)
+
+
+exp <- "105"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+fig16 <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig16 <- rbind(fig16, df)
+}
+
+fig16$freq <- factor(fig16$freq, levels=freqs)
+
+fig15$alg <- rep("max", nrow(fig15))
+fig16$alg <- rep("uniform", nrow(fig16))
+fig17 <- rbind(fig15, fig16)
+# --------------------------------------------------------------------
+rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
+```
+
+# The trade off
+
+```{r, fig.width=1.7, fig.height=2.8}
+# Var
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  ggplot(aes(x=V_osc*mV, variances_pop*ms, group=freq)) +
+  geom_point(size=.2, alpha=0.5) +
+  xlab(expression(paste(V[o], " (mV)"))) +
+  ylab("Variance (ms)") +
+  theme_classic() -> p1
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  ggplot(aes(x=V_osc/V_comp, variances_pop*ms, group=freq)) +
+  geom_point(size=.2, alpha=0.5) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="dashed") +
+  xlab(expression(V[o]/V[c])) +
+  ylab("Variance (ms)") +
+  theme_classic() -> p2
+
+# Error
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  ggplot(aes(x=V_osc*mV, errors_pop*ms, group=freq)) +
+  geom_point(size=.2, alpha=0.5) +
+  xlab(expression(paste(V[o], " (mV)"))) +
+  ylab("Error (ms)") +
+  theme_classic() -> p3
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  ggplot(aes(x=V_osc/V_comp, errors_pop*ms, group=freq)) +
+  geom_point(size=.2, alpha=0.5) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="dashed") +
+  xlab(expression(V[o]/V[c])) +
+  ylab("Error (ms)") +
+  theme_classic() -> p4
+
+tmp <- fig2
+tmp$state <- rep("pathological", nrow(tmp))
+m <- tmp$V_osc/tmp$V_comp < 0.27
+tmp$state[m] <- "healthy"
+
+tmp %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  ggplot(aes(x=variances_pop*ms, errors_pop*ms, group=freq, color=state)) +
+  geom_point(size=.2, alpha=0.9) +
+  xlab("Variance (ms)") +
+  ylab("Error (ms)") +
+  scale_color_manual("", values=c("darkslategray3", "darkslategray")) +
+  theme_classic() -> p5
+
+plot_grid <- rbind(
+  c(NA, NA, NA, NA),
+  c(1, 1, 3, 3), 
+  c(1, 1, 3, 3),
+  c(1, 1, 3, 3),
+  c(1, 1, 3, 3),
+  c(NA, NA, NA, NA),
+  c(2, 2, 4, 4),
+  c(2, 2, 4, 4),
+  c(2, 2, 4, 4),
+  c(2, 2, 4, 4),
+  c(NA, NA, NA, NA),
+  c(5, 5, 5, 5),
+  c(5, 5, 5, 5),
+  c(5, 5, 5, 5),
+  c(5, 5, 5, 5),
+  c(5, 5, 5, 5),
+  c(5, 5, 5, 5))
+
+grid.arrange(p1, p2, p3, p4, p5, layout_matrix=plot_grid)
+```
+
+By looking at the ratio we identified a narrow region (V_o/V_c ~< 0.27) where the trade-off is approx linear across freq, and that accounts for approx. half the total change in both variance and error. We hypothesize that this narrow region can be considered a healthy range for modulation as it is maximially sensitive and linear -- representing the best possible trade-off irregardless of freq.
+
+Sync efficiency is strongly dependent on other osc input. Strong synapses need strong oscillations. Weak synapses need weak oscillations. To stay in healthy range, oscillation strength should be tuned on a compartment basis, either dendritically or somatically or both. 
+
+
+# Vc and sync
+
+```{r, fig.width=1.4, fig.height=1}
+fig2 %>% 
+  # filter(V_osc/V_comp <= ) %>%
+  ggplot(aes(x=V_comp*mV, variances_pop*ms, color=V_osc*mV)) +
+  geom_point(size=.2, alpha=0.5) +
+  xlab(expression(paste(V[c], " (mV)"))) +
+  ylab("Variance (ms)") +
+  scale_color_gradient(expression(paste(V[o], " (mV)")), low="goldenrod1", high="firebrick3") +
+  theme_classic() +
+  theme(legend.key.width=unit(0.3,"cm"),
+        legend.title=element_text(size=8),
+        legend.text=element_text(size=8))
+```
+
+While the ratio determines the overall trade-off (above), again we see that about half the sync effect comes from weak oscillations (< 1 mV, orange) applied to strong inputs (i.e., V_c > 6 mV). However this story is complicated by the fact that the weaker Vc, the more sync is possible--though this sync is very high error. 
+
+
+# Freq. dependence
+
+```{r, fig.width=1, fig.height=6}
+fig2 %>% 
+  filter(V_osc/V_comp <= 0.8) %>%
+  ggplot(aes(x=V_osc/V_comp, y=variances_pop*ms)) +
+  geom_point(size=.2, alpha=0.5) +
+  facet_grid(freq~.) +
+  xlab(expression(V[o]/V[c])) +
+  ylab("Variance (ms)") +
+  # geom_rect(
+  #   mapping=aes(xmin=0.15, xmax=0.4, ymin=min(variances_pop*ms), ymax=max(variances_pop*ms)),
+  #   color="darkslategray4", fill="darkslategray4", alpha=0.02) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="dashed") +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle=0), strip.background = element_blank())
+```
+
+
+Fo far we've focused on error-variance relationships common between frequencies. There are also clearly frequency dependent effects 
+
+...
+
+Faster oscillations offer less sync overall, and therefore have a more limited var-error range than slower oscillations. If we use the curveture of the variance curve to fine tune the healthy ratio / frequency, we see that... 
+
+TODO: get max second deriv. Use that to find the change point?
+
+
+# Controls - Ws, noise, cell type
+TODO
+
+
+# Optimal derivation
+```{r, fig.width=1.3, fig.height=2}
+min_t <- min(fig4$ts)
+
+fig4 %>% 
+  filter(alg != "coincidence", alg != "left") %>% 
+  group_by(set, alg) %>% 
+  mutate(ts = ts - min_t) -> tmp
+
+tmp %>% 
+  filter(set == "synchronized") %>%
+  ggplot(aes(x=ts*1e3, y=ns, color=alg)) +
+  geom_point(size=2, alpha=1, shape=4) +
+  geom_point(
+    data=filter(tmp, set == "initial"),
+    mapping=aes(x=ts*1e3, y=ns), color="black", shape=1, alpha=1, size=1.2) +
+  facet_grid(alg~.) +
+  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3")) +
+  theme_classic() +
+  labs(x="Time (ms)", y="Neuron") +
+  theme(
+    legend.position="none", 
+    panel.border = element_rect(fill = NA, colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    strip.text.y = element_text(angle = 0)) -> p1
+
+fig3 %>% 
+  filter(alg != "coincidence", alg != "left") %>%
+  ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
+  geom_line(size=0.6, alpha=0.99) +
+  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3")) +
+  theme_classic() +
+  coord_flip() +
+  labs(x="Time (ms)", y="Neuron") +
+  theme(legend.position="bottom",
+    legend.key.size = unit(.2, "cm"),
+    legend.title = element_text(size=10),
+    legend.text = element_text(size=10),
+    legend.background = element_rect(colour ="black")) +
+  labs(x="Error (ms)", y="Variance (ms)") -> p2
+
+plot_grid <- rbind(
+  c(1, 1, 1, 1, 1),
+  c(1, 1, 1, 1, 1),
+  c(2, 2, 2, 2, NA),
+  c(2, 2, 2, 2, NA))  
+
+grid.arrange(p1, p2, layout_matrix=plot_grid)
+rm(p1, p2, plot_grid)
+```
+
+# Optimal vs. oscillation
+
+```{r, fig.width=1.3, fig.height=1.2}
+ms <- 1e3
+
+fig17 %>% 
+  filter(errors_pop > 0, freq == "20") %>% 
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms)) +
+  geom_point(size=0.2, alpha=0.99) + 
+  geom_point(mapping=aes(x=variances_opt*ms, y=errors_opt*ms, color=alg), 
+             alpha=0.99, size=.2) +
+  scale_y_continuous(trans='log10') +
+  annotation_logticks(sides = "l") +
+  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3")) +
+  labs(x="Variance (ms)", y="Error (ms)") +
+  theme_classic() +
+  theme(legend.position="bottom",
+    legend.key.size = unit(.2, "cm"),
+    legend.title = element_text(size=10),
+    legend.text = element_text(size=10),
+    legend.background = element_rect(colour ="black"),
+    strip.text.y = element_text(angle = 0), 
+    panel.grid.minor = element_blank(),
+    legend.key.width=unit(0.1,"cm"),
+    strip.background = element_blank()) 
+rm(ms)
+```
