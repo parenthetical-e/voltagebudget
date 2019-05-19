@@ -1084,3 +1084,22 @@ exp105:
 		'python budget_experiments.py optimal_sweep_A $(DATADIR)/exp105_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --optimal_method=uniform --A_0=0.00e-9 --A_max=0.02e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 	
+# ---------------------------------------------------------------------------
+# 5-19-2019
+# Leak controls.
+
+# g_l=10e-9 # go bigger up to 2x
+exp106:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp106.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp106_g_l{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --g_l={1}' \
+		::: 10e-9 12e-9 14e-9 16e-9 18e-9 20e-9
+
+# V_l=-70e-3 # go bigger up to -80
+exp107:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp107.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp107_V_l{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --V_l={1}' \
+		::: -70e-3 -72e-3 -74e-3 -76e-3 -78e-3 -80e-3
