@@ -427,13 +427,16 @@ plot_grid <- rbind(
 grid.arrange(p1, p2, p3, p4, p5, layout_matrix=plot_grid)
 ```
 
-By looking at the ratio we identified a narrow region (V_o/V_c ~< 0.27) where the trade-off is approx linear across freq, and that accounts for approx. half the total change in both variance and error. We hypothesize that this narrow region can be considered a healthy range for modulation as it is maximially sensitive and linear -- representing the best possible trade-off irregardless of freq.
+By looking at the ratio we identified a narrow region (V_o/V_c ~< 0.27) where the trade-off is approx linear across freq, and that accounts for approx. half the total change in both variance and error. We hypothesize that this narrow region can be considered a healthy range for modulation as it is maximially sensitive (has the highest dirvative) and is approx. linear--representing the best possible trade-off irregardless of freq.
 
 Sync efficiency is strongly dependent on other osc input. Strong synapses need strong oscillations. Weak synapses need weak oscillations. To stay in healthy range, oscillation strength should be tuned on a compartment basis, either dendritically or somatically or both. 
 
+Our analysis suggests a simple biological scaling rule for oscillatory modulation. This is useful both in analyzing for patholigical acitivty, but also in desgining optogenetic and other stimulation experiments. You should scale your oscillatory manipulation be no more the 0.27 times as strong as the average membrane potential observed in vivo, without stimulation.  
+
+If your observaing a excitatory interneuron, with weak sparse inputs, a good level of oscillatory stimulation will be much lower then if, for example, you were working with a layer 5 pyrimidal cell recieving strong thalmic drive.
+
 
 # Vc and sync
-
 ```{r, fig.width=1.4, fig.height=1}
 fig2 %>% 
   # filter(V_osc/V_comp <= ) %>%
@@ -448,11 +451,26 @@ fig2 %>%
         legend.text=element_text(size=8))
 ```
 
-While the ratio determines the overall trade-off (above), again we see that about half the sync effect comes from weak oscillations (< 1 mV, orange) applied to strong inputs (i.e., V_c > 6 mV). We interpret this to mean that the optimal target for oscillatory modulation are strong synapses. However this interpretation is complicated by the fact that the weaker Vc, the more sync is possible--though this sync is very high error. 
+While the ratio determines the overall trade-off (above), again we see that about half the sync effect comes from weak oscillations (< 1 mV, orange) applied to strong inputs (i.e., V_c > 6 mV). We interpret this to mean that the optimal target for oscillatory modulation are strong synapses. However this interpretation is complicated by the fact that the weaker Vc, the more sync is possible--though this sync is very high error. That is, if very high syncrony is needed very high error unavoidably the cost--a cost we can predict based on measurable membrane potential Vc.
 
+A simple biological response to this is to have (weak, <1 mV) oscillatory modulation selectivly target strong synapses.
 
 # Freq. dependence
-```{r, fig.width=1, fig.height=6}
+```{r, fig.width=0.65, fig.height=2.5}
+fig2 %>% 
+filter(V_osc/V_comp <= 5) %>%
+  ggplot(aes(x=variances_pop*ms, errors_pop*ms, group=freq)) +
+  geom_point(size=.2, alpha=0.9) +
+  scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
+  scale_y_continuous(breaks=c(0,30,60)) +
+  xlab("Variance (ms)") +
+  ylab("Error (ms)") +
+  facet_grid(freq~.) +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle=0), strip.background = element_blank())
+```
+
+```{r, fig.width=0.65, fig.height=2.5}
 fig2 %>% 
   filter(V_osc/V_comp <= 0.8) %>%
   ggplot(aes(x=V_osc/V_comp, y=variances_pop*ms)) +
@@ -460,6 +478,8 @@ fig2 %>%
   facet_grid(freq~.) +
   xlab(expression(V[o]/V[c])) +
   ylab("Variance (ms)") +
+  scale_y_continuous(breaks=c(7.5,8,8.5,9)) +
+  scale_x_continuous(breaks=c(0,0.4,0.8)) +
   # geom_rect(
   #   mapping=aes(xmin=0.15, xmax=0.4, ymin=min(variances_pop*ms), ymax=max(variances_pop*ms)),
   #   color="darkslategray4", fill="darkslategray4", alpha=0.02) +
@@ -468,14 +488,16 @@ fig2 %>%
   theme(strip.text.y = element_text(angle=0), strip.background = element_blank())
 ```
 
-
-Fo far we've focused on error-variance relationships common between frequencies. There are also clearly frequency dependent effects 
+Fo far we've focused on error-variance relationships common between frequencies. Frequency also effect error-variance trade off.
 
 ...
 
 Faster oscillations offer less sync overall, and therefore have a more limited var-error range than slower oscillations. If we use the curveture of the variance curve to fine tune the healthy ratio / frequency, we see that... 
 
 TODO: get max second deriv. Use that to find the change point?
+TODO: plot max second derive ration point by freq. How does the healthy boundry scale with freq?
+
+Slower oscillations have a wider working range, than faster oscillations. If doing stimulation experiments, once must also consider your freqeuncy carefully.
 
 
 # Controls - Ws, noise, cell type
