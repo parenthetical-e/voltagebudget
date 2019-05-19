@@ -503,6 +503,117 @@ Slower oscillations have a wider working range, than faster oscillations. If doi
 # Controls - Ws, noise, cell type
 TODO
 
+## Heterocells
+
+```{r, fig.width=0.5, fig.height=1.4}
+fig14 %>% 
+  ggplot(aes(x=t, y=vm*1e3, group=cell)) +
+  geom_line(size=0.2, color="black") +
+  facet_grid(cell~.) +
+  theme_classic() +
+  labs(x="Time (s)", y="V (mV)") +
+  theme(
+    strip.text = element_blank(),
+    strip.background = element_blank(),
+    legend.position="none",
+    axis.line=element_blank(),
+    axis.text.x=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks=element_blank(),
+    axis.title.x=element_blank(),
+    axis.title.y=element_blank(),
+    panel.background=element_blank(),
+    panel.border=element_blank(),
+    panel.grid.major=element_blank(),
+    panel.grid.minor=element_blank(),
+    plot.background=element_blank()) -> p1
+plot(p1)
+```
+
+```{r, fig.width=2.1, fig.height=1.5}
+# --------------------------------------------------
+# Cell type
+fig12 %>%
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  filter(V_osc/V_comp <= 5) %>% 
+  mutate(norm_errors = normalize(errors_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_errors, group=N)) +
+  geom_point(size=.1, alpha=0.4) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  labs(x=expression(V[o]/V[c]), y="Norm. error", title="Cell type") +
+  theme_classic() +
+  theme(title = element_text(size=10)) +
+  lims(x=c(0, 5)) -> p2
+
+fig12 %>%
+  group_by(N) %>%
+  mutate(V_free_initial = round(max(V_free), 3)) %>%
+  filter(V_free_initial > 0) %>%
+  filter(V_osc/V_comp <= 5) %>% 
+  mutate(norm_variance = normalize(variances_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_variance, group=N)) +
+  geom_point(size=.1, alpha=0.4) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  theme_classic() +
+  lims(x=c(0, 5)) +
+  labs(x=expression(V[o]/V[c]), y="Norm. variance") -> p3
+
+
+# --------------------------------------------------------------
+# Noise
+fig9 %>% 
+  filter(V_osc/V_comp < 5) %>% 
+  group_by(N, sigma) %>% 
+  mutate(norm_errors_pop = normalize(errors_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_errors_pop, 
+             color=10e-3*(sigma/10e-9) * 1e3/2, group=interaction(N, sigma))) +
+  geom_point(size=.1, alpha=0.4) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  labs(x=expression(V[o]/V[c]), y="Norm. error") +
+  scale_color_gradient("Noise\n(mV)", low="grey", high="black") +
+  theme_classic() +
+  # theme(legend.position="top", 
+  theme(
+    # legend.position = c(.2, .9), 
+    # legend.direction = "horizontal",
+    legend.position="top", 
+    legend.margin=margin(t = 0, b=-.25, unit='cm'),
+    legend.key.size = unit(.3, "cm"),
+    legend.key.height=unit(0.15,"cm"),
+    legend.key.width=unit(0.3,"cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=4)) -> p4
+
+fig9 %>% 
+  filter(V_osc/V_comp < 5) %>% 
+  group_by(N, sigma) %>% 
+  mutate(norm_variances_pop = normalize(variances_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=norm_variances_pop, 
+             color=10e-3*(sigma/10e-9) * 1e3/2, group=interaction(N, sigma))) +
+  geom_point(size=.1, alpha=0.4) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  labs(x=expression(V[o]/V[c]), y="Norm. variance") +
+  scale_color_gradient(low="grey", high="black") +
+  theme_classic() +
+  theme(legend.position="none") -> p5
+
+plot_grid <- rbind(
+  c(1, 1, 2, 2, 2, 2, 4, 4, 4, 4),
+  c(1, 1, 2, 2, 2, 2, 4, 4, 4, 4),
+  c(1, 1, 2, 2, 2, 2, 4, 4, 4, 4),
+  c(1, 1, 2, 2, 2, 2, 4, 4, 4, 4),
+  c(1, 1, 2, 2, 2, 2, 4, 4, 4, 4),
+  c(1, 1, 3, 3, 3, 3, 5, 5, 5, 5),
+  c(1, 1, 3, 3, 3, 3, 5, 5, 5, 5),
+  c(1, 1, 3, 3, 3, 3, 5, 5, 5, 5),
+  c(1, 1, 3, 3, 3, 3, 5, 5, 5, 5))
+
+grid.arrange(p1, p2, p3, p4, p5, layout_matrix=plot_grid)
+```
+
+
 
 # MINST exp (BIND)
 TODO
@@ -563,19 +674,21 @@ rm(p1, p2, plot_grid)
 
 # Optimal vs. oscillation
 
-```{r, fig.width=1.3, fig.height=1.2}
+```{r, fig.width=1.1, fig.height=2}
 ms <- 1e3
 
 fig17 %>% 
-  filter(errors_pop > 0, freq == "20") %>% 
+  filter(errors_pop > 0, freq %in% c("8","12","20","30")) %>%
   ggplot(aes(x=variances_pop*ms, y=errors_pop*ms)) +
   geom_point(size=0.2, alpha=0.99) + 
   geom_point(mapping=aes(x=variances_opt*ms, y=errors_opt*ms, color=alg), 
              alpha=0.99, size=.2) +
   scale_y_continuous(trans='log10') +
   annotation_logticks(sides = "l") +
+  facet_grid(freq~.) +
   scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3")) +
   labs(x="Variance (ms)", y="Error (ms)") +
+  scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
   theme_classic() +
   theme(legend.position="bottom",
     legend.key.size = unit(.2, "cm"),
@@ -584,6 +697,6 @@ fig17 %>%
     legend.background = element_rect(colour ="black"),
     strip.text.y = element_text(angle = 0), 
     panel.grid.minor = element_blank(),
-    legend.key.width=unit(0.1,"cm"),
+    legend.key.width=unit(0.05,"cm"),
     strip.background = element_blank()) 
 ```
