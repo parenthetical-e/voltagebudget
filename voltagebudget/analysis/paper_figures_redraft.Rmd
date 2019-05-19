@@ -369,7 +369,7 @@ fig2 %>%
   filter(V_osc/V_comp <= 5) %>%
   ggplot(aes(x=V_osc/V_comp, variances_pop*ms, group=freq)) +
   geom_point(size=.2, alpha=0.5) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="dashed") +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
   xlab(expression(V[o]/V[c])) +
   ylab("Variance (ms)") +
   theme_classic() -> p2
@@ -386,7 +386,7 @@ fig2 %>%
   filter(V_osc/V_comp <= 5) %>%
   ggplot(aes(x=V_osc/V_comp, errors_pop*ms, group=freq)) +
   geom_point(size=.2, alpha=0.5) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="dashed") +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
   xlab(expression(V[o]/V[c])) +
   ylab("Error (ms)") +
   theme_classic() -> p4
@@ -448,11 +448,10 @@ fig2 %>%
         legend.text=element_text(size=8))
 ```
 
-While the ratio determines the overall trade-off (above), again we see that about half the sync effect comes from weak oscillations (< 1 mV, orange) applied to strong inputs (i.e., V_c > 6 mV). However this story is complicated by the fact that the weaker Vc, the more sync is possible--though this sync is very high error. 
+While the ratio determines the overall trade-off (above), again we see that about half the sync effect comes from weak oscillations (< 1 mV, orange) applied to strong inputs (i.e., V_c > 6 mV). We interpret this to mean that the optimal target for oscillatory modulation are strong synapses. However this interpretation is complicated by the fact that the weaker Vc, the more sync is possible--though this sync is very high error. 
 
 
 # Freq. dependence
-
 ```{r, fig.width=1, fig.height=6}
 fig2 %>% 
   filter(V_osc/V_comp <= 0.8) %>%
@@ -464,7 +463,7 @@ fig2 %>%
   # geom_rect(
   #   mapping=aes(xmin=0.15, xmax=0.4, ymin=min(variances_pop*ms), ymax=max(variances_pop*ms)),
   #   color="darkslategray4", fill="darkslategray4", alpha=0.02) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="dashed") +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
   theme_classic() +
   theme(strip.text.y = element_text(angle=0), strip.background = element_blank())
 ```
@@ -480,6 +479,10 @@ TODO: get max second deriv. Use that to find the change point?
 
 
 # Controls - Ws, noise, cell type
+TODO
+
+
+# MINST exp (BIND)
 TODO
 
 
@@ -561,5 +564,4 @@ fig17 %>%
     panel.grid.minor = element_blank(),
     legend.key.width=unit(0.1,"cm"),
     strip.background = element_blank()) 
-rm(ms)
 ```
