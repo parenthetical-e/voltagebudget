@@ -48,8 +48,8 @@ def sweep_A(name,
             n_cycles=2,
             mode='regular',
             sigma=0,
-            g_l=10e-9,
-            V_l=-70e-3,
+            g_l=None,
+            V_l=- None,
             w_in_0=None,
             w_in_max=None,
             no_lock=False,
@@ -74,11 +74,16 @@ def sweep_A(name,
 
     params, w_in, bias_in, _ = read_modes(mode)
 
-    # Overide default w_in?
+    # Overide
     if w_in_0 is not None:
         w_in[0] = w_in_0
     if w_in_max is not None:
         w_in[1] = w_in_max
+
+    if g_l is not None:
+        params['g_l'] = g_l
+    if V_l is not None:
+        params['V_l'] = V_l
 
     # --------------------------------------------------------------
     if verbose:
@@ -105,8 +110,6 @@ def sweep_A(name,
         A=0,
         phi=0,
         sigma=sigma,
-        g_l=g_l,
-        V_l=V_l,
         budget=True,
         save_args=None,
         time_step=time_step,
@@ -192,8 +195,6 @@ def sweep_A(name,
             E=E,
             n_cycles=n_cycles,
             sigma=sigma,
-            g_l=g_l,
-            V_l=V_l,
             budget=True,
             seed_value=seed_value,
             time_step=time_step,
@@ -219,8 +220,6 @@ def sweep_A(name,
             A=0,
             phi=0,
             sigma=0,
-            g_l=g_l,
-            V_l=V_l,
             budget=True,
             save_args=None,
             time_step=time_step,
