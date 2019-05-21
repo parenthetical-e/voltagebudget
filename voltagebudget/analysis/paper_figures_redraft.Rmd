@@ -302,41 +302,109 @@ rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
 ```
 
 # The trade off
-
-```{r, fig.width=1.7, fig.height=2.8}
-# Var
+```{r, fig.width=2, fig.height=4}
+# By freq
 fig2 %>% 
   filter(V_osc/V_comp <= 5) %>%
-  ggplot(aes(x=V_osc*mV, variances_pop*ms, group=freq)) +
-  geom_point(size=.2, alpha=0.5) +
-  xlab(expression(paste(V[o], " (mV)"))) +
-  ylab("Variance (ms)") +
-  theme_classic() -> p1
-fig2 %>% 
-  filter(V_osc/V_comp <= 5) %>%
-  ggplot(aes(x=V_osc/V_comp, variances_pop*ms, group=freq)) +
-  geom_point(size=.2, alpha=0.5) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
-  xlab(expression(V[o]/V[c])) +
-  ylab("Variance (ms)") +
-  theme_classic() -> p2
-
-# Error
-fig2 %>% 
-  filter(V_osc/V_comp <= 5) %>%
-  ggplot(aes(x=V_osc*mV, errors_pop*ms, group=freq)) +
-  geom_point(size=.2, alpha=0.5) +
+  ggplot(aes(x=V_osc*mV, errors_pop*ms, group=freq, color=freq)) +
+  geom_line(size=.5, alpha=0.8) +
+  scale_colour_continuous("Freq.", low="lightsalmon1", high="orange4") +
   xlab(expression(paste(V[o], " (mV)"))) +
   ylab("Error (ms)") +
+  theme_classic() +
+  theme(legend.position="none") -> p1
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  ggplot(aes(x=V_osc*mV, variances_pop*ms, group=freq, color=freq)) +
+  geom_line(size=.5, alpha=0.8) +
+  scale_colour_continuous("Freq.", low="lightsalmon1", high="orange4") +
+  xlab(expression(paste(V[o], " (mV)"))) +
+  ylab("Variance (ms)") +
+  theme_classic() +
+  theme(
+    legend.position=c(0.4, 1.5),
+    legend.direction="horizontal",    
+    legend.key.size = unit(.5, "cm"),
+    legend.key.height=unit(0.3,"cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    legend.background = element_rect(colour ="black")) -> p2
+
+# Norm
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  group_by(freq, N) %>%
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=V_osc/V_comp, errors_pop, group=freq)) +
+  geom_line(size=.5, alpha=0.5) +
+  geom_hline(yintercept = 0.5, alpha=1, color="grey", linetype="dashed") +
+  xlab(expression(V[o]/V[c])) +
+  ylab("Norm. error") +
   theme_classic() -> p3
 fig2 %>% 
   filter(V_osc/V_comp <= 5) %>%
-  ggplot(aes(x=V_osc/V_comp, errors_pop*ms, group=freq)) +
-  geom_point(size=.2, alpha=0.5) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  group_by(freq, N) %>%
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=V_osc/V_comp, variances_pop, group=freq)) +
+  geom_line(size=.5, alpha=0.5) +
   xlab(expression(V[o]/V[c])) +
-  ylab("Error (ms)") +
+  ylab("Norm. variance") +
   theme_classic() -> p4
+
+
+# Budget
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  group_by(freq, N) %>%
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=V_osc/V_comp, errors_pop, group=freq)) +
+  geom_line(size=.5, alpha=0.5) +
+  
+  # Arrow
+  # geom_segment(aes(x = 0.27, y = 0.5, xend = -.1, yend = 0.5), 
+  #              color="darkslategray3", linetype="solid", size=.3,
+  #              lineend = "round", linejoin = "round",
+  #              arrow = arrow(length = unit(0.06, "npc"))) +
+  # geom_segment(aes(x = .27, y = .5, xend = 0.27, yend = 0), 
+  #              color="darkslategray3", linetype="solid", size=.3,
+  #              lineend = "round", linejoin = "round",
+  #              arrow = arrow(length = unit(0.06, "npc"))) +
+
+  # X
+  # geom_point((aes(x=0.27, y=0.5)), color="grey", size=3, shape=4, alpha=0.6) +
+
+  # Line
+  geom_vline(xintercept = 0.27, alpha=0.8, color="darkslategray3", linetype="solid") +
+  xlab(expression(V[o]/V[c])) +
+  ylab("Norm. error") +
+  theme_classic() -> p5
+fig2 %>% 
+  filter(V_osc/V_comp <= 5) %>%
+  group_by(freq, N) %>%
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=V_osc/V_comp, variances_pop, group=freq)) +
+  geom_line(size=.5, alpha=0.5) +
+  
+  # Arrow
+  # geom_segment(aes(x = 0.28, y = 0.28, xend = -0.1, yend = 0.28), 
+  #              color="darkslategray3", linetype="solid", size=.3,
+  #              lineend = "round", linejoin = "round",
+  #              arrow = arrow(length = unit(0.06, "npc"))) +
+  # geom_segment(aes(x = .27, y = .28, xend = 0.27, yend = 0.0), 
+  #              color="darkslategray3", linetype="solid", size=.3,
+  #              lineend = "round", linejoin = "round",
+  #              arrow = arrow(length = unit(0.06, "npc"))) +
+  
+  # Line
+  geom_vline(xintercept = 0.27, alpha=0.8, color="darkslategray3", linetype="solid") +
+  xlab(expression(V[o]/V[c])) +
+  ylab("Norm. variance") +
+  theme_classic() -> p6
+
 
 tmp <- fig2
 tmp$state <- rep("pathological", nrow(tmp))
@@ -345,36 +413,49 @@ tmp$state[m] <- "healthy"
 
 tmp %>% 
   filter(V_osc/V_comp <= 5) %>%
-  ggplot(aes(x=variances_pop*ms, errors_pop*ms, group=freq, color=state)) +
-  geom_point(size=.2, alpha=0.9) +
-  xlab("Variance (ms)") +
-  ylab("Error (ms)") +
+  group_by(freq, N) %>%
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=variances_pop, errors_pop, group=freq, color=state)) +
+  geom_point(size=.8, alpha=0.8) +
+  xlab("Norm. variance") +
+  ylab("Norm. error") +
   scale_color_manual("", values=c("darkslategray3", "darkslategray")) +
-  theme_classic() -> p5
+  theme_classic() -> p7
 
 plot_grid <- rbind(
   c(NA, NA, NA, NA),
-  c(1, 1, 3, 3), 
-  c(1, 1, 3, 3),
-  c(1, 1, 3, 3),
-  c(1, 1, 3, 3),
   c(NA, NA, NA, NA),
-  c(2, 2, 4, 4),
-  c(2, 2, 4, 4),
-  c(2, 2, 4, 4),
-  c(2, 2, 4, 4),
+  c(1, 1, 2, 2), 
+  c(1, 1, 2, 2),
+  c(1, 1, 2, 2),
+  c(1, 1, 2, 2),
   c(NA, NA, NA, NA),
-  c(5, 5, 5, 5),
-  c(5, 5, 5, 5),
-  c(5, 5, 5, 5),
-  c(5, 5, 5, 5),
-  c(5, 5, 5, 5),
-  c(5, 5, 5, 5))
+  c(3, 3, 4, 4),
+  c(3, 3, 4, 4),
+  c(3, 3, 4, 4),
+  c(3, 3, 4, 4),
+  c(NA, NA, NA, NA),
+  c(5, 5, 6, 6),
+  c(5, 5, 6, 6),
+  c(5, 5, 6, 6),
+  c(5, 5, 6, 6),
+  c(NA, NA, NA, NA),
+  c(7, 7, 7, 7),
+  c(7, 7, 7, 7),
+  c(7, 7, 7, 7),
+  c(7, 7, 7, 7),
+  c(7, 7, 7, 7),
+  c(7, 7, 7, 7),
+  c(7, 7, 7, 7))
 
-grid.arrange(p1, p2, p3, p4, p5, layout_matrix=plot_grid)
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, layout_matrix=plot_grid)
 ```
 
-By looking at the ratio we identified a narrow region (V_o/V_c ~< 0.27) where the trade-off is approx linear across freq, and that accounts for approx. half the total change in both variance and error. We hypothesize that this narrow region can be considered a healthy range for modulation as it is maximially sensitive (has the highest dirvative) and is approx. linear--representing the best possible trade-off irregardless of freq.
+Error below 0.5 implies the result contains a majority of the reference. Beyond 0.5, the modulator dominates spiking. This means 0.5 serves as natural boundry to seperate oscillations that modulate other activity, and oscillations that activity. The ratio at 0.5 error is V_o/V_c = 0.27. This point turns out to several interesting features. It is where the trade-off is approx linear across freq, and where the trade-off is most stable.
+
+We hypothesize that this narrow region of budget ratio can be considered a healthy range for modulation as it, let's comp dom, is maximially sensitive (has the highest dirvative) and is approx. linear is maximmally consistent--representing the best possible trade-off irregardless of freq.
 
 Sync efficiency is strongly dependent on other osc input. Strong synapses need strong oscillations. Weak synapses need weak oscillations. To stay in healthy range, oscillation strength should be tuned on a compartment basis, either dendritically or somatically or both. 
 
@@ -384,16 +465,21 @@ If your observaing a excitatory interneuron, with weak sparse inputs, a good lev
 
 
 # Vc and sync
-```{r, fig.width=1.4, fig.height=1}
+```{r, fig.width=1.4, fig.height=0.8}
 fig2 %>% 
-  # filter(V_osc/V_comp <= ) %>%
-  ggplot(aes(x=V_comp*mV, variances_pop*ms, color=V_osc*mV)) +
+  filter(V_osc/V_comp <= 5) %>%
+  group_by(freq, N) %>% 
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=V_comp*mV, variances_pop, color=V_osc*mV)) +
   geom_point(size=.2, alpha=0.5) +
   xlab(expression(paste(V[c], " (mV)"))) +
-  ylab("Variance (ms)") +
-  scale_color_gradient(expression(paste(V[o], " (mV)")), low="goldenrod1", high="firebrick3") +
+  ylab("Norm. variance") +
+  scale_color_gradient(expression(paste(V[o], " (mV)")), low="darkgrey", high="firebrick3") +
   theme_classic() +
-  theme(legend.key.width=unit(0.3,"cm"),
+  theme(legend.key.height=unit(0.3,"cm"),
+        legend.key.width=unit(0.3,"cm"),
+        legend.background = element_rect(colour ="black"),
         legend.title=element_text(size=8),
         legend.text=element_text(size=8))
 ```
@@ -402,57 +488,10 @@ While the ratio determines the overall trade-off (above), again we see that abou
 
 A simple biological response to this is to have (weak, <1 mV) oscillatory modulation selectivly target strong synapses.
 
-# Freq. dependence
-```{r, fig.width=0.65, fig.height=2.5}
-fig2 %>% 
-filter(V_osc/V_comp <= 5) %>%
-  ggplot(aes(x=variances_pop*ms, errors_pop*ms, group=freq)) +
-  geom_point(size=.2, alpha=0.9) +
-  scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
-  scale_y_continuous(breaks=c(0,30,60)) +
-  xlab("Variance (ms)") +
-  ylab("Error (ms)") +
-  facet_grid(freq~.) +
-  theme_classic() +
-  theme(strip.text.y = element_text(angle=0), strip.background = element_blank())
-```
-
-```{r, fig.width=0.65, fig.height=2.5}
-fig2 %>% 
-  filter(V_osc/V_comp <= 0.8) %>%
-  ggplot(aes(x=V_osc/V_comp, y=variances_pop*ms)) +
-  geom_point(size=.2, alpha=0.5) +
-  facet_grid(freq~.) +
-  xlab(expression(V[o]/V[c])) +
-  ylab("Variance (ms)") +
-  scale_y_continuous(breaks=c(7.5,8,8.5,9)) +
-  scale_x_continuous(breaks=c(0,0.4,0.8)) +
-  # geom_rect(
-  #   mapping=aes(xmin=0.15, xmax=0.4, ymin=min(variances_pop*ms), ymax=max(variances_pop*ms)),
-  #   color="darkslategray4", fill="darkslategray4", alpha=0.02) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
-  theme_classic() +
-  theme(strip.text.y = element_text(angle=0), strip.background = element_blank())
-```
-
-Fo far we've focused on error-variance relationships common between frequencies. Frequency also effect error-variance trade off.
-
-...
-
-Faster oscillations offer less sync overall, and therefore have a more limited var-error range than slower oscillations. If we use the curveture of the variance curve to fine tune the healthy ratio / frequency, we see that... 
-
-TODO: get max second deriv. Use that to find the change point?
-TODO: plot max second derive ration point by freq. How does the healthy boundry scale with freq?
-
-Slower oscillations have a wider working range, than faster oscillations. If doing stimulation experiments, once must also consider your freqeuncy carefully.
-
 
 # Controls - Ws, noise, cell type
-TODO
-
-## Heterocells
-
-```{r, fig.width=0.5, fig.height=1.4}
+```{r, fig.width=2.1, fig.height=1.5}
+# --------------------------------------------------
 fig14 %>% 
   ggplot(aes(x=t, y=vm*1e3, group=cell)) +
   geom_line(size=0.2, color="black") +
@@ -474,11 +513,7 @@ fig14 %>%
     panel.grid.major=element_blank(),
     panel.grid.minor=element_blank(),
     plot.background=element_blank()) -> p1
-plot(p1)
-```
 
-```{r, fig.width=2.1, fig.height=1.5}
-# --------------------------------------------------
 # Cell type
 fig12 %>%
   group_by(N) %>%
@@ -621,7 +656,7 @@ rm(p1, p2, plot_grid)
 
 # Optimal vs. oscillation
 
-```{r, fig.width=1.1, fig.height=2}
+```{r, fig.width=1.1, fig.height=3}
 ms <- 1e3
 
 fig17 %>% 
