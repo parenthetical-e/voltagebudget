@@ -216,59 +216,6 @@ fig8 %>%
     variances = mean(variances)) -> fig9
 
 # --------------------------------------------------------------------
-# Load weight exps
-# Osc
-freq <- "20"
-
-# Init
-fig10 <- NULL
-
-# high w
-exp <- "100"
-name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
-df <- read_csv(paste(name, sep=","))
-df$weight <- rep(2.48e-08, nrow(df))
-fig10 <- rbind(df, fig10)
-
-
-# Ref (Z=0)
-exp <- "96"
-name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
-df <- read_csv(paste(name, sep=","))
-df$weight <- rep(8.25e-09, nrow(df))
-fig10 <- rbind(df, fig10)
-
-# low w
-exp <- "99"
-name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
-df <- read_csv(paste(name, sep=","))
-df$weight <- rep(1.65e-09, nrow(df))
-fig10 <- rbind(df, fig10)
-
-
-# Process
-fig10 %>% 
-  filter(n_spikes_ref > 0) %>% 
-  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
-  mutate(V_osc = V_osc - V_osc_ref) -> fig10
-
-# Summarize over As 
-fig10 %>% 
-  group_by(As, weight) %>% 
-  summarise(
-    N = 0,
-    delta_spikes = mean(delta_spikes), 
-    V_b = mean(V_b), 
-    V_osc = mean(V_osc), 
-    V_comp = mean(V_comp), 
-    V_comp_ref = mean(V_comp_ref), 
-    n_spikes_pop = mean(n_spikes), 
-    errors = mean(errors), 
-    errors_pop = mean(errors_pop), 
-    variances_pop = mean(variances_pop), 
-    variances = mean(variances)) -> fig11
-
-# --------------------------------------------------------------------
 # Hetero cells
 # Osc
 freq <- "20"
