@@ -130,6 +130,19 @@ fig1 %>%
     variances_pop = mean(variances_pop), 
     variances = mean(variances)) -> fig2
 
+# Ratio ests
+fig2_ratios <- NULL
+freqs <- unique(fig2$freq)
+for (f in freqs) {
+  tmp <- filter(fig2, f == freq, V_osc/V_comp < 5)
+  pnts <- find_point(normalize(tmp$errors_pop), tmp$V_osc/tmp$V_comp, 0.5)  
+  row <- c(pnts, f)
+  fig2_ratios <- rbind(fig2_ratios, row)
+}
+fig2_ratios <- as.data.frame(fig2_ratios, stringsAsFactors=FALSE)
+colnames(fig2_ratios) <- c("error_50", "ratio", "freq")
+
+
 # --------------------------------------------------------------------
 # Data
 algs <- c("max", "left", "uni", "cc")
@@ -302,7 +315,7 @@ rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
 ```
 
 # The trade off
-```{r, fig.width=2, fig.height=4}
+```{r, fig.width=2, fig.height=5}
 # By freq
 fig2 %>% 
   filter(V_osc/V_comp <= 5) %>%
@@ -322,7 +335,7 @@ fig2 %>%
   ylab("Variance (ms)") +
   theme_classic() +
   theme(
-    legend.position=c(0.4, 1.5),
+    legend.position=c(0.45, 1.5),
     legend.direction="horizontal",    
     legend.key.size = unit(.5, "cm"),
     legend.key.height=unit(0.3,"cm"),
@@ -339,6 +352,7 @@ fig2 %>%
   ggplot(aes(x=V_osc/V_comp, errors_pop, group=freq)) +
   geom_line(size=.5, alpha=0.5) +
   geom_hline(yintercept = 0.5, alpha=1, color="grey", linetype="dashed") +
+  annotate("text", x = 4, y = 0.65, label = expression(paste("E"[50]))) +
   xlab(expression(V[o]/V[c])) +
   ylab("Norm. error") +
   theme_classic() -> p3
@@ -363,21 +377,8 @@ fig2 %>%
   ggplot(aes(x=V_osc/V_comp, errors_pop, group=freq)) +
   geom_line(size=.5, alpha=0.5) +
   
-  # Arrow
-  # geom_segment(aes(x = 0.27, y = 0.5, xend = -.1, yend = 0.5), 
-  #              color="darkslategray3", linetype="solid", size=.3,
-  #              lineend = "round", linejoin = "round",
-  #              arrow = arrow(length = unit(0.06, "npc"))) +
-  # geom_segment(aes(x = .27, y = .5, xend = 0.27, yend = 0), 
-  #              color="darkslategray3", linetype="solid", size=.3,
-  #              lineend = "round", linejoin = "round",
-  #              arrow = arrow(length = unit(0.06, "npc"))) +
-
-  # X
-  # geom_point((aes(x=0.27, y=0.5)), color="grey", size=3, shape=4, alpha=0.6) +
-
   # Line
-  geom_vline(xintercept = 0.27, alpha=0.8, color="darkslategray3", linetype="solid") +
+  geom_vline(xintercept = 0.2858, alpha=0.8, color="darkslategray3", linetype="solid") +
   xlab(expression(V[o]/V[c])) +
   ylab("Norm. error") +
   theme_classic() -> p5
@@ -389,18 +390,8 @@ fig2 %>%
   ggplot(aes(x=V_osc/V_comp, variances_pop, group=freq)) +
   geom_line(size=.5, alpha=0.5) +
   
-  # Arrow
-  # geom_segment(aes(x = 0.28, y = 0.28, xend = -0.1, yend = 0.28), 
-  #              color="darkslategray3", linetype="solid", size=.3,
-  #              lineend = "round", linejoin = "round",
-  #              arrow = arrow(length = unit(0.06, "npc"))) +
-  # geom_segment(aes(x = .27, y = .28, xend = 0.27, yend = 0.0), 
-  #              color="darkslategray3", linetype="solid", size=.3,
-  #              lineend = "round", linejoin = "round",
-  #              arrow = arrow(length = unit(0.06, "npc"))) +
-  
   # Line
-  geom_vline(xintercept = 0.27, alpha=0.8, color="darkslategray3", linetype="solid") +
+  geom_vline(xintercept = 0.2858, alpha=0.8, color="darkslategray3", linetype="solid") +
   xlab(expression(V[o]/V[c])) +
   ylab("Norm. variance") +
   theme_classic() -> p6
@@ -408,7 +399,7 @@ fig2 %>%
 
 tmp <- fig2
 tmp$state <- rep("pathological", nrow(tmp))
-m <- tmp$V_osc/tmp$V_comp < 0.27
+m <- tmp$V_osc/tmp$V_comp < 0.2858
 tmp$state[m] <- "healthy"
 
 tmp %>% 
@@ -423,6 +414,16 @@ tmp %>%
   scale_color_manual("", values=c("darkslategray3", "darkslategray")) +
   theme_classic() -> p7
 
+print(summary(fig2_ratios$ratio))
+fig2_ratios %>% 
+  ggplot(aes(x=freq, y=ratio)) +
+  geom_point(color="darkslategray3", size=1.6) +
+  xlab("Freq (Hz)") +
+  geom_hline(yintercept = mean(fig2_ratios$ratio), alpha=0.8, color="darkslategray3", linetype="solid") +
+  ylab(expression(paste(V[o]/V[c], " at E"[50]))) +
+  theme_classic() +
+  ylim(0, 1) -> p8
+
 plot_grid <- rbind(
   c(NA, NA, NA, NA),
   c(NA, NA, NA, NA),
@@ -436,6 +437,11 @@ plot_grid <- rbind(
   c(3, 3, 4, 4),
   c(3, 3, 4, 4),
   c(NA, NA, NA, NA),
+  c(8, 8, 8, NA),
+  c(8, 8, 8, NA),
+  c(8, 8, 8, NA),
+  c(8, 8, 8, NA),
+  c(NA, NA, NA, NA),
   c(5, 5, 6, 6),
   c(5, 5, 6, 6),
   c(5, 5, 6, 6),
@@ -448,9 +454,8 @@ plot_grid <- rbind(
   c(7, 7, 7, 7),
   c(7, 7, 7, 7),
   c(7, 7, 7, 7))
-
-
-grid.arrange(p1, p2, p3, p4, p5, p6, p7, layout_matrix=plot_grid)
+  
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, layout_matrix=plot_grid)
 ```
 
 Error below 0.5 implies the result contains a majority of the reference. Beyond 0.5, the modulator dominates spiking. This means 0.5 serves as natural boundry to seperate oscillations that modulate other activity, and oscillations that activity. The ratio at 0.5 error is V_o/V_c = 0.27. This point turns out to several interesting features. It is where the trade-off is approx linear across freq, and where the trade-off is most stable.
@@ -459,7 +464,7 @@ We hypothesize that this narrow region of budget ratio can be considered a healt
 
 Sync efficiency is strongly dependent on other osc input. Strong synapses need strong oscillations. Weak synapses need weak oscillations. To stay in healthy range, oscillation strength should be tuned on a compartment basis, either dendritically or somatically or both. 
 
-Our analysis suggests a simple biological scaling rule for oscillatory modulation. This is useful both in analyzing for patholigical acitivty, but also in desgining optogenetic and other stimulation experiments. You should scale your oscillatory manipulation be no more the 0.27 times as strong as the average membrane potential observed in vivo, without stimulation.  
+Our analysis suggests a simple biological scaling rule for oscillatory modulation. This is useful both in analyzing for patholigical acitivty, but also in desgining optogenetic and other stimulation experiments. You should scale your oscillatory manipulation be no more the 0.2858 times as strong as the average membrane potential observed in vivo, without stimulation.  
 
 If your observaing a excitatory interneuron, with weak sparse inputs, a good level of oscillatory stimulation will be much lower then if, for example, you were working with a layer 5 pyrimidal cell recieving strong thalmic drive.
 
@@ -523,7 +528,7 @@ fig12 %>%
   mutate(norm_errors = normalize(errors_pop)) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_errors, group=N)) +
   geom_point(size=.1, alpha=0.4) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_vline(xintercept = 0.2858, alpha=1, color="darkslategray3", linetype="solid") +
   labs(x=expression(V[o]/V[c]), y="Norm. error", title="Cell type") +
   theme_classic() +
   theme(title = element_text(size=10)) +
@@ -537,7 +542,7 @@ fig12 %>%
   mutate(norm_variance = normalize(variances_pop)) %>% 
   ggplot(aes(x=V_osc/V_comp, y=norm_variance, group=N)) +
   geom_point(size=.1, alpha=0.4) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_vline(xintercept = 0.2858, alpha=1, color="darkslategray3", linetype="solid") +
   theme_classic() +
   lims(x=c(0, 5)) +
   labs(x=expression(V[o]/V[c]), y="Norm. variance") -> p3
@@ -552,7 +557,7 @@ fig9 %>%
   ggplot(aes(x=V_osc/V_comp, y=norm_errors_pop, 
              color=10e-3*(sigma/10e-9) * 1e3/2, group=interaction(N, sigma))) +
   geom_point(size=.1, alpha=0.4) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_vline(xintercept = 0.2858, alpha=1, color="darkslategray3", linetype="solid") +
   labs(x=expression(V[o]/V[c]), y="Norm. error") +
   scale_color_gradient("Noise\n(mV)", low="grey", high="black") +
   theme_classic() +
@@ -575,7 +580,7 @@ fig9 %>%
   ggplot(aes(x=V_osc/V_comp, y=norm_variances_pop, 
              color=10e-3*(sigma/10e-9) * 1e3/2, group=interaction(N, sigma))) +
   geom_point(size=.1, alpha=0.4) +
-  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_vline(xintercept = 0.2858, alpha=1, color="darkslategray3", linetype="solid") +
   labs(x=expression(V[o]/V[c]), y="Norm. variance") +
   scale_color_gradient(low="grey", high="black") +
   theme_classic() +
