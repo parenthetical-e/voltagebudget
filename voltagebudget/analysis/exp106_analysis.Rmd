@@ -9,9 +9,15 @@ library(tidyr)
 library(dplyr)
 library(gridExtra)
 library(readr)
+library(NNTbiomarker)
 
 normalize <- function(x) {
-    return ((x - min(x)) / (max(x) - min(x)))
+    return((x - min(x)) / (max(x) - min(x)))
+}
+
+find_point <- function(x, y, point){
+  i <- argmin(x, target = point)
+  return(c(x[i], y[i]))
 }
 
 mV <- 1000
@@ -23,7 +29,7 @@ ms <- 1000
 
 ```{r, message=FALSE}
 exp <- "106"
-g_ls <- c("10e-9", "12e-9", "14e-9")
+g_ls <- c("10e-9", "12e-9", "14e-9", "16e-9")
 
 results <- NULL
 for(g_l in g_ls){
@@ -86,7 +92,6 @@ rm(p1, p2, p3, p4)
 
 
 # As
-
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
   filter(N == 1, V_osc/V_comp < 5) %>% 
@@ -97,17 +102,7 @@ results %>%
   theme(legend.position="bottom") 
 ```
 
-
-```{r, fig.width=1.5, fig.height=1.5}
-results %>% 
-  filter(N == 1, V_osc/V_comp < 5) %>% 
-  ggplot(aes(x=V_osc*mV, y=n_spikes_pop - n_spikes_ref, color=g_l)) +
-  geom_line() + 
-  theme_classic() +
-  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
-  theme(legend.position="bottom") 
-```
-
+# Variance
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
   filter(N == 1, V_osc/V_comp < 5) %>% 
@@ -117,17 +112,20 @@ results %>%
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
   theme(legend.position="bottom") 
 ```
+
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
   filter(N == 1, V_osc/V_comp < 5) %>% 
-  ggplot(aes(x=V_osc/V_comp, y=variances_pop*ms, color=g_l)) +
+  group_by(g_l) %>% 
+  mutate(variances_pop=normalize(variances_pop)) %>% 
+  mutate(errors_pop=normalize(errors_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances_pop, color=g_l)) +
   geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
   geom_line() + 
   theme_classic() +
   scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
   theme(legend.position="bottom") 
 ```
-
 
 ```{r, fig.width=1.6, fig.height=1.6}
 results %>% 
@@ -139,6 +137,7 @@ results %>%
   theme(legend.position="bottom") 
 ```
 
+# Error
 ```{r, fig.width=1.6, fig.height=1.6}
 results %>% 
   filter(N == 1, V_osc/V_comp < 5) %>% 
@@ -150,7 +149,40 @@ results %>%
   theme(legend.position="bottom") 
 ```
 
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  group_by(g_l) %>% 
+  mutate(variances_pop=normalize(variances_pop)) %>% 
+  mutate(errors_pop=normalize(errors_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors_pop, color=g_l)) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
 
+# Ratio ests
+```{r, fig.width=1}
+ratios <- NULL
+for (V in c("10e-9", "12e-9", "14e-9")) {
+  tmp <- filter(results, g_l == V, N == 1, V_osc/V_comp < 5)
+  pnts <- find_point(normalize(tmp$errors_pop), tmp$V_osc/tmp$V_comp, 0.5)  
+  row <- c(pnts, as.numeric(V))
+  ratios <- rbind(ratios, row)
+}
+ratios <- as.data.frame(ratios, stringsAsFactors=FALSE)
+colnames(ratios) <- c("error_50", "ratio", "g_l")
+# Get ratio
+
+ratios %>% 
+  ggplot(aes(x=g_l*1e9, ratio)) + 
+  geom_point() + 
+  theme_classic()
+```
+
+# Trade off
 ```{r, fig.width=1.5, fig.height=1.5}
 results %>% 
   filter(N == 1, V_osc/V_comp < 5) %>% 
@@ -161,4 +193,16 @@ results %>%
   theme(legend.position="bottom") 
 ```
 
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  group_by(g_l) %>% 
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=variances_pop, y=errors_pop, color=g_l)) +
+  geom_point(size=.05) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
 

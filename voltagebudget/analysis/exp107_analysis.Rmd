@@ -170,7 +170,7 @@ results %>%
 ```
 
 # Ratio ests
-```{r}
+```{r, fig.width=1}
 ratios <- NULL
 for (V in c("-70e-3", "-72e-3", "-74e-3", "-76e-3")){
   tmp <- filter(results, V_l == V, N == 1, V_osc/V_comp < 5)
@@ -183,7 +183,7 @@ colnames(ratios) <- c("error_50", "ratio", "V_l")
 # Get ratio
 
 ratios %>% 
-  ggplot(aes(x=V_l, ratio)) + 
+  ggplot(aes(x=V_l*mV, ratio)) + 
   geom_point() + 
   theme_classic()
 ```
