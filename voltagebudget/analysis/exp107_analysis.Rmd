@@ -1,0 +1,164 @@
+---
+title: "Sweep A - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(gridExtra)
+library(readr)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+
+mV <- 1000
+ms <- 1000
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+exp <- "107"
+V_ls <- c("-70e-3", "-72e-3", "-74e-3", "-76e-3", "-78e-3", "-80e-3")
+
+results <- NULL
+for(V_l in V_ls){
+  name <- paste("../../data/exp", exp, "_V_l", V_l, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$V_l <- rep(V_l, nrow(df))
+  results <- rbind(results, df)
+}
+results$V_l <- factor(results$V_l, levels=V_ls)
+
+results %>% 
+  filter(n_spikes_ref > 0) %>% 
+  # Add delta_spikes
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  # Re-norm V_osc
+  mutate(V_osc = V_osc - V_osc_ref) -> results
+
+# -
+rm(df, exp, V_l, V_ls, name)
+```
+
+
+# Overall distributions
+
+```{r, fig.width=2.75, fig.height=2}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=variances_pop*ms, fill=V_l)) +
+  geom_histogram(bins=20, alpha=1) + 
+  xlab("Variance") +
+  theme_classic() -> p1
+
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=errors_pop*ms, fill=V_l)) +
+  geom_histogram(bins=20) + 
+  xlab("Error") +
+  theme_classic() -> p2
+
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc*mV, fill=V_l)) +
+  geom_histogram(bins=20) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_comp*mV, fill=V_l)) +
+  geom_histogram(bins=20) +
+  xlab("Vo (volt)") +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+rm(p1, p2, p3, p4)
+```
+
+
+# As
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=As*1e9, y=V_osc*mV, color=V_l)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc*mV, y=n_spikes_pop - n_spikes_ref, color=V_l)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc * mV, y=variances_pop*ms, color=V_l)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances_pop*ms, color=V_l)) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc * mV, y=errors_pop*ms, color=V_l)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors_pop*ms, color=V_l)) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms, color=V_l)) +
+  geom_point(size=.05) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+
