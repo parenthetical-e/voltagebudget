@@ -1093,7 +1093,8 @@ exp106:
 	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp106.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sweep_A $(DATADIR)/exp106_g_l{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --g_l={1}' \
+		'python budget_experiments.py sweep_A $(DATADIR)/exp106_g_l{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only 
+		--g_l={1}' \
 		::: 10e-9 12e-9 14e-9 16e-9 18e-9 20e-9
 
 # V_l=-70e-3 # go bigger up to -80
@@ -1114,3 +1115,24 @@ exp108:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sweep_A $(DATADIR)/exp108_g_l{1} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=150 --d=-2e-3 --T=0.05 --f=20 --verbose --save_only --g_l={1}' \
 		::: 1.0e-08 1.05e-08 1.1e-08 1.15e-08 1.2e-08
+
+# ---------------------------------------------------------------------------
+# 6-18-2019
+# Run opt alg for MDL
+exp109:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp109.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py optimal_sweep_A $(DATADIR)/exp109_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --optimal_method=coincidence --A_0=0.00e-9 --A_max=0.02e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# Save some example spikes
+exp113_test:
+	python budget_experiments.py optimal $(DATADIR)/exp113_cc $(DATADIR)/stim1.csv 0.5e-3 --n_samples=3 --alg=coincidence --save_only --verbose --save_spikes
+
+# Save some example spikes
+exp110_113:
+	python budget_experiments.py optimal $(DATADIR)/exp110_max $(DATADIR)/stim1.csv  5e-3 --n_samples=1 --alg=max_deviants --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp111_left $(DATADIR)/stim1.csv  5e-3 --n_samples=1 --alg=left_deviants --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp112_uni $(DATADIR)/stim1.csv  5e-3 --n_samples=1 --alg=uniform --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp113_cc $(DATADIR)/stim1.csv 5e-3 --n_samples=1 --alg=coincidence --save_only --verbose --save_spikes
