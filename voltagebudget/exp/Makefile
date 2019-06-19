@@ -1120,7 +1120,7 @@ exp108:
 # 6-18-2019
 # Run opt alg for MDL
 exp109:
-	parallel -j 3 -v \
+	parallel -j 12 -v \
 		--joblog '$(DATADIR)/exp109.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py optimal_sweep_A $(DATADIR)/exp109_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --optimal_method=coincidence --A_0=0.00e-9 --A_max=0.02e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
