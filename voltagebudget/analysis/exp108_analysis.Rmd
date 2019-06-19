@@ -1,0 +1,209 @@
+---
+title: "exp108 - g_l sensitivity analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(gridExtra)
+library(readr)
+library(NNTbiomarker)
+
+normalize <- function(x) {
+    return((x - min(x)) / (max(x) - min(x)))
+}
+
+find_point <- function(x, y, point){
+  i <- argmin(x, target = point)
+  return(c(x[i], y[i]))
+}
+
+mV <- 1000
+ms <- 1000
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+exp <- "108"
+g_ls <- c("1.0e-08", "1.05e-08", "1.1e-08", "1.15e-08", "1.2e-08")
+
+results <- NULL
+for(g_l in g_ls){
+  name <- paste("../../data/exp", exp, "_g_l", g_l, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$g_l <- rep(g_l, nrow(df))
+  results <- rbind(results, df)
+}
+results$g_l <- factor(results$g_l, levels=g_ls)
+
+results %>% 
+  filter(n_spikes_ref > 0) %>% 
+  # Add delta_spikes
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  # Re-norm V_osc
+  mutate(V_osc = V_osc - V_osc_ref) -> results
+
+# -
+# rm(df, exp, g_l, g_ls, name)
+```
+
+
+# Overall distributions
+
+```{r, fig.width=2.75, fig.height=2}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=variances_pop*ms, fill=g_l)) +
+  geom_histogram(bins=20, alpha=1) + 
+  xlab("Variance") +
+  theme_classic() -> p1
+
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=errors_pop*ms, fill=g_l)) +
+  geom_histogram(bins=20) + 
+  xlab("Error") +
+  theme_classic() -> p2
+
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc*mV, fill=g_l)) +
+  geom_histogram(bins=20) +
+  xlab("Vc (volt)") +
+  theme_classic() -> p3
+
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_comp*mV, fill=g_l)) +
+  geom_histogram(bins=20) +
+  xlab("Vo (volt)") +
+  theme_classic() -> p4
+
+grid.arrange(p1, p2, p3, p4, nrow=2)
+rm(p1, p2, p3, p4)
+```
+
+
+# As
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=As*1e9, y=V_osc*mV, color=g_l)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+# Variance
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc * mV, y=variances_pop*ms, color=g_l)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  group_by(g_l) %>% 
+  mutate(variances_pop=normalize(variances_pop)) %>% 
+  mutate(errors_pop=normalize(errors_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances_pop, color=g_l)) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc * mV, y=errors_pop*ms, color=g_l)) +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+# Error
+```{r, fig.width=1.6, fig.height=1.6}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors_pop*ms, color=g_l)) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  group_by(g_l) %>% 
+  mutate(variances_pop=normalize(variances_pop)) %>% 
+  mutate(errors_pop=normalize(errors_pop)) %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors_pop, color=g_l)) +
+  geom_vline(xintercept = 0.27, alpha=1, color="darkslategray3", linetype="solid") +
+  geom_line() + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+# Ratio ests
+```{r, fig.width=1}
+ratios <- NULL
+for (V in g_ls) {
+  tmp <- filter(results, g_l == V, N == 1, V_osc/V_comp < 5)
+  pnts <- find_point(normalize(tmp$errors_pop), tmp$V_osc/tmp$V_comp, 0.5)  
+  row <- c(pnts, as.numeric(V))
+  ratios <- rbind(ratios, row)
+}
+ratios <- as.data.frame(ratios, stringsAsFactors=FALSE)
+colnames(ratios) <- c("error_50", "ratio", "g_l")
+# Get ratio
+
+ratios %>% 
+  ggplot(aes(x=g_l*1e9, ratio)) + 
+  geom_point() + 
+  theme_classic() +
+  ylim(0, 1)
+```
+
+# Trade off
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms, color=g_l)) +
+  geom_point(size=.05) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+results %>% 
+  filter(N == 1, V_osc/V_comp < 5) %>% 
+  group_by(g_l) %>% 
+  mutate(errors_pop = normalize(errors_pop)) %>%
+  mutate(variances_pop = normalize(variances_pop)) %>%
+  ggplot(aes(x=variances_pop, y=errors_pop, color=g_l)) +
+  geom_point(size=.05) + 
+  theme_classic() +
+  scale_colour_brewer(palette="Greens", guide=guide_legend(nrow=3)) +
+  theme(legend.position="bottom") 
+```
+
