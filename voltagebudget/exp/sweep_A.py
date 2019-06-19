@@ -29,6 +29,7 @@ from voltagebudget.util import find_E
 from voltagebudget.util import find_phis
 from voltagebudget.plc import max_deviant
 from voltagebudget.plc import uniform
+from voltagebudget.plc import coincidence
 
 
 def sweep_A(name,
@@ -532,6 +533,8 @@ def optimal_sweep_A(name,
                 dt=dt)
         elif optimal_method == 'uniform':
             _, _, var_opt, ts_opt = uniform(ts_ref, var_ref, var_pop)
+        elif optimal_method == 'coincidence':
+            _, _, var_opt, ts_opt = coincidence(ts_ref, var_ref, var_pop)
         else:
             raise ValueError("Otimmal method not known")
 
