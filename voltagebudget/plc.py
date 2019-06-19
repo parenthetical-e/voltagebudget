@@ -59,11 +59,23 @@ def _diffs(ts):
     return np.asarray(ds)
 
 
-def coincidence(ts, initial, target):
+def _find_value(x, array):
+    array = np.asarray(array)
+    idx = (np.abs(array - x)).argmin()
+    return idx
+
+
+def coincidence(ts, initial, target, min_distance=1e-6, max_iterations=1000):
     """Coordinate by increasing coincidences.
     
-    An approach inspired by neural oscillations.
+    This is the optimal policy to minimize the minimum
+    description length (MDL). 
+    
+    https://en.wikipedia.org/wiki/Minimum_description_length
     """
+
+    if np.isclose(initial, target):
+        return initial, initial, initial, ts
 
     # Init
     ts = np.asarray(ts)
@@ -73,22 +85,37 @@ def coincidence(ts, initial, target):
     # Prelim...
     ts = np.sort(ts)
 
-    # Est the seq. differences between ts,
-    # and index their order.
-    i = np.argmin(_diffs(ts))
-
     # -
     # Shift closest spikes (smallest deltas)
     # to be the same until target MAD is achieved.
+    N = ts.size
     ts_opt = ts.copy()
     adjusted = initial
-    while adjusted > target:
+
+    n = 0
+    while (adjusted >= target) and (n < max_iterations):
+        # Find distances
+        deltas = _diffs(ts_opt)
+
+        # Must be not already a coincidence
+        deltas[deltas > min_distance] = np.nan
+        # print(deltas > min_distance)
+
+        # Find smallest distance
+        i = np.nanargmin(deltas)
+
+        # Shift
+        # Est the seq. differences between ts,
+        # and index their order.
+        # Note: nans are last in argsort.
         ts_opt[i + 1] = ts_opt[i]
 
+        # Update stats/counters
         adjusted = mad(ts_opt)
 
-        i = np.argmin(_diffs(ts_opt))
+        n += 1
 
+    print(initial, target, adjusted, np.asarray(ts_opt))
     return initial, target, adjusted, np.asarray(ts_opt)
 
 

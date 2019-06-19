@@ -11,38 +11,34 @@ from voltagebudget.plc import uniform
 from voltagebudget.plc import coincidence
 
 from voltagebudget.util import mae
+from voltagebudget.util import mad
 
+# # -
+# def _run(ts, target, fn, verbose=False):
+#     # init
+#     initial_variances = []
+#     target_variances = []
+#     obs_variances = []
+#     errors = []
 
-# -
-def _run(ts, changes, fn, verbose=False):
-    # init
-    initial_variances = []
-    target_variances = []
-    obs_variances = []
-    errors = []
+#     # run of changes
+#     for c in changes:
+#         if verbose:
+#             print(">>> Running c {}".format(c))
 
-    # run of changes
-    for c in changes:
-        if verbose:
-            print(">>> Running c {}".format(c))
+#         obs_variances.append(obs)
+#         initial_variances.append(initial)
+#         target_variances.append(target)
+#         errors.append(err)
 
-        initial, target, obs, ts_opt = fn(ts, c)
-        err = mae(ts, ts_opt)
+#     results = [obs_variances, initial_variances, target_variances, errors]
 
-        obs_variances.append(obs)
-        initial_variances.append(initial)
-        target_variances.append(target)
-        errors.append(err)
-
-    results = [obs_variances, initial_variances, target_variances, errors]
-
-    return results
+#     return results
 
 
 def optimal(name,
             stim,
-            p_0,
-            p_max,
+            var_target,
             alg='max_deviants',
             n_samples=100,
             verbose=False,
@@ -57,7 +53,7 @@ def optimal(name,
     if alg == 'max_deviants':
         fn = max_deviant
     elif alg == 'left_deviants':
-        fn = lambda x, p: max_deviant(x, p, side='left')
+        fn = lambda ts, intial, target: max_deviant(ts, intial, target, side='left')
     elif alg == 'uniform':
         fn = uniform
     elif alg == 'coincidence':
@@ -72,14 +68,30 @@ def optimal(name,
     ns = np.asarray(stim_data['ns'])
     ts = np.asarray(stim_data['ts'])
 
+    var_ref = mad(ts)
+
     # --------------------------------------------------------------
     # Run plc!
     if verbose:
         print(">>> Running {}.".format(alg))
 
-    changes = np.linspace(p_0, p_max, n_samples)
-    (obs_variances, initial_variances, target_variances, errors) = _run(
-        ts, changes, fn, verbose=verbose)
+    initial_variances = []
+    target_variances = []
+    obs_variances = []
+    errors = []
+    changes = np.linspace(var_ref, var_target, n_samples + 1)
+    for var_c in changes:
+        _, target, adjusted, ts_adjusted = fn(ts, var_ref, var_c)
+        error = mae(ts, ts_adjusted)
+
+        initial_variances.append(var_ref)
+        target_variances.append(target)
+        obs_variances.append(adjusted)
+        errors.append(error)
+
+        if save_spikes:
+            ts_name = "{}_target{}_spikes".format(name, var_c)
+            write_spikes(ts_name, ns, ts_adjusted)
 
     # --------------------------------------------------------------
     if verbose:
@@ -98,18 +110,7 @@ def optimal(name,
     with open("{}.csv".format(name), "w") as fi:
         writer = csv.writer(fi, delimiter=",")
         writer.writerow(keys)
-        writer.writerows(zip(* [results[key] for key in keys]))
-
-    # -
-    if save_spikes:
-        if verbose:
-            print(">>> Saving spikes.")
-
-        for c in changes:
-            initial, target, obs, ts_save = fn(ts, c)
-
-            ts_name = "{}_c{}_spikes".format(name, c)
-            write_spikes(ts_name, ns, ts_save)
+        writer.writerows(zip(*[results[key] for key in keys]))
 
     # -
     # If running in a CL, returns are line noise?
