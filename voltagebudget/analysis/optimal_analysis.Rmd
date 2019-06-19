@@ -10,10 +10,17 @@ library(readr)
 library(gridExtra)
 library(readr)
 library(scales)
+library(dplyr)
+library(NNTbiomarker)
 
 normalize <- function(x) {
     return ((x - min(x)) / (max(x) - min(x)))
 }
+find_point <- function(x, y, point){
+  i <- argmin(x, target = point)
+  return(c(x[i], y[i]))
+}
+
 ```
 
 
@@ -27,7 +34,7 @@ exps <- c(82, 83, 84, 85)
 
 results <- NULL
 for (n in 1:4){
-  df <- read_csv(paste("../data/exp", as.character(exps[n]), "_", algs[n], ".csv", sep=""))
+  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], ".csv", sep=""))
   df$alg <- rep(alg_names[n], nrow(df))
   
   results <- rbind(results, df)
@@ -35,14 +42,16 @@ for (n in 1:4){
 
 # Spikes
 # Load ref spikes
-ref <- read_csv("../data/stim1.csv")
+ref <- read_csv("../../data/stim1.csv")
 ref$set <- rep("reference", nrow(ref))
 
 # Load exp spikes
-exps <- c(86, 87, 88, 89)
+# exps <- c(86, 87, 88, 89)
+exps <- c(110, 111, 112, 113)
 spikes <- NULL
 for (n in 1:4){
-  df <- read_csv(paste("../data/exp", as.character(exps[n]), "_", algs[n], "_c0.2.csv", sep=""))
+  # df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_c0.2.csv", sep=""))
+  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_target0.01_spikes.csv", sep=""))
   df$set <- rep("experiment", nrow(df))
   
   # Add ref
@@ -57,17 +66,17 @@ rm(df, n, ref)
 
 ```{r, fig.width=1.4, fig.height=0.8}
 results %>% 
-  filter(alg != "coincidence") %>%
+  filter(alg != "left") %>%
   ggplot(aes(x=errors*1e3, y=obs_variances*1e3, linetype=alg)) +
   geom_line(size=0.6, alpha=0.9) +
-  scale_linetype_manual(values=c("longdash", "solid", "dotdash"), name="Algorithm") +
+  # scale_linetype_manual(values=c("longdash", "solid", "dotdash", "dot"), name="Algorithm") +
   theme_classic() +
   labs(x="Error (ms)", y="Variance (ms)")
 ```
 
 ```{r, fig.width=1.0, fig.height=1.5}
 spikes %>% 
-  filter(alg != "coincidence") %>%
+  filter(alg != "left") %>%
   ggplot(aes(x=ts, y=ns, color=set)) +
   geom_point(size=0.1) +
   facet_grid(alg~.) +
@@ -78,4 +87,26 @@ spikes %>%
     legend.key.size = unit(.4, "cm"),
     legend.title = element_text(size=8),
     legend.text = element_text(size=8))
+```
+
+```{r, fig.width=1.5, fig.height=1.5}
+ spikes %>% 
+  filter(alg != "left") %>% 
+  filter(set == "experiment") %>%
+  ggplot(aes(x=ts*1e3, y=ns, color=alg)) +
+  geom_point(size=2.3, alpha=1, shape=4) +
+  geom_point(
+    data=filter(filter(spikes, alg != "left"), set == "reference"),
+    mapping=aes(x=ts*1e3, y=ns), color="black", shape=1, alpha=1, size=1.2) +
+  facet_grid(alg~.) +
+  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3", "chartreuse3")) +
+  theme_classic() +
+  labs(x="Time (ms)", y="Neuron") +
+  theme(
+    legend.position="none", 
+    panel.border = element_rect(fill = NA, colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    strip.text.y = element_text(angle = 0))
 ```
