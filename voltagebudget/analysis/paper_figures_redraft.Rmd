@@ -10,6 +10,7 @@ library(reshape2)
 library(readr)
 library(gridExtra)
 library(readr)
+library(NNTbiomarker)
 
 normalize <- function(x) {
     return ((x - min(x)) / (max(x) - min(x)))
@@ -34,6 +35,11 @@ sample_n_groups = function(tbl, size, replace = FALSE, weight = NULL) {
   # keep only selected groups, regroup because joins change count.
   # regrouping may be unnecessary but joins do something funky to grouping variable
   tbl %>% right_join(keep, by=grps) %>% group_by_(.dots = grps)
+}
+
+find_point <- function(x, y, point){
+  i <- argmin(x, target = point)
+  return(c(x[i], y[i]))
 }
 
 ms <- 1000
@@ -147,7 +153,7 @@ colnames(fig2_ratios) <- c("error_50", "ratio", "freq")
 # Data
 algs <- c("max", "left", "uni", "cc")
 alg_names <- c("max", "left", "uniform", "coincidence")
-exps <- c(82, 83, 84, 85)
+exps <- c(114, 115, 116, 117)
 
 fig3 <- NULL
 for (n in 1:4){
@@ -163,10 +169,11 @@ ref <- read_csv("../../data/stim1.csv")
 ref$set <- rep("initial", nrow(ref))
 
 # Load exp spikes
-exps <- c(86, 87, 88, 89)
+exps <- c(110, 111, 112, 113)
 fig4 <- NULL
 for (n in 1:4){
-  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_c0.1_spikes.csv", sep=""))
+  # df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_c0.1_spikes.csv", sep=""))
+  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_target0.01_spikes.csv", sep=""))
   df$set <- rep("synchronized", nrow(df))
   
   # Add ref
@@ -273,7 +280,7 @@ fig14 <- read_csv("vm_hetero_timecourse.csv")
 # Optimal versus oscillation
 
 # Data
-exp <- "104"
+exp <- "118"
 freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
 
 
@@ -291,7 +298,7 @@ for(freq in freqs){
 fig15$freq <- factor(fig15$freq, levels=freqs)
 
 
-exp <- "105"
+exp <- "119"
 freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
 
 fig16 <- NULL
@@ -307,9 +314,28 @@ for(freq in freqs){
 
 fig16$freq <- factor(fig16$freq, levels=freqs)
 
+# -
+exp <- "109"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+fig18 <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  fig18 <- rbind(fig18, df)
+}
+
+fig16$freq <- factor(fig16$freq, levels=freqs)
+
+# -
 fig15$alg <- rep("max", nrow(fig15))
 fig16$alg <- rep("uniform", nrow(fig16))
-fig17 <- rbind(fig15, fig16)
+fig18$alg <- rep("coincidence", nrow(fig18))
+fig17 <- rbind(fig15, fig16, fig18)
 # --------------------------------------------------------------------
 rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
 ```
@@ -411,14 +437,15 @@ tmp %>%
   geom_point(size=.8, alpha=0.8) +
   xlab("Norm. variance") +
   ylab("Norm. error") +
-  scale_color_manual("", values=c("darkslategray3", "darkslategray")) +
-  theme_classic() -> p7
+  scale_color_manual("State", values=c("darkslategray3", "darkslategray")) +
+  theme_classic() +
+  theme(legend.background = element_rect(colour ="black")) -> p7
 
 print(summary(fig2_ratios$ratio))
 fig2_ratios %>% 
   ggplot(aes(x=freq, y=ratio)) +
   geom_point(color="darkslategray3", size=1.6) +
-  xlab("Freq (Hz)") +
+  xlab("Freq. (Hz)") +
   geom_hline(yintercept = mean(fig2_ratios$ratio), alpha=0.8, color="darkslategray3", linetype="solid") +
   ylab(expression(paste(V[o]/V[c], " at E"[50]))) +
   theme_classic() +
@@ -607,23 +634,23 @@ TODO
 
 
 # Optimal derivation
-```{r, fig.width=1.3, fig.height=2}
+```{r, fig.width=1.3, fig.height=2.2}
 min_t <- min(fig4$ts)
 
 fig4 %>% 
-  filter(alg != "coincidence", alg != "left") %>% 
+  filter(alg != "left") %>% 
   group_by(set, alg) %>% 
   mutate(ts = ts - min_t) -> tmp
 
 tmp %>% 
   filter(set == "synchronized") %>%
   ggplot(aes(x=ts*1e3, y=ns, color=alg)) +
-  geom_point(size=2, alpha=1, shape=4) +
+  geom_point(size=2.3, alpha=1, shape=4) +
   geom_point(
     data=filter(tmp, set == "initial"),
     mapping=aes(x=ts*1e3, y=ns), color="black", shape=1, alpha=1, size=1.2) +
   facet_grid(alg~.) +
-  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3")) +
+  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3", "chartreuse3")) +
   theme_classic() +
   labs(x="Time (ms)", y="Neuron") +
   theme(
@@ -635,10 +662,14 @@ tmp %>%
     strip.text.y = element_text(angle = 0)) -> p1
 
 fig3 %>% 
-  filter(alg != "coincidence", alg != "left") %>%
+  filter(alg != "left") %>%
+  filter(obs_variances > 10e-3) %>% 
   ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
-  geom_line(size=0.6, alpha=0.99) +
-  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3")) +
+  # geom_line(size=0.1, alpha=0.99) +
+  geom_point(size=1, alpha=0.99) +
+  scale_color_manual("Algorithm:", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = guide_legend(nrow = 3)) +
   theme_classic() +
   coord_flip() +
   labs(x="Time (ms)", y="Neuron") +
@@ -661,7 +692,18 @@ rm(p1, p2, plot_grid)
 
 # Optimal vs. oscillation
 
-```{r, fig.width=1.1, fig.height=3}
+```{r, fig.width=3, fig.height=2.8}
+
+hospital_names <- list(
+  '8'="Freq.\n\n8 Hz",
+  '12'="12 Hz",
+  '20'="20 Hz",
+  '30'="30 Hz"
+)
+hospital_labeller <- function(variable,value){
+  return(hospital_names[as.character(value)])
+}
+
 ms <- 1e3
 
 fig17 %>% 
@@ -669,15 +711,17 @@ fig17 %>%
   ggplot(aes(x=variances_pop*ms, y=errors_pop*ms)) +
   geom_point(size=0.2, alpha=0.99) + 
   geom_point(mapping=aes(x=variances_opt*ms, y=errors_opt*ms, color=alg), 
-             alpha=0.99, size=.2) +
+             alpha=0.99, size=0.4) +
   scale_y_continuous(trans='log10') +
   annotation_logticks(sides = "l") +
-  facet_grid(freq~.) +
-  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3")) +
+  facet_grid(freq~., labeller=hospital_labeller) +
+  scale_color_manual("Algorithm", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = guide_legend(nrow = 3)) +
   labs(x="Variance (ms)", y="Error (ms)") +
   scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
   theme_classic() +
-  theme(legend.position="bottom",
+  theme(legend.position="right",
     legend.key.size = unit(.2, "cm"),
     legend.title = element_text(size=10),
     legend.text = element_text(size=10),
@@ -685,5 +729,49 @@ fig17 %>%
     strip.text.y = element_text(angle = 0), 
     panel.grid.minor = element_blank(),
     legend.key.width=unit(0.05,"cm"),
-    strip.background = element_blank()) 
+    strip.background = element_blank()) -> p1
+
+
+fig17 %>% 
+  filter(errors_pop > 0, freq %in% c("8")) %>%
+  ggplot(aes(x=variances_pop*ms, y=variances_opt*ms, color=alg)) +
+  geom_point(size=0.8, alpha=0.3) +
+  geom_abline(intercept = 0, color="black", alpha=1) +
+  labs(x="Obs. variance (ms)", y="Opt. variance (ms)") +
+  scale_color_manual("Algorithm:", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = "none") +
+  ggtitle("Freq. 8 Hz") +
+  theme_classic() -> p2
+
+fig17 %>% 
+  filter(errors_pop > 0, freq %in% c("8")) %>%
+  ggplot(aes(x=errors_pop*ms, y=errors_opt*ms, color=alg)) +
+  geom_point(size=0.8, alpha=0.5) +
+  lims(x=c(0,25),y=c(0,25)) +
+  geom_abline(intercept = 0, color="black", alpha=1) +
+  labs(x="Obs. error (ms)", y="Opt. error (ms)") +
+  scale_color_manual("Algorithm:", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = "none") +
+  ggtitle(" ") +
+  theme_classic() -> p3
+
+plot_grid <- rbind(
+  c(1, 1, 1, 2, 2),
+  c(1, 1, 1, 2, 2),
+  c(1, 1, 1, 3, 3),
+  c(1, 1, 1, 3, 3),
+  c(1, 1, 1, NA, NA))  
+
+grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
+rm(p1, p2, plot_grid)
+```
+
+```{r, fig.width=1.6, fig.height=0.9}
+
+```
+
+```{r, fig.width=1.5, fig.height=0.8}
+
 ```
