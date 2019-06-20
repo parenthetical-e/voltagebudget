@@ -666,8 +666,8 @@ fig3 %>%
   filter(obs_variances > 10e-3) %>% 
   ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
   # geom_line(size=0.1, alpha=0.99) +
-  geom_point(size=1, alpha=0.99) +
-  scale_color_manual("Algorithm:", 
+  geom_line(size=1, alpha=0.99) +
+  scale_color_manual("Algorithm", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = guide_legend(nrow = 3)) +
   theme_classic() +
@@ -711,7 +711,7 @@ fig17 %>%
   ggplot(aes(x=variances_pop*ms, y=errors_pop*ms)) +
   geom_point(size=0.2, alpha=0.99) + 
   geom_point(mapping=aes(x=variances_opt*ms, y=errors_opt*ms, color=alg), 
-             alpha=0.99, size=0.4) +
+             alpha=0.99, size=0.6) +
   scale_y_continuous(trans='log10') +
   annotation_logticks(sides = "l") +
   facet_grid(freq~., labeller=hospital_labeller) +
@@ -741,8 +741,9 @@ fig17 %>%
   scale_color_manual("Algorithm:", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = "none") +
-  ggtitle("Freq. 8 Hz") +
-  theme_classic() -> p2
+  ggtitle("            Freq. 8 Hz") +
+  theme_classic() +
+  theme(plot.title = element_text(size = 10)) -> p2
 
 fig17 %>% 
   filter(errors_pop > 0, freq %in% c("8")) %>%
