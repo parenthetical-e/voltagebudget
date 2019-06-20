@@ -30,7 +30,8 @@ find_point <- function(x, y, point){
 # Data
 algs <- c("max", "left", "uni", "cc")
 alg_names <- c("max", "left", "uniform", "coincidence")
-exps <- c(82, 83, 84, 85)
+# exps <- c(82, 83, 84, 85)
+exps <- c(120, 121, 122, 123)
 
 results <- NULL
 for (n in 1:4){
@@ -69,6 +70,16 @@ results %>%
   filter(alg != "left") %>%
   ggplot(aes(x=errors*1e3, y=obs_variances*1e3, linetype=alg)) +
   geom_line(size=0.6, alpha=0.9) +
+  # scale_linetype_manual(values=c("longdash", "solid", "dotdash", "dot"), name="Algorithm") +
+  theme_classic() +
+  labs(x="Error (ms)", y="Variance (ms)")
+```
+
+```{r, fig.width=1.4, fig.height=0.8}
+results %>% 
+  filter(alg != "left") %>%
+  ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
+  geom_point(size=0.6, alpha=0.9) +
   # scale_linetype_manual(values=c("longdash", "solid", "dotdash", "dot"), name="Algorithm") +
   theme_classic() +
   labs(x="Error (ms)", y="Variance (ms)")
