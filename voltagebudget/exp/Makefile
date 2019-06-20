@@ -1173,7 +1173,7 @@ exp119:
 # Trying to reconcile diff between example opt for CC, and one w/ real data.
 # (see SUM above for more/background)
 exp120_123:
-	python budget_experiments.py optimal $(DATADIR)/exp120_max $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=max_deviants --save_only --verbose
-	python budget_experiments.py optimal $(DATADIR)/exp121_left $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=left_deviants --save_only --verbose
-	python budget_experiments.py optimal $(DATADIR)/exp122_uni $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=uniform --save_only --verbose
-	python budget_experiments.py optimal $(DATADIR)/exp123_cc $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=coincidence --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp120_max $(DATADIR)/stim1.csv  1e-3 --n_samples=100 --alg=max_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp121_left $(DATADIR)/stim1.csv  1e-3 --n_samples=100 --alg=left_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp122_uni $(DATADIR)/stim1.csv  1e-3 --n_samples=100 --alg=uniform --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp123_cc $(DATADIR)/stim1.csv  1e-3 --n_samples=100 --alg=coincidence --save_only --verbose
