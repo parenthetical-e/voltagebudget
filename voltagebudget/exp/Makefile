@@ -1119,6 +1119,11 @@ exp108:
 # ---------------------------------------------------------------------------
 # 6-18-2019
 # Run opt alg for MDL
+
+# SUM: when run on stim data, over a weaker var target, uni, max, cc, all behave the same, about. when run on 'real' results with a lower var target, cc has mich higher error, and a very different trend line. I don't understand this.
+# - Rev alg.
+# Re-run on stim data w/ 8 ms var target
+
 exp109:
 	parallel -j 12 -v \
 		--joblog '$(DATADIR)/exp109.log' \
@@ -1132,7 +1137,43 @@ exp113_test:
 
 # Save some example spikes
 exp110_113:
-	python budget_experiments.py optimal $(DATADIR)/exp110_max $(DATADIR)/stim1.csv  5e-3 --n_samples=1 --alg=max_deviants --save_only --verbose --save_spikes
-	python budget_experiments.py optimal $(DATADIR)/exp111_left $(DATADIR)/stim1.csv  5e-3 --n_samples=1 --alg=left_deviants --save_only --verbose --save_spikes
-	python budget_experiments.py optimal $(DATADIR)/exp112_uni $(DATADIR)/stim1.csv  5e-3 --n_samples=1 --alg=uniform --save_only --verbose --save_spikes
-	python budget_experiments.py optimal $(DATADIR)/exp113_cc $(DATADIR)/stim1.csv 5e-3 --n_samples=1 --alg=coincidence --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp110_max $(DATADIR)/stim1.csv 11e-3 --n_samples=1 --alg=max_deviants --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp111_left $(DATADIR)/stim1.csv 11e-3 --n_samples=1 --alg=left_deviants --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp112_uni $(DATADIR)/stim1.csv 11e-3 --n_samples=1 --alg=uniform --save_only --verbose --save_spikes
+	python budget_experiments.py optimal $(DATADIR)/exp113_cc $(DATADIR)/stim1.csv 11e-3 --n_samples=1 --alg=coincidence --save_only --verbose --save_spikes
+
+# Run an optimal series using a stim file. An example of the opt schemes.
+exp114_117:
+	python budget_experiments.py optimal $(DATADIR)/exp114_max $(DATADIR)/stim1.csv  10e-3 --n_samples=100 --alg=max_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp115_left $(DATADIR)/stim1.csv  10e-3 --n_samples=100 --alg=left_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp116_uni $(DATADIR)/stim1.csv  10e-3 --n_samples=100 --alg=uniform --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp117_cc $(DATADIR)/stim1.csv  10e-3 --n_samples=100 --alg=coincidence --save_only --verbose
+
+# Rerun other opt for comparison; CC looks unexpected.
+
+# 103 looks great. re-running with more samples
+# Re-run of exp72 but using opt_sweep.
+exp118:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp118.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py optimal_sweep_A $(DATADIR)/exp118_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.02e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# 103 looks great. re-running with more samples
+# Re-run of exp72 but using opt_sweep.
+exp119:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp119.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py optimal_sweep_A $(DATADIR)/exp119_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --optimal_method=uniform --A_0=0.00e-9 --A_max=0.02e-9 --N=250 --n_samples=150 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# -------------------------------------------------------------------------
+# Trying to reconcile diff between example opt for CC, and one w/ real data.
+# (see SUM above for more/background)
+exp120_123:
+	python budget_experiments.py optimal $(DATADIR)/exp120_max $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=max_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp121_left $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=left_deviants --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp122_uni $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=uniform --save_only --verbose
+	python budget_experiments.py optimal $(DATADIR)/exp123_cc $(DATADIR)/stim1.csv  8e-3 --n_samples=100 --alg=coincidence --save_only --verbose
