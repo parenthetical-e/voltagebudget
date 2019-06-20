@@ -115,7 +115,6 @@ def coincidence(ts, initial, target, min_distance=1e-6, max_iterations=1000):
 
         n += 1
 
-    print(initial, target, adjusted, np.asarray(ts_opt))
     return initial, target, adjusted, np.asarray(ts_opt)
 
 
