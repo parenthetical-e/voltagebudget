@@ -349,7 +349,7 @@ fig2 %>%
   geom_line(size=.5, alpha=0.8) +
   scale_colour_continuous("Freq.", low="lightsalmon1", high="orange4") +
   xlab(expression(paste(V[o], " (mV)"))) +
-  ylab("Error (ms)") +
+  ylab("Pop. error (ms)") +
   theme_classic() +
   theme(legend.position="none") -> p1
 fig2 %>% 
@@ -358,7 +358,7 @@ fig2 %>%
   geom_line(size=.5, alpha=0.8) +
   scale_colour_continuous("Freq.", low="lightsalmon1", high="orange4") +
   xlab(expression(paste(V[o], " (mV)"))) +
-  ylab("Variance (ms)") +
+  ylab("Pop. variance (ms)") +
   theme_classic() +
   theme(
     legend.position=c(0.45, 1.5),
@@ -497,12 +497,12 @@ If your observaing a excitatory interneuron, with weak sparse inputs, a good lev
 fig2 %>% 
   filter(V_osc/V_comp <= 5) %>%
   group_by(freq, N) %>% 
-  mutate(errors_pop = normalize(errors_pop)) %>%
-  mutate(variances_pop = normalize(variances_pop)) %>%
-  ggplot(aes(x=V_comp*mV, variances_pop, color=V_osc*mV)) +
+  mutate(errors = normalize(errors)) %>%
+  mutate(variances = normalize(variances)) %>%
+  ggplot(aes(x=V_comp*mV, variances, color=V_osc*mV)) +
   geom_point(size=.2, alpha=0.5) +
   xlab(expression(paste(V[c], " (mV)"))) +
-  ylab("Norm. variance") +
+  ylab("Norm. indiv.\nvariance") +
   scale_color_gradient(expression(paste(V[o], " (mV)")), low="darkgrey", high="firebrick3") +
   theme_classic() +
   theme(legend.key.height=unit(0.3,"cm"),
@@ -733,7 +733,7 @@ fig17 %>%
   ggplot(aes(x=variances_pop*ms, y=variances_opt*ms, color=alg)) +
   geom_point(size=0.8, alpha=0.3) +
   geom_abline(intercept = 0, color="black", alpha=1) +
-  labs(x="Obs. variance (ms)", y="Opt. variance (ms)") +
+  labs(x="Pop. variance (ms)", y="Opt. variance (ms)") +
   scale_color_manual("Algorithm:", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = "none") +
@@ -747,7 +747,7 @@ fig17 %>%
   geom_point(size=0.8, alpha=0.5) +
   lims(x=c(0,25),y=c(0,25)) +
   geom_abline(intercept = 0, color="black", alpha=1) +
-  labs(x="Obs. error (ms)", y="Opt. error (ms)") +
+  labs(x="Pop. error (ms)", y="Opt. error (ms)") +
   scale_color_manual("Algorithm:", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = "none") +
@@ -765,10 +765,3 @@ grid.arrange(p1, p2, p3, layout_matrix=plot_grid)
 rm(p1, p2, plot_grid)
 ```
 
-```{r, fig.width=1.6, fig.height=0.9}
-
-```
-
-```{r, fig.width=1.5, fig.height=0.8}
-
-```
