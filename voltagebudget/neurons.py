@@ -54,6 +54,7 @@ def adex(N,
          V_rheo=-48e-3,
          delta_t=2e-3,
          time_step=1e-5,
+         I_osc_index=None,
          budget=True,
          report=None,
          save_args=None,
@@ -109,7 +110,7 @@ def adex(N,
     C, prng = _parse_membrane_param(C, N, prng)
 
     # Potentially random synaptic params
-    # Note: w_in gets created after synaptic input is 
+    # Note: w_in gets created after synaptic input is
     # Defined.
     bias_in, prng = _parse_membrane_param(bias_in, N, prng)
     tau_in, prng = _parse_membrane_param(tau_in, N, prng)
@@ -134,7 +135,7 @@ def adex(N,
     # -----------------------------------------------------------------
     # Define an adex neuron, and its connections
     eqs = """
-    dv/dt = (-g_l * (v - V_l) + (g_l * delta_t * exp((v - V_t) / delta_t)) + I_in + I_osc(t) + I_noise + I_ext + bias_in - w) / C : volt
+    dv/dt = (-g_l * (v - V_l) + (g_l * delta_t * exp((v - V_t) / delta_t)) + I_in + I_osc(t, i) + I_noise + I_ext + bias_in - w) / C : volt
     dw/dt = (a * (v - V_l) - w) / tau_w : amp
     dg_in/dt = -g_in / tau_in : siemens
     dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
@@ -166,8 +167,33 @@ def adex(N,
     if np.isclose(E, 0.0):
         E = time
 
-    _, I_osc = burst((0, time), E, n_cycles, A,
-                     float(f), float(phi), float(time_step))
+    # Make a single osc
+    _, I_osc = burst((0, time), E, n_cycles, A, float(f), float(phi),
+                     float(time_step))
+
+    # then build the osc matrix. To do this...
+    I_oscs = []
+
+    # First, parse and sanity check the index,
+    if I_osc_index is not None:
+        I_osc_index = np.asarray(I_osc_index)
+        if I_osc_index.ndim != 1:
+            raise ValueError("I_osc_index must be 1d")
+        if I_osc_index.size != N:
+            raise ValueError(f"I_osc_index must be of length {N}")
+        I_osc_index = np.asarray(I_osc_index, dtype=np.int)
+    else:
+        I_osc_index = []  # is False for all n (below)
+
+    # then actually build the osc matrix and convert to something
+    # brian2 can use
+    for n in range(N):
+        if n in I_osc_index:
+            I_oscs.append(I_osc)
+        else:
+            I_oscs.append(np.zeros_like(I_osc))
+
+    I_oscs = np.vstack(I_oscs)
     I_osc = TimedArray(I_osc, dt=time_step * second)
 
     # Def the population
@@ -183,6 +209,7 @@ def adex(N,
     V_t *= volt
     V_cut *= volt
 
+    # Set others
     P_n.a = a * siemens
     P_n.b = b * amp
     P_n.delta_t = delta_t * volt
@@ -212,7 +239,7 @@ def adex(N,
         C_stim.w_in = w_in * siemens
 
     # -----------------------------------------------------------------
-    # Record input and voltage 
+    # Record input and voltage
     spikes_n = SpikeMonitor(P_n)
 
     record = ['v', 'I_ext']
@@ -224,7 +251,7 @@ def adex(N,
     net.store('no_stim')
 
     # -
-    # Run the net without any stimulation. 
+    # Run the net without any stimulation.
     # (This strictly speaking isn't
     # necessary, but I can't get Brian to express the needed
     # diff eq to get the osc budget term in one pass...)
@@ -271,7 +298,7 @@ def adex(N,
         # V_m
         V_m_thresh = V_m.copy()
         if V_rheo.size > 1:
-            # V_m 
+            # V_m
             rect_mask = V_m_thresh > V_rheo[:, None]
             for i in range(V_m_thresh.shape[0]):
                 V_m_thresh[i, rect_mask[i, :]] = V_rheo[i]
