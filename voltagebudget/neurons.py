@@ -194,7 +194,7 @@ def adex(N,
             I_oscs.append(np.zeros_like(I_osc))
 
     I_oscs = np.vstack(I_oscs)
-    I_oscs = TimedArray(I_oscs, dt=time_step * second)
+    I_oscs = TimedArray(I_oscs * amp, dt=time_step * second)
 
     # Def the population
     P_n = NeuronGroup(
