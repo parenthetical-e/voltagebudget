@@ -341,7 +341,7 @@ rm(df, exp, freq, freqs, name, ref, n, sigmas, sigma, exps, alg_names, algs)
 ```
 
 # The trade off
-```{r, fig.width=2, fig.height=5}
+```{r, fig.width=2.2, fig.height=4}
 # By freq
 fig2 %>% 
   filter(V_osc/V_comp <= 5) %>%
@@ -382,16 +382,27 @@ fig2 %>%
   xlab(expression(V[o]/V[c])) +
   ylab("Norm. error") +
   theme_classic() -> p3
-fig2 %>% 
-  filter(V_osc/V_comp <= 5) %>%
-  group_by(freq, N) %>%
-  mutate(errors_pop = normalize(errors_pop)) %>%
-  mutate(variances_pop = normalize(variances_pop)) %>%
-  ggplot(aes(x=V_osc/V_comp, variances_pop, group=freq)) +
-  geom_line(size=.5, alpha=0.5) +
-  xlab(expression(V[o]/V[c])) +
-  ylab("Norm. variance") +
-  theme_classic() -> p4
+
+print(summary(fig2_ratios$ratio))
+fig2_ratios %>% 
+  ggplot(aes(x=freq, y=ratio)) +
+  geom_point(color="darkslategray3", size=1.6) +
+  xlab("Freq. (Hz)") +
+  geom_hline(yintercept = mean(fig2_ratios$ratio), alpha=0.8, color="darkslategray3", linetype="solid") +
+  ylab(expression(paste(V[o]/V[c], " at E"[50]))) +
+  theme_classic() +
+  ylim(0, 1) -> p4
+
+# fig2 %>% 
+#   filter(V_osc/V_comp <= 5) %>%
+#   group_by(freq, N) %>%
+#   mutate(errors_pop = normalize(errors_pop)) %>%
+#   mutate(variances_pop = normalize(variances_pop)) %>%
+#   ggplot(aes(x=V_osc/V_comp, variances_pop, group=freq)) +
+#   geom_line(size=.5, alpha=0.5) +
+#   xlab(expression(V[o]/V[c])) +
+#   ylab("Norm. variance") +
+#   theme_classic() -> p4
 
 
 # Budget
@@ -434,22 +445,12 @@ tmp %>%
   mutate(errors_pop = normalize(errors_pop)) %>%
   mutate(variances_pop = normalize(variances_pop)) %>%
   ggplot(aes(x=variances_pop, errors_pop, group=freq, color=state)) +
-  geom_point(size=.8, alpha=0.8) +
+  geom_point(size=1.2, alpha=0.8) +
   xlab("Norm. variance") +
   ylab("Norm. error") +
   scale_color_manual("State", values=c("darkslategray3", "darkslategray")) +
   theme_classic() +
   theme(legend.background = element_rect(colour ="black")) -> p7
-
-print(summary(fig2_ratios$ratio))
-fig2_ratios %>% 
-  ggplot(aes(x=freq, y=ratio)) +
-  geom_point(color="darkslategray3", size=1.6) +
-  xlab("Freq. (Hz)") +
-  geom_hline(yintercept = mean(fig2_ratios$ratio), alpha=0.8, color="darkslategray3", linetype="solid") +
-  ylab(expression(paste(V[o]/V[c], " at E"[50]))) +
-  theme_classic() +
-  ylim(0, 1) -> p8
 
 plot_grid <- rbind(
   c(NA, NA, NA, NA),
@@ -464,11 +465,6 @@ plot_grid <- rbind(
   c(3, 3, 4, 4),
   c(3, 3, 4, 4),
   c(NA, NA, NA, NA),
-  c(8, 8, 8, NA),
-  c(8, 8, 8, NA),
-  c(8, 8, 8, NA),
-  c(8, 8, 8, NA),
-  c(NA, NA, NA, NA),
   c(5, 5, 6, 6),
   c(5, 5, 6, 6),
   c(5, 5, 6, 6),
@@ -482,7 +478,7 @@ plot_grid <- rbind(
   c(7, 7, 7, 7),
   c(7, 7, 7, 7))
   
-grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, layout_matrix=plot_grid)
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, layout_matrix=plot_grid)
 ```
 
 Error below 0.5 implies the result contains a majority of the reference. Beyond 0.5, the modulator dominates spiking. This means 0.5 serves as natural boundry to seperate oscillations that modulate other activity, and oscillations that activity. The ratio at 0.5 error is V_o/V_c = 0.27. This point turns out to several interesting features. It is where the trade-off is approx linear across freq, and where the trade-off is most stable.
@@ -741,7 +737,7 @@ fig17 %>%
   scale_color_manual("Algorithm:", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = "none") +
-  ggtitle("            Freq. 8 Hz") +
+  ggtitle("       Freq. 8 Hz") +
   theme_classic() +
   theme(plot.title = element_text(size = 10)) -> p2
 
