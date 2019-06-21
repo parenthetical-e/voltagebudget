@@ -135,7 +135,7 @@ def adex(N,
     # -----------------------------------------------------------------
     # Define an adex neuron, and its connections
     eqs = """
-    dv/dt = (-g_l * (v - V_l) + (g_l * delta_t * exp((v - V_t) / delta_t)) + I_in + I_osc(t, i) + I_noise + I_ext + bias_in - w) / C : volt
+    dv/dt = (-g_l * (v - V_l) + (g_l * delta_t * exp((v - V_t) / delta_t)) + I_in + I_oscs(t, i) + I_noise + I_ext + bias_in - w) / C : volt
     dw/dt = (a * (v - V_l) - w) / tau_w : amp
     dg_in/dt = -g_in / tau_in : siemens
     dg_noise/dt = -(g_noise + (sigma * sqrt(tau_in) * xi)) / tau_in : siemens
@@ -194,7 +194,7 @@ def adex(N,
             I_oscs.append(np.zeros_like(I_osc))
 
     I_oscs = np.vstack(I_oscs)
-    I_osc = TimedArray(I_osc, dt=time_step * second)
+    I_oscs = TimedArray(I_oscs, dt=time_step * second)
 
     # Def the population
     P_n = NeuronGroup(
