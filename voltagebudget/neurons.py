@@ -181,18 +181,19 @@ def adex(N,
         if I_osc_index.size != N:
             raise ValueError(f"I_osc_index must be of length {N}")
         I_osc_index = np.asarray(I_osc_index, dtype=np.int)
-    else:
-        I_osc_index = []  # is False for all n (below)
 
     # then actually build the osc matrix and convert to something
     # brian2 can use
     I_mat = []
-    for n in range(N):
-        if n in I_osc_index:
+    if I_osc_index is not None:
+        for n in range(N):
+            if n in I_osc_index:
+                I_mat.append(I_osc)
+            else:
+                I_mat.append(np.zeros_like(I_osc))
+    else:
+        for n in range(N):
             I_mat.append(I_osc)
-        else:
-            I_mat.append(np.zeros_like(I_osc))
-
     I_mat = np.vstack(I_mat).transpose()
     I_oscs = TimedArray(I_mat * amp, dt=time_step * second)
 
