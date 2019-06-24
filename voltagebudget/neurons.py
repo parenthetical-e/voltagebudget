@@ -163,9 +163,9 @@ def adex(N,
     else:
         eqs += """I_ext = 0 * amp : amp"""
 
-    # Create osc/burst
-    if np.isclose(E, 0.0):
-        E = time
+    # # Create osc/burst
+    # if np.isclose(E, 0.0):
+    #     E = time
 
     # Make a single osc
     _, I_osc = burst((0, time), E, n_cycles, A, float(f), float(phi),
@@ -193,7 +193,7 @@ def adex(N,
         else:
             I_oscs.append(np.zeros_like(I_osc))
 
-    I_oscs = np.vstack(I_oscs)
+    I_oscs = np.vstack(I_oscs).transpose()
     I_oscs = TimedArray(I_oscs * amp, dt=time_step * second)
 
     # Def the population
