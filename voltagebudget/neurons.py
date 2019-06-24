@@ -172,7 +172,6 @@ def adex(N,
                      float(time_step))
 
     # then build the osc matrix. To do this...
-    I_oscs = []
 
     # First, parse and sanity check the index,
     if I_osc_index is not None:
@@ -187,14 +186,15 @@ def adex(N,
 
     # then actually build the osc matrix and convert to something
     # brian2 can use
+    I_mat = []
     for n in range(N):
         if n in I_osc_index:
-            I_oscs.append(I_osc)
+            I_mat.append(I_osc)
         else:
-            I_oscs.append(np.zeros_like(I_osc))
+            I_mat.append(np.zeros_like(I_osc))
 
-    I_oscs = np.vstack(I_oscs).transpose()
-    I_oscs = TimedArray(I_oscs * amp, dt=time_step * second)
+    I_mat = np.vstack(I_mat).transpose()
+    I_oscs = TimedArray(I_mat * amp, dt=time_step * second)
 
     # Def the population
     P_n = NeuronGroup(
@@ -339,6 +339,7 @@ def adex(N,
             times=np.asarray(traces_n.t_),
             I_ext=np.asarray(traces_n.I_ext_),
             I_osc=np.asarray(I_osc),
+            I_osc_mat=np.asarray(I_mat),
             V_budget=V_budget,
             V_m=V_m,
             V_m_thresh=V_m_thresh,
