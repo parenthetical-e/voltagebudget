@@ -178,8 +178,8 @@ def adex(N,
         I_osc_index = np.asarray(I_osc_index)
         if I_osc_index.ndim != 1:
             raise ValueError("I_osc_index must be 1d")
-        if I_osc_index.size != N:
-            raise ValueError(f"I_osc_index must be of length {N}")
+        if I_osc_index.size > N:
+            raise ValueError(f"I_osc_index must be max length {N}")
         I_osc_index = np.asarray(I_osc_index, dtype=np.int)
 
     # then actually build the osc matrix and convert to something
