@@ -16,5 +16,6 @@ from voltagebudget.exp.create_stim import create_stim
 from voltagebudget.exp.min_max import min_max
 from voltagebudget.exp.sweep_A import sweep_A
 from voltagebudget.exp.sweep_A import optimal_sweep_A
+from voltagebudget.exp.sweep_A import sparse_sweep_A
 from voltagebudget.exp.homeostasis import homeostasis
 from voltagebudget.exp.autotune import autotune_homeostasis
