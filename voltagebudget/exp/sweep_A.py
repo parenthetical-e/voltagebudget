@@ -156,6 +156,10 @@ def sparse_sweep_A(name,
 
     I_osc_index = [o for o in order if o >= N_threshold]
 
+    if verbose:
+        print(f">>> sparse_threshold: {sparse_threshold}.")
+        print(f">>> I_osc_index: {I_osc_index}")
+        
     # --------------------------------------------------------------
     # Init results
     neurons = []
