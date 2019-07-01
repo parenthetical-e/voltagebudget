@@ -153,13 +153,16 @@ def sparse_sweep_A(name,
     for n in range(N):
         V_comps_sparse.append(np.abs(np.mean(budget_ref['V_comp'][n, :])))
     order = np.asarray(V_comps_sparse).argsort().argsort()
-
-    I_osc_index = [o for o in order if o >= N_threshold]
+    filtered = [o for o in order if o >= N_threshold]
+    order = order.tolist()
+    I_osc_index = [order.index(f) for f in filtered]
 
     if verbose:
         print(f">>> sparse_threshold: {sparse_threshold}.")
         print(f">>> I_osc_index: {I_osc_index}")
-        
+        print(f">>> V_comps (filtered): {np.asarray(V_comps_sparse)[I_osc_index]}")
+        print(f">>> V_comps (first 10): {np.asarray(V_comps_sparse)}")
+
     # --------------------------------------------------------------
     # Init results
     neurons = []
