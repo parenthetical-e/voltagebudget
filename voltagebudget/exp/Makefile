@@ -1177,3 +1177,25 @@ exp120_123:
 	python budget_experiments.py optimal $(DATADIR)/exp121_left $(DATADIR)/stim1.csv  6e-3 --n_samples=20 --alg=left_deviants --save_only --verbose
 	python budget_experiments.py optimal $(DATADIR)/exp122_uni $(DATADIR)/stim1.csv  6e-3 --n_samples=20 --alg=uniform --save_only --verbose
 	python budget_experiments.py optimal $(DATADIR)/exp123_cc $(DATADIR)/stim1.csv  6e-3 --n_samples=20 --alg=coincidence --save_only --verbose
+
+
+# --------------------------------------------------------------------------
+# Re-run the standard VB analysis, i.e. exp72, but have A only target the top N% of Vc in w:
+#
+# 37aacb6512986d421d385c6ea06882e1c95f6b5c
+
+# 10 %
+exp124:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp124.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp124_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --sparse_threshold=0.1 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+# 20 %
+exp125:
+	parallel -j 4 -v \
+		--joblog '$(DATADIR)/exp125.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp125_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --sparse_threshold=0.2 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
