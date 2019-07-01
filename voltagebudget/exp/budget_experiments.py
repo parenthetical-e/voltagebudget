@@ -23,6 +23,7 @@ from voltagebudget.util import precision
 from voltagebudget.exp import forward
 from voltagebudget.exp import sweep_A
 from voltagebudget.exp import optimal_sweep_A
+from voltagebudget.exp import sparse_sweep_A
 from voltagebudget.exp import min_max
 from voltagebudget.exp import optimal
 from voltagebudget.exp import population
@@ -47,6 +48,7 @@ if __name__ == "__main__":
         'single': single,
         'sweep_A': sweep_A,
         'optimal_sweep_A': optimal_sweep_A,
+        'sparse_sweep_A': sparse_sweep_A,
         'homeostasis': homeostasis,
         'perturb': perturb,
         'reverse': reverse,
