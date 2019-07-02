@@ -1189,7 +1189,7 @@ exp124:
 	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp124.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp124_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --sparse_threshold=0.1 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp124_d{1}_f{3} $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=100 --sparse_threshold=0.1 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
 
 # 20 %
@@ -1197,5 +1197,5 @@ exp125:
 	parallel -j 4 -v \
 		--joblog '$(DATADIR)/exp125.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp125_d{1}_f{3} $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.20e-9 --N=250 --n_samples=1000 --sparse_threshold=0.2 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp125_d{1}_f{3} $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=100 --sparse_threshold=0.2 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
