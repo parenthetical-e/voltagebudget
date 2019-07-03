@@ -1212,5 +1212,5 @@ exp126:
 	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp126.log' \
 		--nice 19 --delay 2 --colsep ',' \
-		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp126_d{1}_f{3} $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=100 --sparse_threshold=0.99 --d={1} --T={2} --f={3} --verbose --save_only' \
+		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp126_d{1}_f{3} $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=20 --sparse_threshold=0.99 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
