@@ -1180,10 +1180,13 @@ exp120_123:
 
 
 # --------------------------------------------------------------------------
+# 7-2-2016
 # Re-run the standard VB analysis, i.e. exp72, but have A only target the top N% of Vc in w:
 #
 # 37aacb6512986d421d385c6ea06882e1c95f6b5c
 
+# SUM: both of these showed no var changes? 
+#      To track down this bug (?), run a control w/ thresh=0.99
 # 10 %
 exp124:
 	parallel -j 4 -v \
@@ -1198,4 +1201,16 @@ exp125:
 		--joblog '$(DATADIR)/exp125.log' \
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp125_d{1}_f{3} $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=100 --sparse_threshold=0.2 --d={1} --T={2} --f={3} --verbose --save_only' \
+		:::: exp64.txt
+
+
+# --------------------------------------------------------------------------
+# 7-3-2016
+
+# Control: 99 %
+exp126:
+	parallel -j 3 -v \
+		--joblog '$(DATADIR)/exp126.log' \
+		--nice 19 --delay 2 --colsep ',' \
+		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp126_d{1}_f{3} $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=100 --sparse_threshold=0.99 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
