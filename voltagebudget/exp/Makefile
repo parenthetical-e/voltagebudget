@@ -1208,6 +1208,9 @@ exp125:
 # 7-3-2016
 
 # Control: 99 %
+# SUM: something it wrong w/ the basic code. This run still showed no A~var
+# changes at all. 
+
 exp126:
 	parallel -j 3 -v \
 		--joblog '$(DATADIR)/exp126.log' \
