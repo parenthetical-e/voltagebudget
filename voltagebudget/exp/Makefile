@@ -1227,4 +1227,4 @@ exp127:
 	# Sparse run
 	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_d{1}_f{3}_a $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.1 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a.log
 	# Sweep run (orginal code)
-	python budget_experiments.py sweep_A $(DATADIR)/exp127_d{1}_f{3}_b $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.1 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127b.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp127_d{1}_f{3}_b $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127b.log
