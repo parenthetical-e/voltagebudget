@@ -1225,8 +1225,8 @@ exp126:
 # Debug exp for sparse index. See exp126 above for motivation.
 exp127:
 	# Sparse runs
-	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_1 $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.5 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a_1.log
-	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_5 $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.5 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a_5.log
-	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_9 $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.9 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a_9.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_1 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.1 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a_1.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_5 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.5 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a_5.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_9 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.9 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a_9.log
 	# Sweep run (orginal code)
-	python budget_experiments.py sweep_A $(DATADIR)/exp127b $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127b.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp127b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127b.log
