@@ -1210,6 +1210,8 @@ exp125:
 # Control: 99 %
 # SUM: something it wrong w/ the basic code. This run still showed no A~var
 # changes at all. 
+# ...
+# [7-14-2019] Closer look showed the above is not true. There are TINY var changes, on the order of 0.01 ms, rather than ~1-2 ms seen in the non-sparse code (which the sparse is closely based on...)
 
 exp126:
 	parallel -j 3 -v \
@@ -1217,3 +1219,12 @@ exp126:
 		--nice 19 --delay 2 --colsep ',' \
 		'python budget_experiments.py sparse_sweep_A $(DATADIR)/exp126_d{1}_f{3} $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=20 --sparse_threshold=0.99 --d={1} --T={2} --f={3} --verbose --save_only' \
 		:::: exp64.txt
+
+
+# --------------------------------------------------------------------------
+# Debug exp for sparse index. See exp126 above for motivation.
+exp127:
+	# Sparse run
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp127a_d{1}_f{3}_a $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.1 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127a.log
+	# Sweep run (orginal code)
+	python budget_experiments.py sweep_A $(DATADIR)/exp127_d{1}_f{3}_b $(DATADIR)/stim3.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --N=250 --n_samples=5 --sparse_threshold=0.1 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp127b.log
