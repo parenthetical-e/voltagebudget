@@ -27,11 +27,44 @@ ms <- 1e3
 # Load and process
 
 ```{r, message=FALSE}
-# Sparse
 freqs <- c("8")#, "40", "60")
 results <- NULL
 
+# Sparse exps
 exp <- "127a_1"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "127a_2"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "127a_3"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "127a_4"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -53,6 +86,39 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
+exp <- "127a_6"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "127a_7"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "127a_8"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
 exp <- "127a_9"
 tmp <- NULL
 for(freq in freqs){
@@ -64,7 +130,8 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
-
+# -
+# Org dense code
 exp <- "127b"
 tmp <- NULL
 for(freq in freqs){
@@ -90,6 +157,15 @@ rm(tmp, df)
 
 ```{r}
 results %>% 
+  ggplot(aes(x=(V_osc/V_comp), fill=exp)) +
+  geom_histogram(bins=12) +
+  facet_grid(exp~As, scale="free") +
+  theme_classic()
+```
+
+
+```{r}
+results %>% 
   ggplot(aes(x=As, y=variances_pop*ms, color=exp, shape=exp)) +
   geom_line(size=2, alpha=0.2) +
   geom_point(size=2, alpha=0.8) +
@@ -109,6 +185,15 @@ results %>%
 ```{r}
 results %>% 
   ggplot(aes(x=As, y=errors_pop*ms, color=exp, shape=exp)) +
+  geom_line(size=2, alpha=0.2) +
+  geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+```{r}
+results %>% 
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms, color=exp, shape=exp)) +
   geom_line(size=2, alpha=0.2) +
   geom_point(size=2, alpha=0.8) +
   # facet_grid(exp~.) +
