@@ -195,6 +195,7 @@ def sparse_sweep_A(name,
     biases = []
     phis = []
     phis_w = []
+    N_oscs = []
 
     # --------------------------------------------------------------
     # Run samples
@@ -327,6 +328,7 @@ def sparse_sweep_A(name,
             biases.append(bias_adj)
             phis.append(phi_E)
             phis_w.append(phi_w)
+            N_oscs.append(np.sum(mask))
 
         # -
         if verbose:
