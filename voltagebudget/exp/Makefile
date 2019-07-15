@@ -1241,7 +1241,7 @@ exp127:
 # ----------------------------------------------------------------------------
 # 7-15-2019
 #
-# f24c8e866defa5ee3b4588fdc5e93e62fdeff1cf
+# e687b587c540c43e6990a56ebb4ec531c44de8b8
 #
 # Changed A threshold to work on raw V_comp, rather than top-percent
 # as in exp127
@@ -1259,7 +1259,9 @@ exp128:
 	python budget_experiments.py sweep_A $(DATADIR)/exp128b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp128b.log
 
 # -
+# e687b587c540c43e6990a56ebb4ec531c44de8b8
 # Try and sparsify using higher thresh (>7-e3)
+
 exp129:
 	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp129a_70 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.0e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp129a_70.log
 	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp129a_71 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.1e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp129a_71.log
