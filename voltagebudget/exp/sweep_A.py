@@ -384,6 +384,7 @@ def sparse_sweep_A(name,
     results["biases"] = biases
     results["phis_E"] = phis
     results["phis_w"] = phis_w
+    results["N_oscs"] = N_oscs
 
     # then write it out.
     keys = sorted(results.keys())
