@@ -1239,7 +1239,10 @@ exp127:
 
 
 # ----------------------------------------------------------------------------
-# 
+# 7-15-2019
+#
+# f24c8e866defa5ee3b4588fdc5e93e62fdeff1cf
+#
 # Changed A threshold to work on raw V_comp, rather than top-percent
 # as in exp127
 
