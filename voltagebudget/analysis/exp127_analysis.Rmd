@@ -132,18 +132,26 @@ results <- rbind(results, tmp)
 
 # -
 # Org dense code
-exp <- "127b"
-tmp <- NULL
-for(freq in freqs){
-  name <- paste("../../data/exp", exp, ".csv", sep="")
-  df <- read_csv(paste(name, sep=""))
-  df$freq <- rep(freq, nrow(df))
-  tmp <- rbind(tmp, df)
-}
-tmp$exp <- rep(exp, nrow(tmp))
-results <- rbind(results, tmp)
+# exp <- "127b"
+# tmp <- NULL
+# for(freq in freqs){
+#   name <- paste("../../data/exp", exp, ".csv", sep="")
+#   df <- read_csv(paste(name, sep=""))
+#   df$freq <- rep(freq, nrow(df))
+#   tmp <- rbind(tmp, df)
+# }
+# tmp$exp <- rep(exp, nrow(tmp))
+# results <- rbind(results, tmp)
+# 
+# # - 
+# results %>% 
+#   filter(n_spikes_ref > 0) %>% 
+#   # Add delta_spikes
+#   mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+#   # Re-norm V_osc
+#   mutate(V_osc = V_osc - V_osc_ref) -> results
 
-# - 
+# Process
 results %>% 
   filter(n_spikes_ref > 0) %>% 
   # Add delta_spikes
@@ -151,55 +159,99 @@ results %>%
   # Re-norm V_osc
   mutate(V_osc = V_osc - V_osc_ref) -> results
 
+
+results %>% 
+  group_by(As, freq, exp) %>% 
+  summarise(
+    N = 0,
+    delta_spikes = mean(delta_spikes), 
+    V_b = mean(V_b), 
+    V_osc = mean(V_osc), 
+    V_free = mean(V_free), 
+    V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    variances_pop = mean(variances_pop), 
+    variances = mean(variances)) -> avg_results
+
+
 # -
 rm(tmp, df)
 ```
 
+# Plot
+## Variance and error
+### As
 ```{r}
-results %>% 
-  ggplot(aes(x=(V_osc/V_comp), fill=exp)) +
-  geom_histogram(bins=12) +
-  facet_grid(exp~As, scale="free") +
-  theme_classic()
-```
-
-
-```{r}
-results %>% 
+avg_results %>% 
   ggplot(aes(x=As, y=variances_pop*ms, color=exp, shape=exp)) +
-  geom_line(size=2, alpha=0.2) +
-  geom_point(size=2, alpha=0.8) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
   # facet_grid(exp~.) +
   theme_classic()
 ```
 
 ```{r}
-results %>% 
+avg_results %>% 
   ggplot(aes(x=As, y=n_spikes_pop, color=exp, shape=exp)) +
-  geom_line(size=2, alpha=0.2) +
-  geom_point(size=2, alpha=0.8) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
   # facet_grid(exp~.) +
   theme_classic()
 ```
 
 ```{r}
-results %>% 
+avg_results %>% 
   ggplot(aes(x=As, y=errors_pop*ms, color=exp, shape=exp)) +
-  geom_line(size=2, alpha=0.2) +
-  geom_point(size=2, alpha=0.8) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+### Ratio
+
+```{r}
+avg_results %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances_pop*ms, color=exp)) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
   # facet_grid(exp~.) +
   theme_classic()
 ```
 
 ```{r}
-results %>% 
-  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms, color=exp, shape=exp)) +
-  geom_line(size=2, alpha=0.2) +
-  geom_point(size=2, alpha=0.8) +
+avg_results %>% 
+  ggplot(aes(x=V_osc/V_comp, y=n_spikes_pop, color=exp, shape=exp)) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
   # facet_grid(exp~.) +
   theme_classic()
 ```
 
+```{r}
+avg_results %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors_pop*ms, color=exp)) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+## Trade-off
+```{r}
+avg_results %>% 
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms, color=exp, group=interaction(exp,As))) +
+  geom_line(size=1, alpha=0.6) +
+  geom_point(size=1, alpha=0.8) +
+  # geom_boxplot() +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+## Pathological boundary.
 ```{r}
 tmp <- results
 tmp$state <- rep("pathological", nrow(tmp))
