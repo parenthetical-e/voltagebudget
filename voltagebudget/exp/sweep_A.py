@@ -49,7 +49,7 @@ def sparse_sweep_A(name,
                    n_cycles=2,
                    mode='regular',
                    sigma=0,
-                   sparse_threshold=1,
+                   sparse_threshold=0,
                    g_l=None,
                    V_l=None,
                    w_in_0=None,
@@ -147,20 +147,27 @@ def sparse_sweep_A(name,
     if sparse_threshold < 0:
         raise ValueError("sparse_threshold >= 0")
 
-    N_threshold = int(N * (1 - sparse_threshold))
+    # N_threshold = int(N * (1 - sparse_threshold))
 
     V_comps_sparse = []
     for n in range(N):
         V_comps_sparse.append(np.abs(np.mean(budget_ref['V_comp'][n, :])))
-    order = np.asarray(V_comps_sparse).argsort().argsort()
-    filtered = [o for o in order if o >= N_threshold]
-    order = order.tolist()
-    I_osc_index = [order.index(f) for f in filtered]
+
+    # Threshold
+    mask = np.asarray(V_comps_sparse) >= sparse_threshold
+    I_osc_index = np.arange(0, mask.size)[mask]
+
+    # order = np.asarray(V_comps_sparse).argsort().argsort()
+    # filtered = [o for o in order if o >= N_threshold]
+    # order = order.tolist()
+    # I_osc_index = [order.index(f) for f in filtered]
 
     if verbose:
         print(f">>> sparse_threshold: {sparse_threshold}.")
         print(f">>> I_osc_index: {I_osc_index}")
-        print(f">>> V_comps (filtered): {np.asarray(V_comps_sparse)[I_osc_index]}")
+        print(
+            f">>> V_comps (filtered): {np.asarray(V_comps_sparse)[I_osc_index]}"
+        )
         print(f">>> V_comps (first 10): {np.asarray(V_comps_sparse)}")
 
     # --------------------------------------------------------------
