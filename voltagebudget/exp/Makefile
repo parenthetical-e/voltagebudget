@@ -1302,8 +1302,6 @@ exp130:
 
 
 # 7-15-2019
-# Higher threshold compaered to 129
-#
 # e687b587c540c43e6990a56ebb4ec531c44de8b8
 # 
 # exp130 but with more A!
