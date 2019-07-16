@@ -1,0 +1,235 @@
+---
+title: "Exp130: Sparse coordination - general experiment analysis."
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(ggplot2)
+library(magrittr)
+library(readr)
+library(gridExtra)
+library(readr)
+library(scales)
+library(dplyr)
+library(NNTbiomarker)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+find_point <- function(x, y, point){
+  i <- argmin(x, target = point)
+  return(c(x[i], y[i]))
+}
+ms <- 1e3
+```
+
+
+# Load and process
+
+```{r, message=FALSE}
+freqs <- c("8")#, "40", "60")
+results <- NULL
+
+# Sparse exps
+exp <- "130a_780"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "130a_781"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "130a_782"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "130a_783"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "130a_784"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "130a_785"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "130a_786"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+# Org dense code
+exp <- "130b"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+tmp$N_oscs <- rep(250, nrow(tmp))
+
+# -
+results <- rbind(results, tmp)
+
+# -
+# Process
+results %>% 
+  filter(n_spikes_ref > 0) %>% 
+  # Add delta_spikes
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  # Re-norm V_osc
+  mutate(V_osc = V_osc - V_osc_ref) -> results
+
+
+results %>% 
+  group_by(As, freq, exp) %>% 
+  summarise(
+    N = 0,
+    delta_spikes = mean(delta_spikes), 
+    V_b = mean(V_b), 
+    V_osc = mean(V_osc), 
+    V_free = mean(V_free), 
+    V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    variances_pop = mean(variances_pop),
+    N_oscs = mean(N_oscs),
+    variances = mean(variances)) -> avg_results
+
+# -
+rm(tmp, df)
+```
+
+# Plot
+## Variance and error
+### As
+```{r}
+avg_results %>% 
+  ggplot(aes(x=As, y=variances_pop*ms, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+```{r}
+avg_results %>% 
+  ggplot(aes(x=As, y=n_spikes_pop, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+```{r}
+avg_results %>% 
+  ggplot(aes(x=As, y=errors_pop*ms, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+### Ratio
+
+```{r}
+avg_results %>% 
+  ggplot(aes(x=V_osc/V_comp, y=variances_pop*ms, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+```{r}
+avg_results %>% 
+  ggplot(aes(x=V_osc/V_comp, y=n_spikes_pop, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+```{r}
+avg_results %>% 
+  ggplot(aes(x=V_osc/V_comp, y=errors_pop*ms, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=2, alpha=0.8) +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+## Trade-off
+```{r}
+avg_results %>% 
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
+  geom_line(size=1, alpha=0.6) +
+  # geom_point(size=1, alpha=0.8) +
+  # geom_boxplot() +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
+
+```{r}
+avg_results %>% 
+  ggplot(aes(x=errors_pop*ms, y=variances_pop*ms, color=as.factor(N_oscs))) +
+  # geom_line(size=1, alpha=0.6) +
+  geom_point(size=1, alpha=0.8) +
+  # geom_boxplot() +
+  # facet_grid(exp~.) +
+  theme_classic()
+```
