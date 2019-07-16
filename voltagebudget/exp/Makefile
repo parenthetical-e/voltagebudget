@@ -1259,8 +1259,12 @@ exp128:
 	python budget_experiments.py sweep_A $(DATADIR)/exp128b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp128b.log
 
 # -
+# 7-15-2019
 # e687b587c540c43e6990a56ebb4ec531c44de8b8
 # Try and sparsify using higher thresh (>7-e3)
+
+# SUM: starting to see lower error/var as the thresh approached 0.7. 
+# NEXT: push the threshold higher
 
 exp129:
 	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp129a_70 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.0e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp129a_70.log
@@ -1274,3 +1278,20 @@ exp129:
 	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp129a_78 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.8e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp129a_78.log
 	# Sweep run (orginal code)
 	python budget_experiments.py sweep_A $(DATADIR)/exp129b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp129b.log
+
+# -
+# 7-15-2019
+# Higher threshold compaered to 129
+#
+# e687b587c540c43e6990a56ebb4ec531c44de8b8
+exp130:
+	# Sparse
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp130a_70 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.0e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130a_70.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp130a_71 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.1e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130a_71.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp130a_72 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.2e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130a_72.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp130a_73 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.3e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130a_73.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp130a_74 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.4e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130a_74.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp130a_75 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.5e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130a_75.log
+	# Sweep run (orginal code)
+	python budget_experiments.py sweep_A $(DATADIR)/exp130b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130b.log
+
