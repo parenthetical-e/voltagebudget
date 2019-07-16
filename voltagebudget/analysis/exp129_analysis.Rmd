@@ -1,5 +1,5 @@
 ---
-title: "Exp128: Sparse coordination - general experiment analysis."
+title: "Exp129: Sparse coordination - general experiment analysis."
 output: html_notebook
 ---
 
@@ -31,7 +31,7 @@ freqs <- c("8")#, "40", "60")
 results <- NULL
 
 # Sparse exps
-exp <- "128a_1"
+exp <- "129a_70"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -42,7 +42,7 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
-exp <- "128a_2"
+exp <- "129a_71"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -53,7 +53,7 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
-exp <- "128a_3"
+exp <- "129a_72"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -64,7 +64,7 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
-exp <- "128a_4"
+exp <- "129a_73"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -75,7 +75,7 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
-exp <- "128a_5"
+exp <- "129a_74"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -86,7 +86,7 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
-exp <- "128a_6"
+exp <- "129a_75"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -97,7 +97,7 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
-exp <- "128a_7"
+exp <- "129a_76"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -108,9 +108,30 @@ for(freq in freqs){
 tmp$exp <- rep(exp, nrow(tmp))
 results <- rbind(results, tmp)
 
+exp <- "129a_77"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
+
+exp <- "129a_78"
+tmp <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  df$freq <- rep(freq, nrow(df))
+  tmp <- rbind(tmp, df)
+}
+tmp$exp <- rep(exp, nrow(tmp))
+results <- rbind(results, tmp)
 
 # Org dense code
-exp <- "128b"
+exp <- "129b"
 tmp <- NULL
 for(freq in freqs){
   name <- paste("../../data/exp", exp, ".csv", sep="")
@@ -151,7 +172,6 @@ results %>%
     N_oscs = mean(N_oscs),
     variances = mean(variances)) -> avg_results
 
-
 # -
 rm(tmp, df)
 ```
@@ -172,7 +192,7 @@ avg_results %>%
 avg_results %>% 
   ggplot(aes(x=As, y=n_spikes_pop, color=as.factor(N_oscs), shape=as.factor(N_oscs))) +
   geom_line(size=1, alpha=0.6) +
-  geom_point(size=2, alpha=0.8) +
+  # geom_point(size=2, alpha=0.8) +
   # facet_grid(exp~.) +
   theme_classic()
 ```
