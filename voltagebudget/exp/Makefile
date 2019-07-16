@@ -1284,6 +1284,10 @@ exp129:
 # Higher threshold compaered to 129
 #
 # e687b587c540c43e6990a56ebb4ec531c44de8b8
+#
+# SUM: 50 neurons offer much better error, but the osc range was to week to 
+#      induce all that much sync. Clearly sparse and weak can't be thet weak.
+# NEXT: re-run this with more A
 exp130:
 	# Sparse
 	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp130a_780 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --sparse_threshold=7.80e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130a_780.log
@@ -1296,3 +1300,22 @@ exp130:
 	# Sweep run (orginal code)
 	python budget_experiments.py sweep_A $(DATADIR)/exp130b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.025e-9 --N=250 --n_samples=20 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp130b.log
 
+
+# 7-15-2019
+# Higher threshold compaered to 129
+#
+# e687b587c540c43e6990a56ebb4ec531c44de8b8
+# 
+# exp130 but with more A!
+#
+exp131:
+	# Sparse
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp131a_780 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --sparse_threshold=7.80e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131a_780.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp131a_781 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --sparse_threshold=7.81e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131a_781.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp131a_782 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --sparse_threshold=7.82e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131a_782.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp131a_783 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --sparse_threshold=7.83e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131a_783.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp131a_784 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --sparse_threshold=7.84e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131a_784.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp131a_785 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --sparse_threshold=7.85e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131a_785.log
+	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp131a_786 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --sparse_threshold=7.86e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131a_786.log
+	# Sweep run (orginal code)
+	python budget_experiments.py sweep_A $(DATADIR)/exp131b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.050e-9 --N=250 --n_samples=40 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp131b.log
