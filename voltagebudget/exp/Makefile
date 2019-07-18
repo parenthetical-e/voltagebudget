@@ -1335,3 +1335,22 @@ exp132:
 	python budget_experiments.py sparse_sweep_A $(DATADIR)/exp132a_786 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.075e-9 --N=250 --n_samples=40 --sparse_threshold=7.86e-3 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp132a_786.log
 	# Sweep run (orginal code)
 	python budget_experiments.py sweep_A $(DATADIR)/exp132b $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.075e-9 --N=250 --n_samples=40 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee exp132b.log
+
+
+# ------------------------------------------------------------------------
+# Sweep w_in in steps. Does 0.28 hold?
+# Std values for regular neurons: 
+# "w_in": [
+        # 1.5e-09,
+        # 15e-09
+    #   ],
+exp134:
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_1 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=1.5e-09 --w_in_max=3.0e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_1.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_2 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=3.0e-09 --w_in_max=4.5e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_2.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_3 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=4.5e-09 --w_in_max=6.0e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_3.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_4 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=6.0e-09 --w_in_max=7.5e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_4.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_5 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=7.5e-09 --w_in_max=9.0e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_5.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_6 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=9.0e-09 --w_in_max=11.5e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_6.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_7 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=11.5e-09 --w_in_max=13.0e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_7.log
+	python budget_experiments.py sweep_A $(DATADIR)/exp134_8 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=13.0e-09 --w_in_max=14.5e-09,--N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_8.log
+	
