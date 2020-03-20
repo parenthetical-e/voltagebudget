@@ -1,0 +1,175 @@
+---
+title: "Paper figures"
+output: html_notebook
+---
+
+```{r, message=FALSE}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(readr)
+library(gridExtra)
+library(readr)
+library(patchwork)
+library(NNTbiomarker)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+}
+
+data_summary <- function(x) {
+   m <- mean(x)
+   ymin <- m-mad(x)
+   ymax <- m+mad(x)
+   return(c(y=m, ymin=ymin, ymax=ymax))
+}
+
+mean_summary <- function(x) {
+   m <- mean(x)
+   return(c(y=m))
+}
+sample_n_groups = function(tbl, size, replace = FALSE, weight = NULL) {
+  # regroup when done
+  grps = tbl %>% groups %>% lapply(as.character) %>% unlist
+  # check length of groups non-zero
+  keep = tbl %>% summarise() %>% ungroup() %>% sample_n(size, replace, weight)
+  # keep only selected groups, regroup because joins change count.
+  # regrouping may be unnecessary but joins do something funky to grouping variable
+  tbl %>% right_join(keep, by=grps) %>% group_by_(.dots = grps)
+}
+
+find_point <- function(x, y, point){
+  i <- argmin(x, target = point)
+  return(c(x[i], y[i]))
+}
+
+ms <- 1000
+mV <- 1000
+```
+
+# Figure 1 - intro story
+```{r, message=FALSE, fig.height=1, fig.width=3}
+# Load a Poisson sampled stimulus
+ref_times <- read_csv("../../data/stim1.csv")
+ref_times %>% 
+   mutate(ts = ts - min(ts)) -> ref_times
+
+# Max compress the reference. Just pick a spike time
+# and put it everywhere.
+sync_times <- ref_times
+sync_times$ts <- ref_times$ts[9] # I picked 9 for no reason.
+
+# Plot em....
+p1 <- ref_times %>% 
+  ggplot(aes(x=ts*1e3, y=ns)) +
+  geom_point(alpha=0.8) +
+  labs(x="Time (ms)", y="Neuron") +
+  lims(x=c(0, 50)) +
+  theme_classic() +
+  ggtitle("Original\nmessage")
+
+p2 <- ref_times %>% 
+  ggplot(aes(x=ts*1e3, y=ns)) +
+  geom_blank() +
+  annotate("text", x =25, y = 20, label = "?", size=20, alpha=0.8) +
+  labs(x="Time (ms)", y="Neuron") +
+  lims(x=c(0, 50)) +
+  theme_classic() +
+  ggtitle("Optimal\ncompression")
+
+p3 <- sync_times %>% 
+  ggplot(aes(x=ts*1e3, y=ns)) +
+  geom_point(alpha=0.8) +
+  labs(x="Time (ms)", y="Neuron") +
+  lims(x=c(0, 50)) +
+  theme_classic() +
+  ggtitle("Maximum\ncompression")
+
+# Join plots into the final figure
+# and save the result
+# (patchwork at work)
+p1 + p2 + p3  
+ggsave("figures/lossy_fig1.png", dpi=600)
+```
+
+# Figure 2 - random sync
+```{r, message=FALSE, fig.height=2.4, fig.width=3.1}
+# Load a Poisson sampled stimulus
+ref_times <- read_csv("../../data/stim1.csv")
+ref_times %>% 
+   mutate(ts = ts - min(ts)) -> ref_times
+
+# Examples 
+monte_carlo_times <- NULL
+exps <- 1:9z # Only load the first 12 as examples
+for(i in exps) {
+  df <- read_csv(paste("../../data/exp135_mc_", as.character(i), "_target0.011_spikes.csv", sep = ""))
+  df$exp <- rep(i, nrow(df))
+  df$ts <- df$ts - min(df$ts)
+  df$delta <- ref_times$ts - df$ts
+  monte_carlo_times <- bind_rows(monte_carlo_times, df)
+}
+
+# Drop tiny deltas to clean up the visualization
+monte_carlo_times$delta[monte_carlo_times$delta < 1e-3] = NA
+
+# Errors (avg)
+monte_carlo_results <- NULL
+exps <- 1:100
+for(i in exps) {
+  df <- read_csv(paste("../../data/exp135_mc_", as.character(i), ".csv", sep = ""))
+  df$exp <- rep(i, nrow(df))
+  monte_carlo_results <- bind_rows(monte_carlo_results, df)
+}
+
+
+# Plot
+p1 <- monte_carlo_times %>% 
+  ggplot(aes(x=ts*ms, y=ns)) +
+  geom_point(alpha=0.8, shape=1) +
+  geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns), 
+               size=.4,
+               color="darkred",
+               alpha=0.8,
+               arrow=arrow(length = unit(.08, "npc")),
+               lineend = 'round', 
+               linejoin = 'round') +
+  facet_wrap(~exp) +
+  labs(x="Time (ms)", y="Neuron") +
+  lims(x=c(0, 50)) +
+  theme_classic() +
+  theme(
+    legend.position="none", 
+    panel.border = element_rect(fill = NA, colour = "grey"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    strip.text.x = element_blank(),
+    strip.text.y = element_text(angle = 0)) +
+  ggtitle("Random\ncompression (10%)")
+
+
+p2 <- monte_carlo_results %>% 
+  ggplot(aes(x=(errors - mean(errors))*ms)) +
+  geom_histogram(alpha=0.4, fill="darkred") +
+  # geom_histogram(alpha=0.8, bins=30, binwidth = .01) +
+  geom_density(alpha=0.8, color="darkred") +
+  labs(y="Count", x="Error (ms)") +
+  lims(x=c(-0.25, 0.25)) +
+  theme_classic() 
+
+p3 <- monte_carlo_results %>% 
+  ggplot(aes(x=(obs_variances - mean(obs_variances))*ms)) +
+  geom_histogram(alpha=0.4) +
+  geom_density(alpha=0.8) +
+  labs(y="Count", x="Synchrony (ms)") +
+  lims(x=c(-0.25, 0.25)) +
+  theme_classic() 
+
+p1 / (p3 + p2 + plot_spacer()) + 
+  plot_layout(heights = c(3, 1)) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
+
+ggsave("figures/lossy_fig2.png", dpi=600)
+```
+
