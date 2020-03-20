@@ -1354,3 +1354,9 @@ exp134:
 	python budget_experiments.py sweep_A $(DATADIR)/exp134_7 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=11.5e-09 --w_in_max=13.0e-09 --N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_7.log
 	python budget_experiments.py sweep_A $(DATADIR)/exp134_8 $(DATADIR)/stim1.csv 0 --mode=regular --A_0=0.00e-9 --A_max=0.15e-9 --w_in_0=13.0e-09 --w_in_max=14.5e-09 --N=250 --n_samples=100 --d=-2e-3 --T=0.125 --f=8 --verbose --save_only | tee $(DATADIR)/exp134_8.log
 	
+
+# -------------------------------------------------------------------------
+exp135:
+	parallel -j 4 -v \
+		--nice 19 \
+		'python budget_experiments.py optimal $(DATADIR)/exp135_mc_{} $(DATADIR)/stim1.csv 11e-3 --n_samples=1 --alg=monte_carlo --save_only --verbose --save_spikes' ::: {1..100}
