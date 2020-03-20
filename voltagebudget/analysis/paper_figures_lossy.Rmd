@@ -47,7 +47,8 @@ ms <- 1000
 mV <- 1000
 ```
 
-# Figure 1 - intro story
+# Figure 1 and 2 - intro story, definition of error
+## Figure 1 - intro
 ```{r, message=FALSE, fig.height=1, fig.width=3}
 # Load a Poisson sampled stimulus
 ref_times <- read_csv("../../data/stim1.csv")
@@ -59,6 +60,8 @@ ref_times %>%
 sync_times <- ref_times
 sync_times$ts <- ref_times$ts[9] # I picked 9 for no reason.
 sync_times$delta <- ref_times$ts - sync_times$ts
+
+sync_times$delta[abs(sync_times$delta) < 1e-3] = NA
 
 # Plot em....
 p1 <- ref_times %>% 
@@ -94,22 +97,22 @@ p1 + p2 + p3 +
 ggsave("figures/lossy_fig1.png", dpi=600)
 ```
 
-# Figure 2 - error
-```{r, message=FALSE, fig.height=0.85, fig.width=1}
+## Figure 2 - error
+```{r, message=FALSE, fig.height=0.95, fig.width=1}
 p1 <- sync_times %>% 
   ggplot(aes(x=ts*1e3, y=ns)) +
   geom_point(alpha=0.8, size=1.2, shape=1) +
   geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns), 
                size=.4,
-               color="darkred",
-               alpha=0.8,
-               arrow=arrow(length = unit(.08, "npc")),
+               color="palegreen4",
+               alpha=0.99,
+               # arrow=arrow(length = unit(.08, "npc")),
                lineend = 'round', 
                linejoin = 'round') +
   labs(x="Time (ms)", y="Neuron") +
   lims(x=c(0, 50)) +
   theme_classic() +
-  ggtitle("Compression\nerror")
+  ggtitle("Maximum\ncompression\nerror")
 
 p1 
 ggsave("figures/lossy_fig2.png", dpi=600)
@@ -134,7 +137,7 @@ for(i in exps) {
 }
 
 # Drop tiny deltas to clean up the visualization
-monte_carlo_times$delta[monte_carlo_times$delta < 1e-3] = NA
+monte_carlo_times$delta[abs(monte_carlo_times$delta) < 2e-3] = NA
 
 # Errors (avg)
 monte_carlo_results <- NULL
@@ -151,10 +154,10 @@ p1 <- monte_carlo_times %>%
   ggplot(aes(x=ts*ms, y=ns)) +
   geom_point(alpha=0.8, shape=1) +
   geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns), 
-               size=.4,
-               color="darkred",
-               alpha=0.8,
-               arrow=arrow(length = unit(.08, "npc")),
+               size=.6,
+               color="palegreen4",
+               alpha=0.99,
+               # arrow=arrow(length = unit(.08, "npc")),
                lineend = 'round', 
                linejoin = 'round') +
   facet_wrap(~exp) +
@@ -174,9 +177,9 @@ p1 <- monte_carlo_times %>%
 
 p2 <- monte_carlo_results %>% 
   ggplot(aes(x=(errors - mean(errors))*ms)) +
-  geom_histogram(alpha=0.4, fill="darkred") +
+  geom_histogram(alpha=0.4, fill="palegreen4") +
   # geom_histogram(alpha=0.8, bins=30, binwidth = .01) +
-  geom_density(alpha=0.8, color="darkred") +
+  geom_density(alpha=0.8, color="palegreen4") +
   labs(y="Count", x="Error (ms)") +
   lims(x=c(-0.25, 0.25)) +
   theme_classic() 
@@ -196,3 +199,259 @@ p1 / (p3 + p2 + plot_spacer()) +
 ggsave("figures/lossy_fig3.png", dpi=600)
 ```
 
+# Figure 4 - optimal algs
+```{r, fig.width=1.4, fig.height=2.4, message=FALSE}
+# Agls
+algs <- c("max", "left", "uni", "cc")
+alg_names <- c("Single cell", "left", "Population", "Information\ntheory")
+exps <- c(114, 115, 116, 117)
+
+# Load agg. results
+optimal_results <- NULL
+for (n in 1:4){
+  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], ".csv", sep=""))
+  df$alg <- rep(alg_names[n], nrow(df))
+  optimal_results <- rbind(optimal_results, df)
+}
+
+# Load exp spikes
+exps <- c(110, 111, 112, 113)
+optimal_times <- NULL
+for (n in 1:4){
+  # df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_c0.1_spikes.csv", sep=""))
+  df <- read_csv(paste("../../data/exp", as.character(exps[n]), "_", algs[n], "_target0.01_spikes.csv", sep=""))
+  df$ts <- df$ts - min(df$ts)
+  df$delta <- ref_times$ts - df$ts
+  df$alg <- rep(alg_names[n], nrow(df))
+  optimal_times <- rbind(optimal_times, df)
+}
+
+# Drop lext max dev.
+optimal_times %>% 
+  filter(alg != "left") -> optimal_times
+
+optimal_times$delta[abs(optimal_times$delta) < 2e-3] = NA
+
+# Plot....
+optimal_times %>% 
+  ggplot(aes(x=ts*ms, y=ns)) +
+  geom_point(size=1.2, alpha=0.8, shape=1) +
+  geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns, color=alg), 
+               size=.6,
+               alpha=0.8,
+               # arrow=arrow(length = unit(.08, "npc")),
+               lineend = 'round', 
+               linejoin = 'round') +
+  facet_grid(alg~.) +
+  scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3", "chartreuse3")) +
+  theme_classic() +
+  labs(x="Time (ms)", y="Neuron") +
+  ggtitle("Optimal\ncompression") +
+  theme(
+    legend.position="none", 
+    panel.border = element_rect(fill = NA, colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_blank(),
+    strip.text.y = element_text(angle = 0)) -> p1
+
+optimal_results %>% 
+  filter(alg != "left") %>%
+  filter(obs_variances > 10e-3) %>% 
+  ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
+  # geom_line(size=0.1, alpha=0.99) +
+  geom_line(size=1, alpha=0.99) +
+  scale_color_manual("Algorithm", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = guide_legend(nrow = 3)) +
+  theme_classic() +
+  coord_flip() +
+  labs(x="Time (ms)", y="Neuron") +
+  theme(legend.position="none",
+    legend.key.size = unit(.1, "cm"),
+    legend.title = element_text(size=6),
+    legend.text = element_text(size=6),
+    legend.background = element_rect(colour ="black")) +
+  labs(x="Error (ms)", y="Synchrony (ms)") -> p2
+
+
+# plot_grid <- rbind(
+#   c(1, 1, 1, 1, 1),
+#   c(1, 1, 1, 1, 1),
+#   c(2, 2, 2, 2, NA),
+#   c(2, 2, 2, 2, NA))  
+# 
+# grid.arrange(p1, p2, layout_matrix=plot_grid)
+# rm(p1, p2, plot_grid)
+
+p1 / p2 +
+  plot_layout(heights = c(2.2, 1)) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
+ggsave("figures/lossy_fig4.png", dpi=600)
+```
+
+# Figure 5 - osc v opt
+```{r, fig.width=1.8, fig.height=3, message=FALSE}
+# Load data
+exp <- "118"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+
+exp118_results <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  exp118_results <- rbind(exp118_results, df)
+}
+
+exp118_results$freq <- factor(exp118_results$freq, levels=freqs)
+
+
+exp <- "119"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+exp119_results <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  exp119_results <- rbind(exp119_results, df)
+}
+
+exp119_results$freq <- factor(exp119_results$freq, levels=freqs)
+
+# -
+exp <- "109"
+freqs <- c("4", "8", "12", "20", "24", "30")#, "40", "60")
+
+exp109_results <- NULL
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", freq, ".csv", sep="")
+  df <- read_csv(paste(name, sep=""))
+  # df %>%
+    # filter(n_spikes_pop > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  exp109_results <- rbind(exp109_results, df)
+}
+
+exp119_results$freq <- factor(exp119_results$freq, levels=freqs)
+
+# -
+# alg_names <- c("Single cell", "left", "Population", "Information\ntheory")
+exp118_results$alg <- rep("Single cell", nrow(exp118_results))
+exp119_results$alg <- rep("Population", nrow(exp119_results))
+exp109_results$alg <- rep("Information\ntheory", nrow(exp109_results))
+opt_v_osc_results <- rbind(exp118_results, exp119_results, exp109_results)
+
+# Process a bit
+hospital_names <- list(
+  '8'="Frequency\n\n8 Hz",
+  '12'="12 Hz",
+  '20'="20 Hz",
+  '30'="30 Hz"
+)
+hospital_labeller <- function(variable,value){
+  return(hospital_names[as.character(value)])
+}
+
+# Plot....
+opt_v_osc_results %>% 
+  filter(errors_pop > 0, freq %in% c("8")) %>%
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms)) +
+  geom_point(size=0.2, alpha=0.99) + 
+  geom_point(mapping=aes(x=variances_opt*ms, y=errors_opt*ms, color=alg), 
+             alpha=0.99, size=0.6) +
+  scale_y_continuous(trans='log10') +
+  annotation_logticks(sides = "l") +
+  # facet_grid(freq~., labeller=hospital_labeller) +
+  scale_color_manual("Algorithm", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = guide_legend(nrow = 3)) +
+  labs(x="Synchrony (ms)", y="Error (ms)") +
+  scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
+  ggtitle("Optimal versus\noscillation") +
+  theme_classic() +
+  theme(legend.position="right",
+    legend.key.size = unit(.1, "cm"),
+    legend.title = element_text(size=6),
+    legend.text = element_text(size=6),
+    legend.background = element_rect(colour ="black"),
+    strip.text.y = element_text(angle = 0), 
+    panel.grid.minor = element_blank(),
+    legend.key.width=unit(0.05,"cm"),
+    strip.background = element_blank()) -> p1
+
+opt_v_osc_results %>% 
+  filter(errors_pop > 0, freq %in% c("8")) %>%
+  ggplot(aes(x=variances_pop*ms, y=variances_opt*ms, color=alg)) +
+  geom_point(size=0.8, alpha=0.3) +
+  geom_abline(intercept = 0, color="black", alpha=1) +
+  labs(x="Oscillation\nsynchrony (ms)", y="Optimal\nsynchrony (ms)") +
+  scale_color_manual("Algorithm:", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = "none") +
+  theme_classic() +
+  theme(plot.title = element_text(size = 10)) -> p2
+
+opt_v_osc_results %>% 
+  filter(errors_pop > 0, freq %in% c("8")) %>%
+  ggplot(aes(x=errors_pop*ms, y=errors_opt*ms, color=alg)) +
+  geom_point(size=0.8, alpha=0.5) +
+  lims(x=c(0,25),y=c(0,25)) +
+  geom_abline(intercept = 0, color="black", alpha=1) +
+  labs(x="Oscillation\nerror (ms)", y="Optimal\nerror (ms)") +
+  scale_color_manual("Algorithm:", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = "none") +
+  ggtitle(" ") +
+  theme_classic() -> p3
+
+p1 / p2 / p3 +
+  plot_layout(heights = c(2, 1, 1)) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
+ggsave("figures/lossy_fig5.png", dpi=600)
+```
+
+# Figure 6 - osc freq v optimal
+```{r, fig.width=2, fig.height=3, message=FALSE}
+# Plot....
+opt_v_osc_results %>% 
+  filter(errors_pop > 0, freq %in% c("8","12","20","30")) %>%
+  ggplot(aes(x=variances_pop*ms, y=errors_pop*ms)) +
+  geom_point(size=0.2, alpha=0.99) + 
+  geom_point(mapping=aes(x=variances_opt*ms, y=errors_opt*ms, color=alg), 
+             alpha=0.99, size=0.6) +
+  scale_y_continuous(trans='log10') +
+  annotation_logticks(sides = "l") +
+  facet_grid(freq~., labeller=hospital_labeller) +
+  scale_color_manual("Algorithm", 
+                     values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
+                     guide = guide_legend(nrow = 3)) +
+  labs(x="Synchrony (ms)", y="Error (ms)") +
+  scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
+  ggtitle("Optimal versus\nfrequency") +
+  theme_classic() +
+  theme(legend.position="right",
+    legend.key.size = unit(.1, "cm"),
+    legend.title = element_text(size=8),
+    legend.text = element_text(size=8),
+    legend.background = element_rect(colour ="black"),
+    strip.text.y = element_text(angle = 0), 
+    panel.grid.minor = element_blank(),
+    legend.key.width=unit(0.05,"cm"),
+    strip.background = element_blank()) -> p1
+
+p1
+ggsave("figures/lossy_fig6.png", dpi=600)
+```
+
+# Figure 7 - shape
+- TODO?
