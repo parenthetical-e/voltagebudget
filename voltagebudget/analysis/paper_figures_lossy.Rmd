@@ -48,7 +48,7 @@ mV <- 1000
 ```
 
 # Figure 1 - intro story
-```{r, message=FALSE, fig.height=1, fig.width=3}
+```{r, message=FALSE, fig.height=1, fig.width=4.2}
 # Load a Poisson sampled stimulus
 ref_times <- read_csv("../../data/stim1.csv")
 ref_times %>% 
@@ -58,6 +58,7 @@ ref_times %>%
 # and put it everywhere.
 sync_times <- ref_times
 sync_times$ts <- ref_times$ts[9] # I picked 9 for no reason.
+sync_times$delta <- ref_times$ts - sync_times$ts
 
 # Plot em....
 p1 <- ref_times %>% 
@@ -85,15 +86,32 @@ p3 <- sync_times %>%
   theme_classic() +
   ggtitle("Maximum\ncompression")
 
+p4 <- sync_times %>% 
+  ggplot(aes(x=ts*1e3, y=ns)) +
+  geom_point(alpha=0.8, size=1.2, shape=1) +
+  geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns), 
+               size=.4,
+               color="darkred",
+               alpha=0.8,
+               arrow=arrow(length = unit(.08, "npc")),
+               lineend = 'round', 
+               linejoin = 'round') +
+  labs(x="Time (ms)", y="Neuron") +
+  lims(x=c(0, 50)) +
+  theme_classic() +
+  ggtitle("Compression\nerror")
+
 # Join plots into the final figure
 # and save the result
 # (patchwork at work)
-p1 + p2 + p3  
+p1 + p2 + p3 + p4 + 
+  plot_layout(ncol=4) +
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
 ggsave("figures/lossy_fig1.png", dpi=600)
 ```
 
 # Figure 2 - random sync
-```{r, message=FALSE, fig.height=2.4, fig.width=3.1}
+```{r, message=FALSE, fig.height=2.4, fig.width=2.4}
 # Load a Poisson sampled stimulus
 ref_times <- read_csv("../../data/stim1.csv")
 ref_times %>% 
@@ -101,7 +119,7 @@ ref_times %>%
 
 # Examples 
 monte_carlo_times <- NULL
-exps <- 1:9z # Only load the first 12 as examples
+exps <- 1:9 # Only load the first 12 as examples
 for(i in exps) {
   df <- read_csv(paste("../../data/exp135_mc_", as.character(i), "_target0.011_spikes.csv", sep = ""))
   df$exp <- rep(i, nrow(df))
