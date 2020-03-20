@@ -9,6 +9,7 @@
 *RData*
 *.Rproj
 *.html
+ecog/*
 
 *.DS_Store
 *.swc
