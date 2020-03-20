@@ -66,7 +66,7 @@ sync_times$delta[abs(sync_times$delta) < 1e-3] = NA
 # Plot em....
 p1 <- ref_times %>% 
   ggplot(aes(x=ts*1e3, y=ns)) +
-  geom_point(alpha=0.8) +
+  geom_point(alpha=0.8, size=0.6) +
   labs(x="Time (ms)", y="Neuron") +
   lims(x=c(0, 50)) +
   theme_classic() +
@@ -83,7 +83,7 @@ p2 <- ref_times %>%
 
 p3 <- sync_times %>% 
   ggplot(aes(x=ts*1e3, y=ns)) +
-  geom_point(alpha=0.8) +
+  geom_point(alpha=0.8, size=0.6) +
   labs(x="Time (ms)", y="Neuron") +
   lims(x=c(0, 50)) +
   theme_classic() +
@@ -101,14 +101,14 @@ ggsave("figures/lossy_fig1.png", dpi=600)
 ```{r, message=FALSE, fig.height=0.95, fig.width=1}
 p1 <- sync_times %>% 
   ggplot(aes(x=ts*1e3, y=ns)) +
-  geom_point(alpha=0.8, size=1.2, shape=1) +
   geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns), 
                size=.4,
                color="palegreen4",
-               alpha=0.99,
+               alpha=0.8,
                # arrow=arrow(length = unit(.08, "npc")),
                lineend = 'round', 
                linejoin = 'round') +
+  geom_point(alpha=0.8, size=0.6) +
   labs(x="Time (ms)", y="Neuron") +
   lims(x=c(0, 50)) +
   theme_classic() +
@@ -152,14 +152,14 @@ for(i in exps) {
 # Plot
 p1 <- monte_carlo_times %>% 
   ggplot(aes(x=ts*ms, y=ns)) +
-  geom_point(alpha=0.8, shape=1) +
   geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns), 
                size=.6,
                color="palegreen4",
-               alpha=0.99,
+               alpha=0.8,
                # arrow=arrow(length = unit(.08, "npc")),
                lineend = 'round', 
                linejoin = 'round') +
+  geom_point(alpha=0.8, size=0.6) +
   facet_wrap(~exp) +
   labs(x="Time (ms)", y="Neuron") +
   lims(x=c(0, 50)) +
@@ -180,7 +180,7 @@ p2 <- monte_carlo_results %>%
   geom_histogram(alpha=0.4, fill="palegreen4") +
   # geom_histogram(alpha=0.8, bins=30, binwidth = .01) +
   geom_density(alpha=0.8, color="palegreen4") +
-  labs(y="Count", x="Error (ms)") +
+  labs(y="Count", x="Error\nvariance (ms)") +
   lims(x=c(-0.25, 0.25)) +
   theme_classic() 
 
@@ -188,11 +188,11 @@ p3 <- monte_carlo_results %>%
   ggplot(aes(x=(obs_variances - mean(obs_variances))*ms)) +
   geom_histogram(alpha=0.4) +
   geom_density(alpha=0.8) +
-  labs(y="Count", x="Synchrony (ms)") +
+  labs(y="Count", x="Compression\nvariance (ms)") +
   lims(x=c(-0.25, 0.25)) +
   theme_classic() 
 
-p1 / (p3 + p2 + plot_spacer()) + 
+p1 / (p3 + p2) + 
   plot_layout(heights = c(3, 1)) + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".")
 
@@ -235,13 +235,13 @@ optimal_times$delta[abs(optimal_times$delta) < 2e-3] = NA
 # Plot....
 optimal_times %>% 
   ggplot(aes(x=ts*ms, y=ns)) +
-  geom_point(size=1.2, alpha=0.8, shape=1) +
   geom_segment(aes(x=ts*ms, xend=(ts+delta)*ms, y=ns, yend=ns, color=alg), 
                size=.6,
                alpha=0.8,
                # arrow=arrow(length = unit(.08, "npc")),
                lineend = 'round', 
                linejoin = 'round') +
+  geom_point(alpha=0.8, size=0.6) +
   facet_grid(alg~.) +
   scale_color_manual("Algorithm:", values=c("darkslategray4", "darkseagreen3", "chartreuse3")) +
   theme_classic() +
@@ -259,8 +259,7 @@ optimal_results %>%
   filter(alg != "left") %>%
   filter(obs_variances > 10e-3) %>% 
   ggplot(aes(x=errors*1e3, y=obs_variances*1e3, color=alg)) +
-  # geom_line(size=0.1, alpha=0.99) +
-  geom_line(size=1, alpha=0.99) +
+  geom_line(size=1, alpha=0.8) +
   scale_color_manual("Algorithm", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = guide_legend(nrow = 3)) +
@@ -272,7 +271,7 @@ optimal_results %>%
     legend.title = element_text(size=6),
     legend.text = element_text(size=6),
     legend.background = element_rect(colour ="black")) +
-  labs(x="Error (ms)", y="Synchrony (ms)") -> p2
+  labs(x="Error (ms)", y="Compression (ms)") -> p2
 
 
 # plot_grid <- rbind(
@@ -368,14 +367,14 @@ opt_v_osc_results %>%
   ggplot(aes(x=variances_pop*ms, y=errors_pop*ms)) +
   geom_point(size=0.2, alpha=0.99) + 
   geom_point(mapping=aes(x=variances_opt*ms, y=errors_opt*ms, color=alg), 
-             alpha=0.99, size=0.6) +
+             alpha=0.99, size=0.4) +
   scale_y_continuous(trans='log10') +
   annotation_logticks(sides = "l") +
   # facet_grid(freq~., labeller=hospital_labeller) +
   scale_color_manual("Algorithm", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = guide_legend(nrow = 3)) +
-  labs(x="Synchrony (ms)", y="Error (ms)") +
+  labs(x="Compression (ms)", y="Error (ms)") +
   scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
   ggtitle("Optimal versus\noscillation") +
   theme_classic() +
@@ -394,7 +393,7 @@ opt_v_osc_results %>%
   ggplot(aes(x=variances_pop*ms, y=variances_opt*ms, color=alg)) +
   geom_point(size=0.8, alpha=0.3) +
   geom_abline(intercept = 0, color="black", alpha=1) +
-  labs(x="Oscillation\nsynchrony (ms)", y="Optimal\nsynchrony (ms)") +
+  labs(x="Oscillation\ncompression (ms)", y="Optimal\ncompression (ms)") +
   scale_color_manual("Algorithm:", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = "none") +
@@ -435,7 +434,7 @@ opt_v_osc_results %>%
   scale_color_manual("Algorithm", 
                      values=c("darkslategray4", "darkseagreen3", "chartreuse3"),
                      guide = guide_legend(nrow = 3)) +
-  labs(x="Synchrony (ms)", y="Error (ms)") +
+  labs(x="Compression (ms)", y="Error (ms)") +
   scale_x_continuous(breaks=c(7.5,8,8.5,9)) +
   ggtitle("Optimal versus\nfrequency") +
   theme_classic() +
