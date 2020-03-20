@@ -30,7 +30,7 @@ from voltagebudget.exp import population
 from voltagebudget.exp import single
 from voltagebudget.exp import perturb
 from voltagebudget.exp import replay
-from voltagebudget.exp import pareto
+# from voltagebudget.exp import pareto
 from voltagebudget.exp import reverse
 from voltagebudget.exp import create_stim
 from voltagebudget.exp import autotune_membrane
@@ -52,6 +52,6 @@ if __name__ == "__main__":
         'homeostasis': homeostasis,
         'perturb': perturb,
         'reverse': reverse,
-        'pareto': pareto,
+        # 'pareto': pareto,
         'replay': replay
     })
