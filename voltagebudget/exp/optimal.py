@@ -3,13 +3,12 @@ import csv
 import numpy as np
 
 import voltagebudget
-
-from voltagebudget.util import read_stim
-from voltagebudget.util import write_spikes
 from voltagebudget.plc import max_deviant
 from voltagebudget.plc import uniform
 from voltagebudget.plc import coincidence
-
+from voltagebudget.plc import monte_carlo
+from voltagebudget.util import read_stim
+from voltagebudget.util import write_spikes
 from voltagebudget.util import mae
 from voltagebudget.util import mad
 
@@ -53,11 +52,14 @@ def optimal(name,
     if alg == 'max_deviants':
         fn = max_deviant
     elif alg == 'left_deviants':
-        fn = lambda ts, intial, target: max_deviant(ts, intial, target, side='left')
+        fn = lambda ts, intial, target: max_deviant(
+            ts, intial, target, side='left')
     elif alg == 'uniform':
         fn = uniform
     elif alg == 'coincidence':
         fn = coincidence
+    elif alg == 'monte_carlo':
+        fn = monte_carlo
     else:
         raise ValueError("alg type was unknown.")
 
@@ -80,6 +82,7 @@ def optimal(name,
     obs_variances = []
     errors = []
     changes = np.linspace(var_ref, var_target, n_samples + 1)
+    changes = changes[1:]
     for var_c in changes:
         _, target, adjusted, ts_adjusted = fn(ts, var_ref, var_c)
         error = mae(ts, ts_adjusted)
@@ -95,7 +98,7 @@ def optimal(name,
 
     # --------------------------------------------------------------
     if verbose:
-        print(">>> Saving results.")
+        print(f">>> Saving results: {name}")
 
     results = {
         'percent_change': changes,

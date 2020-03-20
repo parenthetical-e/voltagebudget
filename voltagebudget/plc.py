@@ -13,6 +13,40 @@ from voltagebudget.util import mad
 #     return initial, target
 
 
+def monte_carlo(ts, initial, target, max_perturb=0.001, max_iterations=10000):
+    """Run a Monte Carlo experiment to shift spikes to the target"""
+    ts = np.asarray(ts)
+    ts_opt = ts.copy()
+    current = mad(ts_opt)
+
+    # Sanity
+    if np.isclose(initial, target):
+        return initial, target, initial - target, ts
+    if ts.size == 0:
+        return initial, initial, 0, ts
+
+    # -
+    for _ in range(max_iterations):
+        # Draw a bounded random peturbation
+        delta = np.random.uniform(-max_perturb, max_perturb)
+
+        # Draw a neuron
+        i = np.random.randint(ts.size)
+
+        # Perturb it and update current sync estimate
+        # but only if it improves things
+        ts_test = ts_opt.copy()
+        ts_test[i] += delta
+        if mad(ts_test) < mad(ts_opt):
+            ts_opt = ts_test.copy()
+
+        current = mad(ts_opt)
+        if current < target:
+            return initial, target, current, ts_opt
+
+    return initial, target, current, ts_opt
+
+
 def uniform(ts, initial, target):
     """Shift each spike time a uniform amount
 
@@ -38,9 +72,9 @@ def uniform(ts, initial, target):
         ts_opt.append(t)
     ts_opt = np.asarray(ts_opt)
 
-    adjusted = mad(ts_opt)
+    current = mad(ts_opt)
 
-    return initial, target, adjusted, ts_opt
+    return initial, target, current, ts_opt
 
 
 def _delta(ts):
@@ -90,10 +124,10 @@ def coincidence(ts, initial, target, min_distance=1e-6, max_iterations=1000):
     # to be the same until target MAD is achieved.
     N = ts.size
     ts_opt = ts.copy()
-    adjusted = initial
+    current = initial
 
     n = 0
-    while (adjusted >= target) and (n < max_iterations):
+    while (current >= target) and (n < max_iterations):
         # Find distances
         deltas = _diffs(ts_opt)
 
@@ -111,11 +145,11 @@ def coincidence(ts, initial, target, min_distance=1e-6, max_iterations=1000):
         ts_opt[i + 1] = ts_opt[i]
 
         # Update stats/counters
-        adjusted = mad(ts_opt)
+        current = mad(ts_opt)
 
         n += 1
 
-    return initial, target, adjusted, np.asarray(ts_opt)
+    return initial, target, current, np.asarray(ts_opt)
 
 
 def max_deviant(ts,
@@ -140,7 +174,7 @@ def max_deviant(ts,
         raise ValueError("dt must be positive.")
 
     # -
-    adjusted = deepcopy(initial)
+    current = deepcopy(initial)
     idx = np.argsort(ts)
     ts_opt = ts.copy()[idx]
     M = mode_fm(ts_opt)
@@ -157,7 +191,7 @@ def max_deviant(ts,
 
     # -
     iter_count = 0
-    while adjusted > target:
+    while current > target:
         # Find index of farthest spike
         k = np.argmax(deltas[mask])
 
@@ -173,7 +207,7 @@ def max_deviant(ts,
         deltas = _delta(ts_opt)
 
         # Update rolling MAD
-        adjusted = mad(ts_opt)
+        current = mad(ts_opt)
 
         # Avoid inf
         iter_count += 1
@@ -187,4 +221,4 @@ def max_deviant(ts,
     for n, i in enumerate(idx):
         ts_re[i] = ts_opt[n]
 
-    return initial, target, adjusted, ts_re
+    return initial, target, current, ts_re
