@@ -455,10 +455,81 @@ ggsave("figures/lossy_fig6.png", dpi=600)
 # Figure 7 - shape
 - TODO?
 
-# Figure 8 - error50
 
-HERE - need to add osc shit examples to the top of this figure. Next up is E50 intro figure.
+# Figure 8 - osc intro
+```{r, fig.width=2, fig.height=1, message=FALSE}
+# Load example spikes
+ref_times <- read_csv("../../data/stim1.csv")
+ref_times %>% 
+   mutate(ts = ts - min(ts)) -> ref_times
 
+# Make waves a function
+time <- seq(0,0.4*2,length.out=1000)
+freq <- 8
+A <- 1
+wave <- A/2 + A/2*sin(freq * time)
+
+# As a test, plot an example of the wave
+# plot(time, wave, xlab = "Time", ylab="Amplitude (namps)")
+
+# Build a wave datafrome
+amps <- c(
+  min(vb_results$As[vb_results$As > 0]), 
+  median(vb_results$As[vb_results$As > 0]), 
+  max(vb_results$As[vb_results$As > 0]))
+
+wave_results <- NULL
+for (a in amps){
+  df <- data.frame(time=time, 
+                   wave=a*wave, 
+                   As=rep(a, length(time)))
+  wave_results <- bind_rows(wave_results, df)
+}
+
+# TODO - run simulations with As from above
+
+```
+```{r, fig.width=3, fig.height=2, message=FALSE}
+# Make the figure
+p1 <- ref_times %>% 
+  ggplot(aes(x=ts*1e3, y=ns)) +
+  geom_point(alpha=0.8, size=0.6) +
+  labs(x="Time (ms)", y="Neuron") +
+  lims(x=c(0, 50)) +
+  theme_classic() +
+  ggtitle("Original\nmessage")
+
+p2 <- wave_results %>% 
+  ggplot(aes(x=time, y=wave, color=As, group=As)) +
+  geom_line() +
+  labs(x="Time (ms)", y="Amplitude") +
+  lims(x=c(0, 0.8)) +
+  scale_color_continuous("Peak\namplitude (namps)", low="darkred", high="lightgoldenrod3") +
+  theme_classic() +
+  ggtitle("Compression\n'algorithm'")
+
+# HERE - need to run sims to make the osc_times df
+p3 <- osc_times %>% 
+  ggplot(aes(x=ts*1e3, y=ns, color=As)) +
+  geom_point(alpha=0.8, size=0.6) +
+  labs(x="Time (ms)", y="Neuron") +
+  lims(x=c(0, 50)) +
+  scale_color_continuous("Peak\namplitude (namps)", low="darkred", high="lightgoldenrod3") +
+  facet_grid(.~As) +
+  theme_classic() +
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        strip.text.x = element_blank()) +
+  ggtitle("Compression\nby oscillation")
+
+# Build figure 
+(p1 | p2) / p3 +
+  plot_layout(guides = 'collect') +
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
+ggsave("figures/lossy_fig8.png", dpi=600)
+```
+
+# Figure 9 - trade-off (with osc)
 ```{r, message=FALSE}
 # --------------------------------------------------------------------
 vb_results <- NULL
@@ -541,7 +612,7 @@ for (f in freqs) {
 vb_mean_results_ratios <- as.data.frame(vb_mean_results_ratios, stringsAsFactors=FALSE)
 colnames(vb_mean_results_ratios) <- c("error_50", "ratio", "freq")
 ```
-```{r, message=FALSE, fig.width=4, fig.height=1.8}
+```{r, message=FALSE, fig.width=3.8, fig.height=1.8}
 
 vb_results %>% 
   filter(freq == "8", V_osc/V_comp < 5, N == 1) %>% 
@@ -569,10 +640,11 @@ vb_norm_results %>%
   labs(x="Error (ms)", y="Compression (ms)") +
   lims(y=c(7,9)) +
   scale_color_continuous("Peak\namplitude (namps)", low="darkred", high="lightgoldenrod3") +
-  ggtitle("The compression/error trade-off") +
+  ggtitle("Compression/error trade-off\nfor oscillation") +
   theme_classic() -> p3
 
 ((p1 / p2) | p3) +
   plot_layout(widths = c(1, 2)) + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".")
+ggsave("figures/lossy_fig9.png", dpi=600)
 ```
