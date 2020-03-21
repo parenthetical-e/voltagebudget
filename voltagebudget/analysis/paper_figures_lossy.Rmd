@@ -94,7 +94,7 @@ p3 <- sync_times %>%
 # (patchwork at work)
 p1 + p2 + p3 + 
   plot_annotation(tag_levels = 'a', tag_suffix = ".")
-ggsave("figures/lossy_fig1.png", dpi=600)
+ggsave("figures/lossy_vb_results.png", dpi=600)
 ```
 
 ## Figure 2 - error
@@ -115,7 +115,7 @@ p1 <- sync_times %>%
   ggtitle("Maximum\ncompression\nerror")
 
 p1 
-ggsave("figures/lossy_fig2.png", dpi=600)
+ggsave("figures/lossy_vb_mean_results.png", dpi=600)
 ```
 
 # Figure 3 - random sync
@@ -454,3 +454,125 @@ ggsave("figures/lossy_fig6.png", dpi=600)
 
 # Figure 7 - shape
 - TODO?
+
+# Figure 8 - error50
+
+HERE - need to add osc shit examples to the top of this figure. Next up is E50 intro figure.
+
+```{r, message=FALSE}
+# --------------------------------------------------------------------
+vb_results <- NULL
+
+exp <- "96"
+freqs <- c(20, 30)
+
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  vb_results <- rbind(vb_results, df)
+}
+
+# --------------------------
+# SLOW
+exp <- "94"
+freqs <- c(6, 8, 10, 12, 14, 16, 18)
+
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  vb_results <- rbind(vb_results, df)
+}
+
+# --------------------------
+# FAST
+exp <- "95"
+freqs <- c(22, 24, 26, 28)#, 32, 34 ,36, 38)
+for(freq in freqs){
+  name <- paste("../../data/exp", exp, "_d-2e-3_f", as.character(freq), ".csv", sep="")
+  df <- read_csv(paste(name, sep=","))
+  df %>%
+    filter(n_spikes > 0) -> df
+  
+  df$freq <- rep(freq, nrow(df))
+  vb_results <- rbind(vb_results, df)
+}
+
+# Process
+vb_results %>% 
+  filter(n_spikes_ref > 0) %>% 
+  # Add delta_spikes
+  mutate(delta_spikes = n_spikes - n_spikes_ref) %>% 
+  # Re-norm V_osc
+  mutate(V_osc = V_osc - V_osc_ref) -> vb_results
+
+vb_results %>% 
+  group_by(As, freq) %>% 
+  summarise(
+    N = 0,
+    delta_spikes = mean(delta_spikes), 
+    V_b = mean(V_b), 
+    V_osc = mean(V_osc), 
+    V_free = mean(V_free), 
+    V_comp = mean(V_comp), 
+    V_comp_ref = mean(V_comp_ref), 
+    n_spikes_pop = mean(n_spikes), 
+    errors = mean(errors), 
+    errors_pop = mean(errors_pop), 
+    variances_pop = mean(variances_pop), 
+    variances = mean(variances)) -> vb_mean_results
+
+# Ratio ests
+vb_mean_results_ratios <- NULL
+freqs <- unique(vb_mean_results$freq)
+for (f in freqs) {
+  tmp <- filter(vb_mean_results, f == freq, V_osc/V_comp < 5)
+  pnts <- find_point(normalize(tmp$errors_pop), tmp$V_osc/tmp$V_comp, 0.5)  
+  row <- c(pnts, f)
+  vb_mean_results_ratios <- rbind(vb_mean_results_ratios, row)
+}
+vb_mean_results_ratios <- as.data.frame(vb_mean_results_ratios, stringsAsFactors=FALSE)
+colnames(vb_mean_results_ratios) <- c("error_50", "ratio", "freq")
+```
+```{r, message=FALSE, fig.width=4, fig.height=1.8}
+
+vb_results %>% 
+  filter(freq == "8", V_osc/V_comp < 5, N == 1) %>% 
+  ggplot(aes(x=As, y=variances_pop*ms, color=As*1e9)) +
+  geom_point(alpha=0.8, size=0.6) +
+  labs(x="Peak amplitude (namps)", y="Compression (ms)") +
+  lims(y=c(7,9)) +
+  scale_color_continuous("Peak\namplitude (namps)", low="darkred", high="lightgoldenrod3") +
+  theme_classic() + 
+  theme(legend.position="none") -> p1
+
+vb_norm_results %>% 
+  filter(freq == "8", V_osc/V_comp < 5, N == 1) %>% 
+  ggplot(aes(x=As, y=errors_pop*ms, group=N, color=As)) +
+  geom_point(alpha=0.8, size=0.6) +
+  labs(x="Peak amplitude (namps)", y="Error (ms)") +
+  scale_color_continuous("Peak\namplitude (namps)", low="darkred", high="lightgoldenrod3") +
+  theme_classic() +
+  theme(legend.position="none") -> p2
+
+vb_norm_results %>% 
+  filter(freq == "8", V_osc/V_comp < 5, N == 1) %>% 
+  ggplot(aes(y=variances_pop*ms, x=errors_pop*ms, group=N, color=As)) +
+  geom_point(alpha=0.8, size=1) +
+  labs(x="Error (ms)", y="Compression (ms)") +
+  lims(y=c(7,9)) +
+  scale_color_continuous("Peak\namplitude (namps)", low="darkred", high="lightgoldenrod3") +
+  ggtitle("The compression/error trade-off") +
+  theme_classic() -> p3
+
+((p1 / p2) | p3) +
+  plot_layout(widths = c(1, 2)) + 
+  plot_annotation(tag_levels = 'a', tag_suffix = ".")
+```
