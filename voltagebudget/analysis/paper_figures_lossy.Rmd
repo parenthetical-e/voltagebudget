@@ -605,6 +605,7 @@ p3 <- osc_times %>%
         strip.background = element_blank(),
         strip.text.x = element_blank()) +
   ggtitle("Compression\nby oscillation")
+p3 <- plot_spacer()
 
 # Build figure 
 (p1 | p2) / p3 +
@@ -690,15 +691,28 @@ vb_norm_results %>%
   geom_hline(yintercept = 0.5, alpha=1, color="grey", linetype="dashed") +
   annotate("text", x = 1, y = 0.54, label = expression(paste("E"[50]))) +
   labs(y="Normalized\nError", x="Normalized\ncompression") +
-  ggtitle("A prediction for\npathological oscillation") +
+  ggtitle("The pathological\ncompression hypothesis") +
   scale_color_manual("State", values=c("palevioletred3", "peachpuff3")) +
   theme_classic() +
   theme(legend.background = element_rect(colour ="black"),
         legend.position = "right") -> p3
 
+# Build figure
 (p1 | p2) / p3 +
   plot_layout(heights = c(1, 3)) + 
   plot_layout(guides = 'collect') +
   plot_annotation(tag_levels = 'a', tag_suffix = ".") 
 ggsave("figures/lossy_fig10.png", dpi=600)
+```
+
+# Figure 11 - VB intro
+We don't have a reference, or there is no practical reference. Voltage budget analysis to the rescue!
+```{r}
+# HERE...
+# Create VB intro
+```
+
+# Figure 12 - VB and E50
+```{r}
+# HERE
 ```
