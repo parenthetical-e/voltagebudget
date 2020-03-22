@@ -249,7 +249,7 @@ optimal_times %>%
   ggtitle("Optimal\ncompression") +
   theme(
     legend.position="none", 
-    panel.border = element_rect(fill = NA, colour = "black"),
+    panel.border = element_rect(fill = NA, colour = "grey"),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     strip.background = element_blank(),
@@ -442,6 +442,7 @@ opt_v_osc_results %>%
     legend.key.size = unit(.1, "cm"),
     legend.title = element_text(size=8),
     legend.text = element_text(size=8),
+    panel.border = element_rect(fill = NA, colour = "grey"),
     legend.background = element_rect(colour ="black"),
     strip.text.y = element_text(angle = 0), 
     panel.grid.minor = element_blank(),
@@ -602,6 +603,7 @@ p3 <- osc_times %>%
   facet_grid(.~As) +
   theme_classic() +
   theme(legend.position = "none",
+        panel.border = element_rect(fill = NA, colour = "grey"),
         strip.background = element_blank(),
         strip.text.x = element_blank()) +
   ggtitle("Compression\nby oscillation")
@@ -615,7 +617,7 @@ ggsave("figures/lossy_fig8.png", dpi=600)
 ```
 
 # Figure 9 - trade-off (with osc)
-```{r, message=FALSE, fig.width=3.8, fig.height=1.8}
+```{r, message=FALSE, fig.width=3.6, fig.height=1.8}
 vb_results %>% 
   filter(freq == "8", V_osc/V_comp < 5, N == 1) %>% 
   ggplot(aes(x=As, y=variances_pop*ms, color=As*1e9)) +
